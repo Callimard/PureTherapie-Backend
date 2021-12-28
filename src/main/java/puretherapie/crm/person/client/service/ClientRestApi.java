@@ -1,9 +1,6 @@
 package puretherapie.crm.person.client.service;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.person.PersonOrigin;
 import puretherapie.crm.person.PersonOriginRepository;
 import puretherapie.crm.person.client.data.Client;
@@ -13,11 +10,15 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.OffsetDateTime;
 
-@RestController("ClientApi")
+@RestController()
 @RequestMapping("/api/v1/client")
 public class ClientRestApi {
 
-    private PersonOriginRepository personOriginRepository;
+    private final PersonOriginRepository personOriginRepository;
+
+    public ClientRestApi(PersonOriginRepository personOriginRepository) {
+        this.personOriginRepository = personOriginRepository;
+    }
 
     @PersistenceContext
     private EntityManager entityManager;

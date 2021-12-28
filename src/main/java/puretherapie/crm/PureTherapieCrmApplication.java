@@ -1,4 +1,4 @@
-package puretherapie.crm.application;
+package puretherapie.crm;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

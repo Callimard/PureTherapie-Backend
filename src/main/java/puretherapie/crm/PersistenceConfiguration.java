@@ -1,11 +1,12 @@
-package puretherapie.crm.application.configuration;
+package puretherapie.crm;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
-@EnableJpaRepositories(basePackages = "puretherapie.crm.person")
+@EnableJpaRepositories
+@EnableTransactionManagement
 public class PersistenceConfiguration {
-
 
 }

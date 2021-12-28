@@ -1,13 +1,13 @@
-package puretherapie.crm;
+package puretherapie.crm.application;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PuretherapieCrmApplication {
+public class PureTherapieCrmApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PuretherapieCrmApplication.class, args);
+        SpringApplication.run(PureTherapieCrmApplication.class, args);
     }
 
 }

@@ -147,6 +147,8 @@
                 </configuration>
             </plugin>
 
+            <!--sonar cube-->
+
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>

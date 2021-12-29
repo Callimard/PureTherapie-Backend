@@ -1,4 +1,4 @@
-package puretherapie.crm.person.client.service.request;
+package puretherapie.crm.api.v1.client;
 
 import lombok.Builder;
 

@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
 
-import static puretherapie.crm.api.v1.user.UseLogin.API_V1_USER_URL;
+import static puretherapie.crm.api.v1.user.UseLoginController.API_V1_USER_URL;
 
 @RestController
 @RequestMapping(API_V1_USER_URL)
-public class UseLogin {
+public class UseLoginController {
 
     public static final String API_V1_USER_URL = "/api/v1/user";
     public static final String USER_LOGIN = "/login";

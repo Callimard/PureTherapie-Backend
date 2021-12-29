@@ -39,7 +39,7 @@ public class UserAuthenticationProvider implements AuthenticationProvider {
             return new UsernamePasswordAuthenticationToken(authentication.getName(), authentication.getCredentials().toString(),
                                                            user.getAuthorities());
         } catch (UsernameNotFoundException e) {
-            throw new UsernameNotFoundException("Authentication failed for " + username);
+            throw new BadCredentialsException("Authentication failed for " + username);
         }
     }
 

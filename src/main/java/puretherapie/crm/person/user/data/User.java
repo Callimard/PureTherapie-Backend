@@ -70,7 +70,7 @@ public class User extends Person implements UserDetails {
     public enum UserRole {
         BOSS(0), MAMY(1), SECRETARY(2), TECHNICIAN(3), OTHER(4);
 
-        private int level;
+        private final int level;
 
         UserRole(int level) {
             this.level = level;

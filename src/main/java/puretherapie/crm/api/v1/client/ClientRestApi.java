@@ -1,4 +1,4 @@
-package puretherapie.crm.person.client.service;
+package puretherapie.crm.api.v1.client;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +13,14 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.OffsetDateTime;
 
-@RestController()
-@RequestMapping("/api/v1/client")
+import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
+import static puretherapie.crm.api.v1.client.ClientRestApi.API_V1_CLIENT_URL;
+
+@RestController
+@RequestMapping(API_V1_CLIENT_URL)
 public class ClientRestApi {
+
+    public static final String API_V1_CLIENT_URL = API_V1_URL + "/client";
 
     private final PersonOriginRepository personOriginRepository;
 
@@ -59,6 +64,7 @@ public class ClientRestApi {
 
     @PutMapping
     public ResponseEntity<String> clientUpdate(@RequestParam(name = "idClient") long idClient, @RequestBody ClientInformation clientInformation) {
+
         PersonOrigin personOrigin = null;
         if (clientInformation.origin() != null)
             personOrigin = personOriginRepository.findByType(clientInformation.origin());
@@ -101,6 +107,11 @@ public class ClientRestApi {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).header("Content-Type", "application/json")
                     .body(error);
         }
+    }
+
+    @GetMapping
+    public String getClient() {
+        return "Call getClient";
     }
 
 }

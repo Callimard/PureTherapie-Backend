@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
 
+import static puretherapie.crm.api.v1.ApiV1.generateOkJsonResponse;
 import static puretherapie.crm.api.v1.user.UseLoginController.API_V1_USER_URL;
 
 @RestController
@@ -19,28 +20,25 @@ public class UseLoginController {
 
     @PostMapping(USER_LOGIN)
     public ResponseEntity<String> login() {
-        String successLogin = """
-                    {
-                        "message":"Login success"
-                    }
-                """;
-        return ResponseEntity.ok()
-                .header("Content-Type", "application/json")
-                .body(successLogin);
+        return generateOkJsonResponse("""
+                                            {
+                                                "message":"Login success"
+                                            }
+                                        """);
     }
 
     @PostMapping(USER_LOGOUT)
     public ResponseEntity<String> logout(HttpSession session) {
+        invalidateSession(session);
+        return generateOkJsonResponse("""
+                                            {
+                                                "message":"logout success"
+                                            }
+                                        """);
+    }
+
+    private void invalidateSession(HttpSession session) {
         if (session != null)
             session.invalidate();
-
-        String successLogin = """
-                    {
-                        "message":"logout success"
-                    }
-                """;
-        return ResponseEntity.ok()
-                .header("Content-Type", "application/json")
-                .body(successLogin);
     }
 }

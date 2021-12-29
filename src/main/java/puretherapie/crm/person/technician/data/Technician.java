@@ -6,14 +6,17 @@ import puretherapie.crm.person.PersonOrigin;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.sql.Date;
 import java.time.OffsetDateTime;
 
 @Getter
 @Setter
+@ToString(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "Technician")
 @DiscriminatorValue("T")
 public class Technician extends Person {
 

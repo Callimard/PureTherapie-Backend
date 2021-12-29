@@ -11,8 +11,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import puretherapie.crm.person.user.data.User;
 
-import static puretherapie.crm.api.v1.client.ClientRestApi.API_V1_CLIENT_URL;
-import static puretherapie.crm.api.v1.user.UserResApi.API_V1_USER_URL;
+import static puretherapie.crm.api.v1.client.ClientManager.API_V1_CLIENT_URL;
+import static puretherapie.crm.api.v1.user.UseLogin.API_V1_USER_URL;
 
 @Configuration
 @EnableWebSecurity
@@ -28,7 +28,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .httpBasic()
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST, API_V1_USER_URL).authenticated()
+                .antMatchers(HttpMethod.POST, API_V1_USER_URL + "/**").authenticated()
                 .antMatchers(HttpMethod.POST, API_V1_CLIENT_URL + "/registration").permitAll()
                 .antMatchers(HttpMethod.PUT, API_V1_CLIENT_URL).hasRole(String.valueOf(User.UserRole.BOSS.getLevel()))
                 .antMatchers(HttpMethod.GET, API_V1_CLIENT_URL).hasRole(String.valueOf(User.UserRole.BOSS.getLevel()))

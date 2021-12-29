@@ -14,11 +14,11 @@ import javax.persistence.PersistenceContext;
 import java.time.OffsetDateTime;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
-import static puretherapie.crm.api.v1.client.ClientRestApi.API_V1_CLIENT_URL;
+import static puretherapie.crm.api.v1.client.ClientManager.API_V1_CLIENT_URL;
 
 @RestController
 @RequestMapping(API_V1_CLIENT_URL)
-public class ClientRestApi {
+public class ClientManager {
 
     public static final String API_V1_CLIENT_URL = API_V1_URL + "/client";
 
@@ -26,7 +26,7 @@ public class ClientRestApi {
 
     private final ClientRepository clientRepository;
 
-    public ClientRestApi(PersonOriginRepository personOriginRepository, ClientRepository clientRepository) {
+    public ClientManager(PersonOriginRepository personOriginRepository, ClientRepository clientRepository) {
         this.personOriginRepository = personOriginRepository;
         this.clientRepository = clientRepository;
     }

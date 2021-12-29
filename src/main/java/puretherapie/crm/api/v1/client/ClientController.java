@@ -8,19 +8,18 @@ import puretherapie.crm.person.PersonOrigin;
 import puretherapie.crm.person.PersonOriginRepository;
 import puretherapie.crm.person.client.data.Client;
 import puretherapie.crm.person.client.data.ClientRepository;
-import puretherapie.crm.person.client.service.request.ClientInformation;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.OffsetDateTime;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
-import static puretherapie.crm.api.v1.client.ClientManager.API_V1_CLIENT_URL;
+import static puretherapie.crm.api.v1.client.ClientController.API_V1_CLIENT_URL;
 
 @Slf4j
 @RestController
 @RequestMapping(API_V1_CLIENT_URL)
-public class ClientManager {
+public class ClientController {
 
     public static final String API_V1_CLIENT_URL = API_V1_URL + "/client";
 
@@ -28,7 +27,7 @@ public class ClientManager {
 
     private final ClientRepository clientRepository;
 
-    public ClientManager(PersonOriginRepository personOriginRepository, ClientRepository clientRepository) {
+    public ClientController(PersonOriginRepository personOriginRepository, ClientRepository clientRepository) {
         this.personOriginRepository = personOriginRepository;
         this.clientRepository = clientRepository;
     }

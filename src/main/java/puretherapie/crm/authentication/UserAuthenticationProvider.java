@@ -1,0 +1,50 @@
+package puretherapie.crm.authentication;
+
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
+
+@Component
+public class UserAuthenticationProvider implements AuthenticationProvider {
+
+    // Variables.
+
+    private final SecurityUserService securityUserService;
+
+    // Constructors.
+
+    public UserAuthenticationProvider(SecurityUserService securityUserService) {
+        this.securityUserService = securityUserService;
+    }
+
+    // Methods.
+
+    @Override
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        String username = authentication.getName();
+        String password = authentication.getCredentials().toString();
+
+        UserDetails user;
+        try {
+            user = securityUserService.loadUserByUsername(username);
+
+            if (!user.getPassword().equals(password))
+                throw new BadCredentialsException("Authentication failed for " + username);
+
+            return new UsernamePasswordAuthenticationToken(authentication.getName(), authentication.getCredentials().toString(),
+                                                           user.getAuthorities());
+        } catch (UsernameNotFoundException e) {
+            throw new UsernameNotFoundException("Authentication failed for " + username);
+        }
+    }
+
+    @Override
+    public boolean supports(Class<?> authentication) {
+        return authentication.equals(UsernamePasswordAuthenticationToken.class);
+    }
+}

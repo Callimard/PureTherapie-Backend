@@ -1,5 +1,6 @@
-package puretherapie.crm.person.client.service;
+package puretherapie.crm.api.v1.client;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,15 +14,21 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.OffsetDateTime;
 
-@RestController()
-@RequestMapping("/api/v1/client")
-public class ClientRestApi {
+import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
+import static puretherapie.crm.api.v1.client.ClientManager.API_V1_CLIENT_URL;
+
+@Slf4j
+@RestController
+@RequestMapping(API_V1_CLIENT_URL)
+public class ClientManager {
+
+    public static final String API_V1_CLIENT_URL = API_V1_URL + "/client";
 
     private final PersonOriginRepository personOriginRepository;
 
     private final ClientRepository clientRepository;
 
-    public ClientRestApi(PersonOriginRepository personOriginRepository, ClientRepository clientRepository) {
+    public ClientManager(PersonOriginRepository personOriginRepository, ClientRepository clientRepository) {
         this.personOriginRepository = personOriginRepository;
         this.clientRepository = clientRepository;
     }
@@ -35,7 +42,7 @@ public class ClientRestApi {
         if (clientInformation.origin() != null)
             personOrigin = personOriginRepository.findByType(clientInformation.origin());
 
-        System.out.println("PersonOrigin find = " + personOrigin);
+        log.error("PersonOrigin find = " + personOrigin);
 
         Client c = Client.builder().photo(clientInformation.photo())
                 .comment(clientInformation.comment())
@@ -49,25 +56,26 @@ public class ClientRestApi {
                 .creationDate(OffsetDateTime.now())
                 .personOrigin(personOrigin).build();
 
-        System.out.println("Client add in the DB => " + c);
+        log.error("Client add in the DB => " + c);
 
 
         Client update = clientRepository.save(c);
 
-        System.out.println("Client update = " + update);
+        log.error("Client update = " + update);
     }
 
     @PutMapping
     public ResponseEntity<String> clientUpdate(@RequestParam(name = "idClient") long idClient, @RequestBody ClientInformation clientInformation) {
+
         PersonOrigin personOrigin = null;
         if (clientInformation.origin() != null)
             personOrigin = personOriginRepository.findByType(clientInformation.origin());
 
-        System.out.println("PersonOrigin find = " + personOrigin);
+        log.error("PersonOrigin find = " + personOrigin);
 
         Client toUpdate = clientRepository.findByIdPerson(idClient);
 
-        System.out.println("Client to update = " + toUpdate);
+        log.error("Client to update = " + toUpdate);
 
         if (toUpdate != null) {
             toUpdate.setPhoto(clientInformation.photo());
@@ -81,7 +89,7 @@ public class ClientRestApi {
             toUpdate.setPhone((clientInformation.phone()));
             toUpdate.setPersonOrigin(personOrigin);
 
-            System.out.println("New client = " + toUpdate);
+            log.error("New client = " + toUpdate);
 
             clientRepository.save(toUpdate);
 
@@ -101,6 +109,11 @@ public class ClientRestApi {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).header("Content-Type", "application/json")
                     .body(error);
         }
+    }
+
+    @GetMapping
+    public String getClient() {
+        return "Call getClient";
     }
 
 }

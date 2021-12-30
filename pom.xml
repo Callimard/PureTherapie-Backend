@@ -182,7 +182,7 @@
                                 <rule>
                                     <limits>
                                         <limit>
-                                            <minimum>0.9</minimum>
+                                            <minimum>0.05</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

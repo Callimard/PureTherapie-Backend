@@ -1,5 +1,6 @@
 package puretherapie.crm.authentication;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class UserAuthenticationProvider implements AuthenticationProvider {
 
@@ -32,7 +34,6 @@ public class UserAuthenticationProvider implements AuthenticationProvider {
         UserDetails user;
         try {
             user = securityUserService.loadUserByUsername(username);
-
             if (!user.getPassword().equals(password))
                 throw new BadCredentialsException("Authentication failed for " + username);
 

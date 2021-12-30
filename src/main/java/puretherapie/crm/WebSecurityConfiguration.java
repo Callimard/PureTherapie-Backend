@@ -9,10 +9,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 import puretherapie.crm.person.user.data.User;
 
 import static puretherapie.crm.api.v1.client.ClientController.API_V1_CLIENT_URL;
+import static puretherapie.crm.api.v1.csrf.CsrfController.API_V1_CSRF_URL;
 import static puretherapie.crm.api.v1.user.UseLoginController.API_V1_USER_URL;
 
 @Configuration
@@ -34,8 +35,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     private void configureCsrf(HttpSecurity http) throws Exception {
-        http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers(API_V1_USER_URL + "/**");
+        http.csrf().disable();
     }
 
     private void configureSession(HttpSecurity http) throws Exception {
@@ -47,16 +47,34 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
+        configureExceptionHandling(http);
+        configureCsrfRequestAuthorization(http);
+        configureUserLoginRequestAuthorization(http);
+        configureClientRequestAuthorization(http);
+        http.authorizeRequests().anyRequest().authenticated();
+    }
+
+    private void configureCsrfRequestAuthorization(HttpSecurity http) throws Exception {
+        http.authorizeRequests().antMatchers(HttpMethod.GET, API_V1_CSRF_URL).permitAll();
+    }
+
+    private void configureUserLoginRequestAuthorization(HttpSecurity http) throws Exception {
+        http.authorizeRequests().antMatchers(HttpMethod.POST, API_V1_USER_URL + "/**").authenticated();
+    }
+
+    private void configureClientRequestAuthorization(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers(HttpMethod.POST, API_V1_USER_URL + "/**").authenticated()
                 .antMatchers(HttpMethod.PUT, API_V1_CLIENT_URL).hasRole(String.valueOf(User.UserRole.BOSS.getLevel()))
-                .antMatchers(HttpMethod.GET, API_V1_CLIENT_URL).hasRole(String.valueOf(User.UserRole.BOSS.getLevel()))
-                .anyRequest().authenticated();
+                .antMatchers(HttpMethod.GET, API_V1_CLIENT_URL).hasRole(String.valueOf(User.UserRole.BOSS.getLevel()));
     }
 
     private void configureLoginLogout(HttpSecurity http) throws Exception {
         http.formLogin().disable()
                 .logout().disable();
+    }
+
+    private void configureExceptionHandling(HttpSecurity http) throws Exception {
+        http.exceptionHandling().authenticationEntryPoint(new CustomAuthenticationEntryPoint());
     }
 
     @Bean

@@ -8,7 +8,6 @@ import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 

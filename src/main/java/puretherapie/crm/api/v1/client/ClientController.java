@@ -4,10 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import puretherapie.crm.person.PersonOrigin;
-import puretherapie.crm.person.PersonOriginRepository;
-import puretherapie.crm.person.client.data.Client;
-import puretherapie.crm.person.client.data.ClientRepository;
+import puretherapie.crm.data.person.PersonOrigin;
+import puretherapie.crm.data.person.PersonOriginRepository;
+import puretherapie.crm.data.person.client.Client;
+import puretherapie.crm.data.person.client.ClientRepository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;

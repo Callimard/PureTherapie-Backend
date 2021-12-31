@@ -10,7 +10,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
-import puretherapie.crm.person.user.data.User;
+import puretherapie.crm.data.person.user.User;
 
 import static puretherapie.crm.api.v1.client.ClientController.API_V1_CLIENT_URL;
 import static puretherapie.crm.api.v1.csrf.CsrfController.API_V1_CSRF_URL;

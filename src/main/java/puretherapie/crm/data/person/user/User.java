@@ -1,16 +1,18 @@
-package puretherapie.crm.person.user.data;
+package puretherapie.crm.data.person.user;
 
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import puretherapie.crm.person.Person;
-import puretherapie.crm.person.PersonOrigin;
+import puretherapie.crm.data.person.Person;
+import puretherapie.crm.data.person.PersonOrigin;
 
+import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,14 +28,17 @@ import java.util.List;
 @DiscriminatorValue("U")
 public class User extends Person implements UserDetails {
 
+    @Column(name = "username", nullable = false)
     private String username;
 
+    @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "role", nullable = false)
     private byte role;
 
     @Builder
-    public User(Long idPerson, String firstName, String lastName, String mail, boolean gender, Date birthday, String phone,
+    public User(Long idPerson, String firstName, String lastName, String mail, boolean gender, LocalDate birthday, String phone,
                 OffsetDateTime creationDate, PersonOrigin personOrigin, String username, String password) {
         super(idPerson, firstName, lastName, mail, gender, birthday, phone, creationDate, personOrigin);
         this.username = username;

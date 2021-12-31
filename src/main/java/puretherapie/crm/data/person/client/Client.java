@@ -1,13 +1,15 @@
-package puretherapie.crm.person.client.data;
+package puretherapie.crm.data.person.client;
 
 import lombok.*;
-import puretherapie.crm.person.Person;
-import puretherapie.crm.person.PersonOrigin;
+import puretherapie.crm.data.person.Person;
+import puretherapie.crm.data.person.PersonOrigin;
 
+import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -20,14 +22,17 @@ import java.time.OffsetDateTime;
 @DiscriminatorValue("C")
 public class Client extends Person {
 
+    @Column(name = "photo")
     private String photo;
 
+    @Column(name = "comment")
     private String comment;
 
+    @Column(name = "technicalComment")
     private String technicalComment;
 
     @Builder
-    public Client(Long idPerson, String firstName, String lastName, String mail, boolean gender, Date birthday, String phone,
+    public Client(Long idPerson, String firstName, String lastName, String mail, boolean gender, LocalDate birthday, String phone,
                   OffsetDateTime creationDate, PersonOrigin personOrigin, String photo, String comment, String technicalComment) {
         super(idPerson, firstName, lastName, mail, gender, birthday, phone, creationDate, personOrigin);
         this.photo = photo;

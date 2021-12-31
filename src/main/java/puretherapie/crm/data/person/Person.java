@@ -1,9 +1,9 @@
-package puretherapie.crm.person;
+package puretherapie.crm.data.person;
 
 import lombok.*;
 
 import javax.persistence.*;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -22,21 +22,28 @@ public abstract class Person {
     @Column(name = "idPerson", nullable = false)
     private Long idPerson;
 
+    @Column(name = "firstName", nullable = false)
     private String firstName;
 
+    @Column(name = "lastName", nullable = false)
     private String lastName;
 
+    @Column(name = "mail", nullable = false)
     private String mail;
 
+    @Column(name = "gender", nullable = false)
     private boolean gender;
 
-    private Date birthday;
+    @Column(name = "birthday")
+    private LocalDate birthday;
 
+    @Column(name = "phone", nullable = false)
     private String phone;
 
+    @Column(name = "creationDate", nullable = false)
     private OffsetDateTime creationDate;
 
     @ManyToOne
-    @JoinColumn(name = "idPersonOrigin")
+    @JoinColumn(name = "idPersonOrigin", nullable = false)
     private PersonOrigin personOrigin;
 }

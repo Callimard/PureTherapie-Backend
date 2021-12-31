@@ -1,9 +1,10 @@
-package puretherapie.crm.person;
+package puretherapie.crm.data.person;
 
 import lombok.*;
 
 import javax.persistence.*;
 
+@Builder
 @Getter
 @Setter
 @ToString
@@ -20,5 +21,6 @@ public class PersonOrigin {
     @Column(name = "idPersonOrigin", nullable = false)
     private Long idPersonOrigin;
 
+    @Column(name = "type", nullable = false)
     private String type;
 }

@@ -14,6 +14,10 @@ import javax.persistence.*;
 @Table(name = "PersonOrigin")
 public class PersonOrigin {
 
+    // Constants.
+
+    public static final String NONE_TYPE = "None";
+
     // Variables.
 
     @Id

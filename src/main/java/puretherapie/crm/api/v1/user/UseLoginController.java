@@ -14,7 +14,7 @@ import static puretherapie.crm.api.v1.user.UseLoginController.API_V1_USER_URL;
 @RequestMapping(API_V1_USER_URL)
 public class UseLoginController {
 
-    public static final String API_V1_USER_URL = "/api/v1/user";
+    public static final String API_V1_USER_URL = "/api/v1/users";
     public static final String USER_LOGIN = "/login";
     public static final String USER_LOGOUT = "/logout";
 

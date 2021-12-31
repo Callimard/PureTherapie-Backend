@@ -2,7 +2,6 @@ package puretherapie.crm;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -10,11 +9,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
-import puretherapie.crm.data.person.user.User;
-
-import static puretherapie.crm.api.v1.client.ClientController.API_V1_CLIENT_URL;
-import static puretherapie.crm.api.v1.csrf.CsrfController.API_V1_CSRF_URL;
-import static puretherapie.crm.api.v1.user.UseLoginController.API_V1_USER_URL;
 
 @Configuration
 @EnableWebSecurity
@@ -48,24 +42,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
         configureExceptionHandling(http);
-        configureCsrfRequestAuthorization(http);
-        configureUserLoginRequestAuthorization(http);
-        configureClientRequestAuthorization(http);
         http.authorizeRequests().anyRequest().authenticated();
-    }
-
-    private void configureCsrfRequestAuthorization(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers(HttpMethod.GET, API_V1_CSRF_URL).permitAll();
-    }
-
-    private void configureUserLoginRequestAuthorization(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers(HttpMethod.POST, API_V1_USER_URL + "/**").authenticated();
-    }
-
-    private void configureClientRequestAuthorization(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .antMatchers(HttpMethod.PUT, API_V1_CLIENT_URL).hasRole(String.valueOf(User.UserRole.BOSS.getLevel()))
-                .antMatchers(HttpMethod.GET, API_V1_CLIENT_URL).hasRole(String.valueOf(User.UserRole.BOSS.getLevel()));
     }
 
     private void configureLoginLogout(HttpSecurity http) throws Exception {

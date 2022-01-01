@@ -11,11 +11,12 @@ import puretherapie.crm.tool.PhoneTool;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import static puretherapie.crm.data.person.Person.*;
 import static puretherapie.crm.data.person.PersonOrigin.NONE_TYPE;
-import static puretherapie.crm.data.person.client.Client.COMMENT_MAX_LENGTH;
-import static puretherapie.crm.data.person.client.Client.NO_PHOTO;
+import static puretherapie.crm.data.person.client.Client.*;
 import static puretherapie.crm.tool.MailTool.isValidMail;
 import static puretherapie.crm.tool.PhoneTool.formatPhone;
 
@@ -25,6 +26,18 @@ import static puretherapie.crm.tool.PhoneTool.formatPhone;
 @Setter
 @AllArgsConstructor
 public class ClientInformation {
+
+    // Verification fields.
+
+    public static final String PHOTO_FIELD = "photo";
+    public static final String COMMENT_FIELD = "comment";
+    public static final String TECHNICAL_COMMENT_FIELD = "technicalComment";
+    public static final String FIRST_NAME_FIELD = "firstName";
+    public static final String LAST_NAME_FIELD = "lastName";
+    public static final String MAIL_FIELD = "mail";
+    public static final String PHONE_FIELD = "phone";
+
+    // Variables.
 
     private String photo;
     private String comment;
@@ -37,54 +50,57 @@ public class ClientInformation {
     private String phone;
     private long idOrigin;
 
-    public void verify()
-            throws ClientPhotoException, ClientCommentException, ClientTechnicalCommentException, ClientFirstNameException, ClientLastNameException,
-                   ClientMailException, ClientPhoneException {
-        verifyPhoto();
-        verifyComment();
-        verifyTechnicalComment();
-        verifyFirstName();
-        verifyLastName();
-        verifyMail();
-        verifyPhoneNumber();
+    public void verify() throws ClientInformationVerificationException {
+        Map<String, String> error = new HashMap<>();
+
+        verifyPhoto(error);
+        verifyComment(error);
+        verifyTechnicalComment(error);
+        verifyFirstName(error);
+        verifyLastName(error);
+        verifyMail(error);
+        verifyPhoneNumber(error);
+
+        if (!error.isEmpty())
+            throw new ClientInformationVerificationException(error);
     }
 
-    private void verifyComment() throws ClientCommentException {
+    private void verifyComment(Map<String, String> error) {
         if (comment != null && comment.length() > COMMENT_MAX_LENGTH)
-            throw new ClientCommentException("ClientComment too long (max length " + COMMENT_MAX_LENGTH + ")");
+            error.put(COMMENT_FIELD, "Client comment too long (max length " + COMMENT_MAX_LENGTH + ")");
     }
 
-    private void verifyTechnicalComment() throws ClientTechnicalCommentException {
+    private void verifyTechnicalComment(Map<String, String> error) {
         if (technicalComment != null && technicalComment.length() > COMMENT_MAX_LENGTH)
-            throw new ClientTechnicalCommentException("ClientTechnicalComment too long (max length " + COMMENT_MAX_LENGTH + ")");
+            error.put(TECHNICAL_COMMENT_FIELD, "Client technical comment too long (max length " + COMMENT_MAX_LENGTH + ")");
     }
 
-    private void verifyPhoto() throws ClientPhotoException {
+    private void verifyPhoto(Map<String, String> error) {
         if (photo != null && photo.isBlank())
             photo = NO_PHOTO;
 
         if (photo != null && photo.length() > PHONE_MAX_LENGTH)
-            throw new ClientPhotoException();
+            error.put(PHOTO_FIELD, "Photo path length too long (max length " + PHOTO_MAX_LENGTH + ")");
 
         // Nothing more for the moment (Maybe verify if the file exists)
     }
 
-    private void verifyFirstName() throws ClientFirstNameException {
+    private void verifyFirstName(Map<String, String> error) {
         if (firstName == null || firstName.isBlank() || doesNotMatchNameRegex(firstName, FIRST_NAME_MAX_LENGTH))
-            throw new ClientFirstNameException("ClientFirstName wring format");
+            error.put(FIRST_NAME_FIELD, "Client first name wrong format");
     }
 
-    private void verifyLastName() throws ClientLastNameException {
+    private void verifyLastName(Map<String, String> error) {
         if (lastName == null || lastName.isBlank() || doesNotMatchNameRegex(lastName, LAST_NAME_MAX_LENGTH))
-            throw new ClientLastNameException("ClientFirstName wring format");
+            error.put(LAST_NAME_FIELD, "Client last name wrong format");
     }
 
-    private void verifyMail() throws ClientMailException {
+    private void verifyMail(Map<String, String> error) {
         if (mail == null || mail.isBlank() || mail.length() > MAIL_MAX_LENGTH || !isValidMail(mail))
-            throw new ClientMailException("ClientMail wrong format");
+            error.put(MAIL_FIELD, "Client mail wrong format");
     }
 
-    private void verifyPhoneNumber() throws ClientPhoneException {
+    private void verifyPhoneNumber(Map<String, String> error) {
         if (phone == null || phone.isBlank()) {
             phone = NO_PHONE;
             return;
@@ -92,15 +108,15 @@ public class ClientInformation {
 
         try {
             if (phone.length() > PHONE_MAX_LENGTH)
-                throw new ClientPhoneException("ClientPhone too long length (max " + PHONE_MAX_LENGTH + ")");
+                error.put(PHONE_FIELD, "Client phone too long length (max " + PHONE_MAX_LENGTH + ")");
 
             phone = formatPhone(phone);
         } catch (PhoneTool.FailToFormatPhoneNumber e) {
-            throw new ClientPhoneException("ClientPhone wrong format");
+            error.put(PHONE_FIELD, "Client phone wrong format");
         } catch (PhoneTool.UnSupportedPhoneNumberException e) {
-            throw new ClientPhoneException("ClientPhone country unsupported");
+            error.put(PHONE_FIELD, "Client phone country unsupported");
         } catch (PhoneTool.NotPhoneNumberException e) {
-            throw new ClientPhoneException("ClientPhone not a phone number");
+            error.put(PHONE_FIELD, "Client phone not a phone number");
         }
     }
 
@@ -137,43 +153,17 @@ public class ClientInformation {
 
     // Exceptions.
 
-    public static class ClientPhoneException extends Exception {
-        public ClientPhoneException(String message) {
-            super(message);
+    public static class ClientInformationVerificationException extends Exception {
+
+        private final Map<String, String> error;
+
+        public ClientInformationVerificationException(Map<String, String> error) {
+            super();
+            this.error = error;
+        }
+
+        public Map<String, String> getError() {
+            return error;
         }
     }
-
-    public static class ClientMailException extends Exception {
-        public ClientMailException(String message) {
-            super(message);
-        }
-    }
-
-    public static class ClientFirstNameException extends Exception {
-        public ClientFirstNameException(String message) {
-            super(message);
-        }
-    }
-
-    public static class ClientLastNameException extends Exception {
-        public ClientLastNameException(String message) {
-            super(message);
-        }
-    }
-
-    public static class ClientPhotoException extends Exception {
-    }
-
-    public static class ClientCommentException extends Exception {
-        public ClientCommentException(String message) {
-            super(message);
-        }
-    }
-
-    public static class ClientTechnicalCommentException extends Exception {
-        public ClientTechnicalCommentException(String message) {
-            super(message);
-        }
-    }
-
 }

@@ -1,6 +1,8 @@
 package puretherapie.crm.api.v1.client;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +13,8 @@ import puretherapie.crm.data.person.client.ClientRepository;
 
 import javax.annotation.security.PermitAll;
 import javax.transaction.Transactional;
+import java.util.Collections;
+import java.util.Map;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.client.ClientController.API_V1_CLIENT_URL;
@@ -41,36 +45,24 @@ public class ClientController {
     @PostMapping
     @PermitAll
     @Transactional
-    public void clientRegistration(@RequestBody ClientInformation clientInformation) {
+    public ResponseEntity<Map<String, String>> clientRegistration(@RequestBody ClientInformation clientInformation) {
         Client c;
         try {
             c = createClient(clientInformation);
-            log.error("Client add in the DB => " + c);
-            Client update = clientRepository.save(c);
-            log.error("Client update = " + update);
-        } catch (ClientInformation.ClientPhotoException e) {
-            // TODO Manage ResponseEntity
-            e.printStackTrace();
-        } catch (ClientInformation.ClientLastNameException e) {
-            e.printStackTrace();
-        } catch (ClientInformation.ClientTechnicalCommentException e) {
-            e.printStackTrace();
-        } catch (ClientInformation.ClientMailException e) {
-            e.printStackTrace();
-        } catch (ClientInformation.ClientPhoneException e) {
-            e.printStackTrace();
-        } catch (ClientInformation.ClientCommentException e) {
-            e.printStackTrace();
-        } catch (ClientInformation.ClientFirstNameException e) {
-            e.printStackTrace();
+        } catch (ClientInformation.ClientInformationVerificationException e) {
+            Map<String, String> error = e.getError();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
+
+        clientRepository.save(c);
+
+        // TODO Verify client doubloon
+        // TODO Add notification creation
+
+        return ResponseEntity.ok(Collections.emptyMap());
     }
 
-    private Client createClient(ClientInformation clientInformation)
-            throws ClientInformation.ClientPhotoException, ClientInformation.ClientLastNameException,
-                   ClientInformation.ClientTechnicalCommentException, ClientInformation.ClientMailException, ClientInformation.ClientPhoneException,
-                   ClientInformation.ClientCommentException, ClientInformation.ClientFirstNameException {
-
+    private Client createClient(ClientInformation clientInformation) throws ClientInformation.ClientInformationVerificationException {
         clientInformation.verify();
         return clientInformation.buildClient(personOriginRepository);
     }

@@ -1,7 +1,10 @@
 package puretherapie.crm;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -12,6 +15,7 @@ import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
@@ -42,7 +46,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
         configureExceptionHandling(http);
-        http.authorizeRequests().anyRequest().authenticated();
     }
 
     private void configureLoginLogout(HttpSecurity http) throws Exception {

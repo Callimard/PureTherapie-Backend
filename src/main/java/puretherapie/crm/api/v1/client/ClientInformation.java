@@ -1,9 +1,6 @@
 package puretherapie.crm.api.v1.client;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.PersonOriginRepository;
 import puretherapie.crm.data.person.client.Client;
@@ -24,6 +21,7 @@ import static puretherapie.crm.tool.PhoneTool.formatPhone;
 @Builder
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 public class ClientInformation {
 
@@ -142,6 +140,7 @@ public class ClientInformation {
     }
 
     private PersonOrigin getPersonOrigin(PersonOriginRepository personOriginRepository) {
+        // TODO Does not work
         PersonOrigin personOrigin;
         return (personOrigin = personOriginRepository.findByIdPersonOrigin(getIdOrigin())) == null ? noneOrigin(personOriginRepository) :
                 personOrigin;

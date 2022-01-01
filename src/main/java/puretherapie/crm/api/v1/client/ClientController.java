@@ -46,15 +46,18 @@ public class ClientController {
     @PermitAll
     @Transactional
     public ResponseEntity<Map<String, String>> clientRegistration(@RequestBody ClientInformation clientInformation) {
+        log.debug("In client registration with ClientInformation = " + clientInformation);
         Client c;
         try {
             c = createClient(clientInformation);
         } catch (ClientInformation.ClientInformationVerificationException e) {
             Map<String, String> error = e.getError();
+            log.debug("Exception during client information verification. Error = " + error);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
 
-        clientRepository.save(c);
+        Client saved = clientRepository.save(c);
+        log.debug("Success to register the client " + saved);
 
         // TODO Verify client doubloon
         // TODO Add notification creation

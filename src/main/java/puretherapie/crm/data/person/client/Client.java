@@ -21,6 +21,16 @@ import java.time.OffsetDateTime;
 @DiscriminatorValue("C")
 public class Client extends Person {
 
+    // Constants.
+
+    public static final String NO_PHOTO = "NO_PHOTO";
+
+    public static final int PHOTO_MAX_LENGTH = 255;
+    public static final int COMMENT_MAX_LENGTH = 255;
+    public static final int TECHNICAL_COMMENT_MAX_LENGTH = 255;
+
+    // Variables.
+
     @Column(name = "photo")
     private String photo;
 

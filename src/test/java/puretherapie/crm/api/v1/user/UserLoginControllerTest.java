@@ -47,7 +47,7 @@ class UserLoginControllerTest {
         @DisplayName("Test user login with no Authorization header")
         void testUserLoginWithoutAuthorization() throws Exception {
             mockMvc.perform(post(API_V1_USER_URL + USER_LOGIN)
-                                    .contentType(JSON_CONTENT_TYPE)).andExpect(status().isInternalServerError());
+                                    .contentType(JSON_CONTENT_TYPE)).andExpect(status().isUnauthorized());
         }
 
         @Test
@@ -90,7 +90,7 @@ class UserLoginControllerTest {
         @DisplayName("Test user logout with no Authorization header")
         void testUserLogoutWithNotAuthorizationHeader() throws Exception {
             mockMvc.perform(post(API_V1_USER_URL + USER_LOGOUT)
-                                    .contentType(JSON_CONTENT_TYPE)).andExpect(status().isInternalServerError());
+                                    .contentType(JSON_CONTENT_TYPE)).andExpect(status().isUnauthorized());
         }
 
         @Test

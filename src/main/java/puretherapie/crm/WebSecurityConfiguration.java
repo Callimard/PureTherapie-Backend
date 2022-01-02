@@ -1,9 +1,8 @@
 package puretherapie.crm;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -12,6 +11,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
+
+import static puretherapie.crm.api.v1.client.ClientController.API_V1_CLIENT_URL;
+import static puretherapie.crm.api.v1.user.UseLoginController.*;
 
 @Configuration
 @EnableWebSecurity
@@ -26,6 +28,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         configureSession(http);
         configureHttpBasic(http);
         configureLoginLogout(http);
+        configureExceptionHandling(http);
     }
 
     private void configureCors(HttpSecurity http) throws Exception {
@@ -45,7 +48,13 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
-        configureExceptionHandling(http);
+        http.anonymous()
+                .and()
+                .authorizeRequests()
+                .antMatchers(HttpMethod.POST, API_V1_CLIENT_URL).permitAll()
+                .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGIN).authenticated()
+                .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGOUT).authenticated()
+                .anyRequest().authenticated();
     }
 
     private void configureLoginLogout(HttpSecurity http) throws Exception {

@@ -38,6 +38,11 @@ public abstract class Person {
     public static final String CREATION_DATE_FIELD = "creationDate";
     public static final String ID_PERSON_ORIGIN_FIELD = "idPersonOrigin";
 
+    // Constraints.
+
+    public static final String UNIQUE_EMAIL_CONSTRAINTS = "uq_email";
+    public static final String UNIQUE_PHONE_CONSTRAINTS = "uq_phone";
+
     // Variables.
 
     @Id

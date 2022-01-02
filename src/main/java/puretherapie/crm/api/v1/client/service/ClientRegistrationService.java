@@ -1,53 +1,38 @@
-package puretherapie.crm.api.v1.client;
+package puretherapie.crm.api.v1.client.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
+import puretherapie.crm.api.v1.client.ClientInformation;
 import puretherapie.crm.data.person.PersonOriginRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.ClientRepository;
 
 import java.util.*;
 
-import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
-import static puretherapie.crm.api.v1.client.ClientController.API_V1_CLIENT_URL;
-import static puretherapie.crm.data.person.Person.EMAIL_FIELD;
-import static puretherapie.crm.data.person.Person.PHONE_FIELD;
+import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_DOUBLOON_FIELD;
+import static puretherapie.crm.data.person.Person.*;
+import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
+import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
 
 @Slf4j
-@RestController
-@RequestMapping(API_V1_CLIENT_URL)
-public class ClientController {
-
-    // Constants.
-
-    public static final String API_V1_CLIENT_URL = API_V1_URL + "/clients";
-
-    public static final String SUCCESS_FIELD = "success";
-    public static final String ERROR_FIELD = "error";
-    public static final String CLIENT_DOUBLOON_FIELD = "client_doubloon";
+@AllArgsConstructor
+@Service
+public class ClientRegistrationService {
 
     // Variables.
 
     private final PersonOriginRepository personOriginRepository;
     private final ClientRepository clientRepository;
 
-    // Constructors.
-
-    public ClientController(PersonOriginRepository personOriginRepository, ClientRepository clientRepository) {
-        this.personOriginRepository = personOriginRepository;
-        this.clientRepository = clientRepository;
-    }
-
     // Methods.
 
-    @PostMapping
-    public ResponseEntity<Map<String, Object>> clientRegistration(@RequestParam("doubloonVerification") boolean doubloonVerification,
-                                                                  @RequestBody ClientInformation clientInformation) {
-        log.debug("In client registration with ClientInformation = {}", clientInformation);
+    public ResponseEntity<Map<String, Object>> clientRegistration(ClientInformation clientInformation, boolean doubloonVerification) {
+        log.debug("Client registration for ClientInformation = {}", clientInformation);
 
         Map<String, Object> errors = new HashMap<>();
 
@@ -68,6 +53,7 @@ public class ClientController {
             if (!errors.isEmpty())
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap(ERROR_FIELD, errors));
         } else {
+            log.info("Doubloon(s) find for the client {}", clientInformation);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap(CLIENT_DOUBLOON_FIELD, doubloon));
         }
 
@@ -102,7 +88,7 @@ public class ClientController {
     private void trySaveClient(Map<String, Object> errors, Client c) {
         try {
             Client saved = clientRepository.save(c);
-            log.info("Client registration of the client {}", saved);
+            log.info("Client registration success. The new client {}", saved);
         } catch (DataIntegrityViolationException e) {
             treatDataIntegrityViolation(errors, e);
         }
@@ -138,9 +124,9 @@ public class ClientController {
     }
 
     private String extractNotUniqueField(ConstraintViolationException constraintViolation) {
-        if (constraintViolation.getConstraintName().contains(PHONE_FIELD)) {
+        if (constraintViolation.getConstraintName().equals(UNIQUE_PHONE_CONSTRAINTS)) {
             return PHONE_FIELD;
-        } else if (constraintViolation.getConstraintName().contains(EMAIL_FIELD)) {
+        } else if (constraintViolation.getConstraintName().equals(UNIQUE_EMAIL_CONSTRAINTS)) {
             return EMAIL_FIELD;
         } else
             return null;

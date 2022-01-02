@@ -11,8 +11,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 
-import static puretherapie.crm.api.v1.client.ClientController.API_V1_CLIENT_URL;
-import static puretherapie.crm.api.v1.user.UseLoginController.*;
+import static puretherapie.crm.api.v1.client.controller.ClientController.API_V1_CLIENT_URL;
+import static puretherapie.crm.api.v1.user.controller.UseLoginController.*;
 
 @Configuration
 @EnableWebSecurity

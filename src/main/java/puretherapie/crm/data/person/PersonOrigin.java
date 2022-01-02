@@ -23,7 +23,7 @@ public class PersonOrigin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idPersonOrigin", nullable = false)
-    private Long idPersonOrigin;
+    private Integer idPersonOrigin;
 
     @Column(name = "type", nullable = false)
     private String type;

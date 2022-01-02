@@ -258,7 +258,7 @@ class ClientRegistrationServiceTest {
     }
 
     private void prepareGetNonPersonOrigin() {
-        given(mockPersonOriginRepo.getNonePersonOrigin()).willReturn(new PersonOrigin(1L, PersonOrigin.NONE_TYPE));
+        given(mockPersonOriginRepo.getNonePersonOrigin()).willReturn(new PersonOrigin(1, PersonOrigin.NONE_TYPE));
     }
 
     private void prepareNoDoubloonsFind() {

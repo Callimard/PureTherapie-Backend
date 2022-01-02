@@ -8,11 +8,11 @@ import java.util.List;
 import static puretherapie.crm.data.person.PersonOrigin.NONE_TYPE;
 
 @Repository
-public interface PersonOriginRepository extends JpaRepository<PersonOrigin, Long> {
+public interface PersonOriginRepository extends JpaRepository<PersonOrigin, Integer> {
 
     // Methods.
 
-    PersonOrigin findByIdPersonOrigin(Long idPersonOrigin);
+    PersonOrigin findByIdPersonOrigin(Integer idPersonOrigin);
 
     PersonOrigin findByType(String type);
 

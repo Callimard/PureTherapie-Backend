@@ -18,7 +18,7 @@ public class NotificationView {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idNotificationView", nullable = false)
-    private Integer id;
+    private Integer idNotificationView;
 
     @Column(name = "viewed", nullable = false)
     private Integer viewed;

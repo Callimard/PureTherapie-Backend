@@ -48,7 +48,7 @@ public class Client extends Person {
     private String technicalComment;
 
     @Builder
-    public Client(Long idPerson, String firstName, String lastName, String email, boolean gender, LocalDate birthday, String phone,
+    public Client(Integer idPerson, String firstName, String lastName, String email, boolean gender, LocalDate birthday, String phone,
                   OffsetDateTime creationDate, PersonOrigin personOrigin, String photo, String comment, String technicalComment) {
         super(idPerson, firstName, lastName, email, gender, birthday, phone, creationDate, personOrigin);
         this.photo = photo;

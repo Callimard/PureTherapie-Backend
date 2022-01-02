@@ -35,7 +35,7 @@ public class ClientInformation {
     private boolean gender;
     private LocalDate birthday;
     private String phone;
-    private long idOrigin;
+    private int idOrigin;
 
     public void verify() throws ClientInformationVerificationException {
         Map<String, String> error = new HashMap<>();

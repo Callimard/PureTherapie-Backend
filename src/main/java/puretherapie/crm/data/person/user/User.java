@@ -7,11 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import puretherapie.crm.data.person.Person;
 import puretherapie.crm.data.person.PersonOrigin;
 
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import java.sql.Date;
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -34,11 +30,15 @@ public class User extends Person implements UserDetails {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "role", nullable = false)
-    private byte role;
+    @ManyToMany
+    @JoinTable(name = "AssociationUserRole",
+            joinColumns = @JoinColumn(name = "idPerson"),
+            inverseJoinColumns = @JoinColumn(name = "idRole"))
+    @ToString.Exclude
+    private List<Role> roles;
 
     @Builder
-    public User(Long idPerson, String firstName, String lastName, String mail, boolean gender, LocalDate birthday, String phone,
+    public User(Integer idPerson, String firstName, String lastName, String mail, boolean gender, LocalDate birthday, String phone,
                 OffsetDateTime creationDate, PersonOrigin personOrigin, String username, String password) {
         super(idPerson, firstName, lastName, mail, gender, birthday, phone, creationDate, personOrigin);
         this.username = username;
@@ -48,7 +48,8 @@ public class User extends Person implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> list = new ArrayList<>();
-        list.add(new SimpleGrantedAuthority(UserRole.getRole(role).convertToRole()));
+        if (roles != null)
+            roles.forEach(r -> list.add(new SimpleGrantedAuthority(r.getRoleName())));
         return list;
     }
 

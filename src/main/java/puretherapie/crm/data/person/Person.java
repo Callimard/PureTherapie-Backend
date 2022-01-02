@@ -26,35 +26,47 @@ public abstract class Person {
     public static final int MAIL_MAX_LENGTH = 255;
     public static final int PHONE_MAX_LENGTH = 20;
 
+    // Fields.
+
+    public static final String ID_PERSON_FIELD = "idPerson";
+    public static final String FIRST_NAME_FIELD = "firstName";
+    public static final String LAST_NAME_FIELD = "lastName";
+    public static final String EMAIL_FIELD = "email";
+    public static final String GENDER_FIELD = "gender";
+    public static final String BIRTHDAY_FIELD = "birthday";
+    public static final String PHONE_FIELD = "phone";
+    public static final String CREATION_DATE_FIELD = "creationDate";
+    public static final String ID_PERSON_ORIGIN_FIELD = "idPersonOrigin";
+
     // Variables.
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idPerson", nullable = false)
+    @Column(name = ID_PERSON_FIELD, nullable = false)
     private Long idPerson;
 
-    @Column(name = "firstName", nullable = false)
+    @Column(name = FIRST_NAME_FIELD, nullable = false)
     private String firstName;
 
-    @Column(name = "lastName", nullable = false)
+    @Column(name = LAST_NAME_FIELD, nullable = false)
     private String lastName;
 
-    @Column(name = "mail", nullable = false)
-    private String mail;
+    @Column(name = EMAIL_FIELD, nullable = false)
+    private String email;
 
-    @Column(name = "gender", nullable = false)
+    @Column(name = GENDER_FIELD, nullable = false)
     private boolean gender;
 
-    @Column(name = "birthday")
+    @Column(name = BIRTHDAY_FIELD)
     private LocalDate birthday;
 
-    @Column(name = "phone", nullable = false)
+    @Column(name = PHONE_FIELD, nullable = false)
     private String phone;
 
-    @Column(name = "creationDate", nullable = false)
+    @Column(name = CREATION_DATE_FIELD, nullable = false)
     private OffsetDateTime creationDate;
 
     @ManyToOne
-    @JoinColumn(name = "idPersonOrigin", nullable = false)
+    @JoinColumn(name = ID_PERSON_ORIGIN_FIELD, nullable = false)
     private PersonOrigin personOrigin;
 }

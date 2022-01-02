@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static puretherapie.crm.data.person.Person.*;
-import static puretherapie.crm.data.person.PersonOrigin.NONE_TYPE;
 import static puretherapie.crm.data.person.client.Client.*;
 import static puretherapie.crm.tool.MailTool.isValidMail;
 import static puretherapie.crm.tool.PhoneTool.formatPhone;
@@ -25,16 +24,6 @@ import static puretherapie.crm.tool.PhoneTool.formatPhone;
 @AllArgsConstructor
 public class ClientInformation {
 
-    // Verification fields.
-
-    public static final String PHOTO_FIELD = "photo";
-    public static final String COMMENT_FIELD = "comment";
-    public static final String TECHNICAL_COMMENT_FIELD = "technicalComment";
-    public static final String FIRST_NAME_FIELD = "firstName";
-    public static final String LAST_NAME_FIELD = "lastName";
-    public static final String MAIL_FIELD = "mail";
-    public static final String PHONE_FIELD = "phone";
-
     // Variables.
 
     private String photo;
@@ -42,7 +31,7 @@ public class ClientInformation {
     private String technicalComment;
     private String firstName;
     private String lastName;
-    private String mail;
+    private String email;
     private boolean gender;
     private LocalDate birthday;
     private String phone;
@@ -84,18 +73,24 @@ public class ClientInformation {
     }
 
     private void verifyFirstName(Map<String, String> error) {
-        if (firstName == null || firstName.isBlank() || doesNotMatchNameRegex(firstName, FIRST_NAME_MAX_LENGTH))
+        if (firstName == null)
+            error.put(FIRST_NAME_FIELD, "Client first name must not be empty");
+        else if (firstName.isBlank() || doesNotMatchNameRegex(firstName, FIRST_NAME_MAX_LENGTH))
             error.put(FIRST_NAME_FIELD, "Client first name wrong format");
     }
 
     private void verifyLastName(Map<String, String> error) {
-        if (lastName == null || lastName.isBlank() || doesNotMatchNameRegex(lastName, LAST_NAME_MAX_LENGTH))
+        if (lastName == null)
+            error.put(LAST_NAME_FIELD, "Client last name must not be empty");
+        else if (lastName.isBlank() || doesNotMatchNameRegex(lastName, LAST_NAME_MAX_LENGTH))
             error.put(LAST_NAME_FIELD, "Client last name wrong format");
     }
 
     private void verifyMail(Map<String, String> error) {
-        if (mail == null || mail.isBlank() || mail.length() > MAIL_MAX_LENGTH || !isValidMail(mail))
-            error.put(MAIL_FIELD, "Client mail wrong format");
+        if (email == null)
+            error.put(EMAIL_FIELD, "Client mail must not be empty");
+        else if (email.isBlank() || email.length() > MAIL_MAX_LENGTH || !isValidMail(email))
+            error.put(EMAIL_FIELD, "Client mail wrong format");
     }
 
     private void verifyPhoneNumber(Map<String, String> error) {
@@ -128,9 +123,9 @@ public class ClientInformation {
                 .photo(photo)
                 .comment(comment)
                 .technicalComment(technicalComment)
-                .firstName(firstName)
-                .lastName(lastName)
-                .mail(mail)
+                .firstName(firstName != null ? firstName.toLowerCase() : null)
+                .lastName(lastName != null ? lastName.toLowerCase() : null)
+                .email(email != null ? email.toLowerCase() : null)
                 .gender(gender)
                 .birthday(birthday)
                 .phone(phone)
@@ -140,14 +135,13 @@ public class ClientInformation {
     }
 
     private PersonOrigin getPersonOrigin(PersonOriginRepository personOriginRepository) {
-        // TODO Does not work
         PersonOrigin personOrigin;
         return (personOrigin = personOriginRepository.findByIdPersonOrigin(getIdOrigin())) == null ? noneOrigin(personOriginRepository) :
                 personOrigin;
     }
 
     private PersonOrigin noneOrigin(PersonOriginRepository personOriginRepository) {
-        return personOriginRepository.findByType(NONE_TYPE);
+        return personOriginRepository.getNonePersonOrigin();
     }
 
     // Exceptions.
@@ -161,7 +155,7 @@ public class ClientInformation {
             this.error = error;
         }
 
-        public Map<String, String> getError() {
+        public Map<String, String> getErrors() {
             return error;
         }
     }

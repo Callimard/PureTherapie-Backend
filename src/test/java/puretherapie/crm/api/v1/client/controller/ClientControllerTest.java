@@ -10,23 +10,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import puretherapie.crm.api.v1.client.ClientInformation;
 import puretherapie.crm.api.v1.client.service.ClientRegistrationService;
-import puretherapie.crm.data.person.client.Client;
-import puretherapie.crm.data.person.client.ClientRepository;
+import puretherapie.crm.authentication.SecurityUserService;
 
-import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static puretherapie.crm.api.v1.client.controller.ClientController.*;
+import static puretherapie.crm.api.v1.client.controller.ClientController.API_V1_CLIENT_URL;
+import static puretherapie.crm.api.v1.client.controller.ClientController.PARAM_DOUBLOON_VERIFICATION;
 import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
 import static util.RequestTool.httpPostJson;
 
@@ -35,6 +34,13 @@ import static util.RequestTool.httpPostJson;
 @DisplayName("ClientController tests")
 public class ClientControllerTest {
 
+    // Constants.
+
+    private static final String USERNAME = "boss";
+    private static final String PASSWORD = "password";
+
+    // Variables.
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -42,15 +48,15 @@ public class ClientControllerTest {
     private ClientRegistrationService mockClientRegistration;
 
     @MockBean
-    private ClientRepository mockClientRepository;
+    private SecurityUserService mockSecurityUserService;
 
     @Mock
-    private Client mockClient;
+    private UserDetails mockUserDetails;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Nested
-    @DisplayName("Client registration tests")
+    @DisplayName("Client registration access tests")
     class ClientRegistration {
 
         @Test
@@ -68,10 +74,21 @@ public class ClientControllerTest {
         }
 
         @Test
-        @DisplayName("Test client registration without request param but correct body with doubloon ind send an 400 http response")
-        void testClientRegistrationWithoutRequestParamAndClientDoubloon() throws Exception {
-            prepareRegistrationFindDoubloons();
-            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).content(bodyCorrectClientInfo())).andExpect(status().isBadRequest());
+        @DisplayName("Test client registration with correct authorization")
+        void testClientRegistrationWithCorrectAuthorization() throws Exception {
+            prepareRegistrationSuccess();
+            prepareUsernameFind();
+
+            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization()));
+        }
+
+        @Test
+        @DisplayName("Test client registration with not correct authorization")
+        void testClientRegistrationWithNotCorrectAuthorization() throws Exception {
+            prepareRegistrationSuccess();
+            prepareUsernameNotFound();
+
+            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization()));
         }
 
     }
@@ -81,14 +98,16 @@ public class ClientControllerTest {
                 Collections.singletonMap(SUCCESS_FIELD, "Client registration success")));
     }
 
-    private void prepareRegistrationFindDoubloons() {
-        List<ClientInformation> doubloon = new ArrayList<>();
-        doubloon.add(ClientInformation.builder().build());
-        given(mockClientRegistration.clientRegistration(any(), anyBoolean())).willReturn(ResponseEntity.status(
-                HttpStatus.BAD_REQUEST).body(Collections.singletonMap(CLIENT_DOUBLOON_FIELD, doubloon)));
+    private void prepareUsernameFind() {
+        given(mockSecurityUserService.loadUserByUsername(USERNAME)).willReturn(mockUserDetails);
+        given(mockUserDetails.getPassword()).willReturn(PASSWORD);
     }
 
-    private static String bodyCorrectClientInfo() throws JsonProcessingException {
+    private void prepareUsernameNotFound() {
+        given(mockSecurityUserService.loadUserByUsername(USERNAME)).willReturn(null);
+    }
+
+    private String bodyCorrectClientInfo() throws JsonProcessingException {
         ClientInformation info = ClientInformation.builder()
                 .photo("photo_path")
                 .comment("a comment")
@@ -102,5 +121,9 @@ public class ClientControllerTest {
                 .idOrigin(1).build();
 
         return MAPPER.writeValueAsString(info);
+    }
+
+    private String basicAuthorization() {
+        return Base64.getEncoder().encodeToString(("Basic " + USERNAME + ":" + PASSWORD).getBytes());
     }
 }

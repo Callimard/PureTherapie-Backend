@@ -47,7 +47,7 @@ public class ClientControllerTest {
     @Mock
     private Client mockClient;
 
-    private static ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Nested
     @DisplayName("Client registration tests")

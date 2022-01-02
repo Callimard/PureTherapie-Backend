@@ -16,14 +16,14 @@ import puretherapie.crm.authentication.SecurityUserService;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static puretherapie.crm.api.v1.user.controller.UseLoginController.*;
+import static puretherapie.crm.api.v1.user.controller.UserController.*;
 import static util.RequestTool.JSON_CONTENT_TYPE;
 import static util.TestTool.btoaCredentials;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@DisplayName("UserLoginController tests")
-class UserLoginControllerTest {
+@DisplayName("UserController tests")
+class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

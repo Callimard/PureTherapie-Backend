@@ -1,28 +1,19 @@
-package puretherapie.crm.api.v1.user.controller;
+package puretherapie.crm.api.v1.user.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
 
 import static puretherapie.crm.api.v1.ApiV1.generateOkJsonResponse;
-import static puretherapie.crm.api.v1.user.controller.UseLoginController.API_V1_USER_URL;
 
 @Slf4j
-@RestController
-@RequestMapping(API_V1_USER_URL)
-public class UseLoginController {
+@Service
+public class UserLoginService {
 
-    public static final String API_V1_USER_URL = "/api/v1/users";
-    public static final String USER_LOGIN = "/login";
-    public static final String USER_LOGOUT = "/logout";
-
-    @PostMapping(USER_LOGIN)
-    public ResponseEntity<String> login(Authentication authentication) {
+    public ResponseEntity<String> successLogin(Authentication authentication) {
         log.info("Success login of the user {}", authentication.getName());
         return generateOkJsonResponse("""
                                                   {
@@ -31,8 +22,7 @@ public class UseLoginController {
                                               """);
     }
 
-    @PostMapping(USER_LOGOUT)
-    public ResponseEntity<String> logout(HttpSession session, Authentication authentication) {
+    public ResponseEntity<String> successLogout(HttpSession session, Authentication authentication) {
         invalidateSession(session);
         log.info("Success logout of the user {}", authentication.getName());
         return generateOkJsonResponse("""

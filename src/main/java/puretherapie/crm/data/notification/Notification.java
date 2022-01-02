@@ -19,7 +19,7 @@ public class Notification {
     private Integer idNotification;
 
     @Column(name = "type", nullable = false)
-    private Integer type;
+    private Boolean type;
 
     @Column(name = "notificationTitle", nullable = false, length = 125)
     private String notificationTitle;

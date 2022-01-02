@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import puretherapie.crm.api.v1.client.ClientInformation;
-import puretherapie.crm.data.person.PersonOriginRepository;
+import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.ClientRepository;
 

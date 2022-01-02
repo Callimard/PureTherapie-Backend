@@ -1,7 +1,8 @@
-package puretherapie.crm.data.person;
+package puretherapie.crm.data.person.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import puretherapie.crm.data.person.PersonOrigin;
 
 import java.util.List;
 

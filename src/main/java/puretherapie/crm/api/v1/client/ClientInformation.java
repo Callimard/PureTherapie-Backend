@@ -2,7 +2,7 @@ package puretherapie.crm.api.v1.client;
 
 import lombok.*;
 import puretherapie.crm.data.person.PersonOrigin;
-import puretherapie.crm.data.person.PersonOriginRepository;
+import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.tool.PhoneTool;
 

@@ -21,7 +21,7 @@ public class NotificationView {
     private Integer idNotificationView;
 
     @Column(name = "viewed", nullable = false)
-    private Integer viewed;
+    private Boolean viewed;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idNotification", nullable = false)

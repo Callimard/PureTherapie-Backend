@@ -35,6 +35,6 @@ public class ClientController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> clientRegistration(@RequestParam(value = PARAM_DOUBLOON_VERIFICATION, required = false,
             defaultValue = "true") boolean doubloonVerification, @RequestBody ClientInformation clientInformation) {
-        return clientRegistrationService.noTransactionalClientRegistration(clientInformation, doubloonVerification);
+        return clientRegistrationService.clientRegistration(clientInformation, doubloonVerification);
     }
 }

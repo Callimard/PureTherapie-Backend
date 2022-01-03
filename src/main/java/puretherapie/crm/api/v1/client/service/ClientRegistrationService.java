@@ -34,7 +34,7 @@ public class ClientRegistrationService {
     // Methods.
 
     @Transactional(propagation = Propagation.NEVER)
-    public ResponseEntity<Map<String, Object>> noTransactionalClientRegistration(ClientInformation clientInformation, boolean doubloonVerification) {
+    public ResponseEntity<Map<String, Object>> clientRegistration(ClientInformation clientInformation, boolean doubloonVerification) {
         log.debug("Client registration for ClientInformation = {}", clientInformation);
 
         Map<String, Object> errors = new HashMap<>();

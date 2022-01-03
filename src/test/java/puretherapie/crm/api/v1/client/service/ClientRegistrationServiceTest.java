@@ -67,7 +67,7 @@ class ClientRegistrationServiceTest {
     @DisplayName("Test if clientRegistration returns 400 all null fields client information")
     void testClientRegistration() {
         ClientInformation emptyInfo = ClientInformation.builder().build();
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(emptyInfo, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(emptyInfo, true);
 
         Map<String, Object> body = response.getBody();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -88,7 +88,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -100,7 +100,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -112,7 +112,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -124,7 +124,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
 
         Map<String, Object> body = verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, CLIENT_DOUBLOON_FIELD);
     }
@@ -137,7 +137,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, false);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, false);
         verifySuccessResponse(response);
     }
 
@@ -150,7 +150,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -164,7 +164,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
         Map<String, Object> body = verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, ERROR_FIELD);
 
         @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) body.get(ERROR_FIELD);
@@ -180,7 +180,7 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         prepareEmailAlreadyUsed();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
         verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, ERROR_FIELD);
     }
 
@@ -193,7 +193,7 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         preparePhoneAlreadyUsed();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
         verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, ERROR_FIELD);
     }
 
@@ -206,7 +206,7 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         prepareUndefinedViolatedConstraint();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
         verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, ERROR_FIELD);
     }
 
@@ -219,7 +219,7 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         prepareOtherCauseThanConstraintViolation();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.noTransactionalClientRegistration(c, true);
+        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
         verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, ERROR_FIELD);
     }
 

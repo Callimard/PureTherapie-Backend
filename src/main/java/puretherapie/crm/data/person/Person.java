@@ -40,8 +40,8 @@ public abstract class Person {
 
     // Constraints.
 
-    public static final String UNIQUE_EMAIL_CONSTRAINTS = "uq_email";
-    public static final String UNIQUE_PHONE_CONSTRAINTS = "uq_phone";
+    public static final String UNIQUE_EMAIL_CONSTRAINTS = "Person.uq_email";
+    public static final String UNIQUE_PHONE_CONSTRAINTS = "Person.uq_phone";
 
     // Variables.
 

@@ -3,6 +3,7 @@ package puretherapie.crm.api.v1.client.controller;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.client.ClientInformation;
 import puretherapie.crm.api.v1.client.service.ClientRegistrationService;
@@ -33,6 +34,7 @@ public class ClientController {
     // Methods.
 
     @PostMapping
+    @Transactional
     public ResponseEntity<Map<String, Object>> clientRegistration(@RequestParam(value = PARAM_DOUBLOON_VERIFICATION, required = false,
             defaultValue = "true") boolean doubloonVerification, @RequestBody ClientInformation clientInformation) {
         return clientRegistrationService.clientRegistration(clientInformation, doubloonVerification);

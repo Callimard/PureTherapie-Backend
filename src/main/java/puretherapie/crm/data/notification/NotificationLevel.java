@@ -16,6 +16,13 @@ import java.util.List;
 @Entity
 @Table(name = "NotificationLevel")
 public class NotificationLevel implements Serializable {
+
+    // Constants.
+
+    public static final String ALL_ROLES_LEVEL = "ALL_ROLES";
+
+    // Variables.
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idNotificationLevel", nullable = false)

@@ -38,18 +38,19 @@ public class User extends Person implements UserDetails {
     private List<Role> roles;
 
     @Builder
-    public User(Integer idPerson, String firstName, String lastName, String mail, boolean gender, LocalDate birthday, String phone,
-                OffsetDateTime creationDate, PersonOrigin personOrigin, String username, String password) {
-        super(idPerson, firstName, lastName, mail, gender, birthday, phone, creationDate, personOrigin);
+    public User(Integer idPerson, String firstName, String lastName, String email, boolean gender, LocalDate birthday, String phone,
+                OffsetDateTime creationDate, PersonOrigin personOrigin, String username, String password, List<Role> roles) {
+        super(idPerson, firstName, lastName, email, gender, birthday, phone, creationDate, personOrigin);
         this.username = username;
         this.password = password;
+        this.roles = roles;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> list = new ArrayList<>();
         if (roles != null)
-            roles.forEach(r -> list.add(new SimpleGrantedAuthority(r.getRoleName())));
+            roles.forEach(r -> list.add(new SimpleGrantedAuthority("ROLE_" + r.getRoleName())));
         return list;
     }
 

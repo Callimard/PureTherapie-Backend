@@ -12,4 +12,6 @@ public interface RoleRepository extends JpaRepository<Role, Integer> {
 
     List<Role> findByNotificationLevels(NotificationLevel notificationLevel);
 
+    Role findByRoleName(String name);
+
 }

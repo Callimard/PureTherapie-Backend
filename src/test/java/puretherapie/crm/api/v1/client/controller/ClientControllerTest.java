@@ -94,7 +94,7 @@ public class ClientControllerTest {
     }
 
     private void prepareRegistrationSuccess() {
-        given(mockClientRegistration.clientRegistration(any(), anyBoolean())).willReturn(ResponseEntity.ok(
+        given(mockClientRegistration.noTransactionalClientRegistration(any(), anyBoolean())).willReturn(ResponseEntity.ok(
                 Collections.singletonMap(SUCCESS_FIELD, "Client registration success")));
     }
 

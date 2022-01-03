@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import puretherapie.crm.api.v1.client.ClientInformation;
 import puretherapie.crm.data.person.client.Client;
-import puretherapie.crm.data.person.client.ClientRepository;
+import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
 
 import java.util.*;
@@ -33,8 +33,8 @@ public class ClientRegistrationService {
 
     // Methods.
 
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public ResponseEntity<Map<String, Object>> clientRegistration(ClientInformation clientInformation, boolean doubloonVerification) {
+    @Transactional(propagation = Propagation.NEVER)
+    public ResponseEntity<Map<String, Object>> noTransactionalClientRegistration(ClientInformation clientInformation, boolean doubloonVerification) {
         log.debug("Client registration for ClientInformation = {}", clientInformation);
 
         Map<String, Object> errors = new HashMap<>();

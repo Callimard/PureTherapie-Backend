@@ -40,15 +40,15 @@ public abstract class Person {
 
     // Constraints.
 
-    public static final String UNIQUE_EMAIL_CONSTRAINTS = "uq_email";
-    public static final String UNIQUE_PHONE_CONSTRAINTS = "uq_phone";
+    public static final String UNIQUE_EMAIL_CONSTRAINTS = "Person.uq_email";
+    public static final String UNIQUE_PHONE_CONSTRAINTS = "Person.uq_phone";
 
     // Variables.
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = ID_PERSON_FIELD, nullable = false)
-    private Long idPerson;
+    private Integer idPerson;
 
     @Column(name = FIRST_NAME_FIELD, nullable = false)
     private String firstName;

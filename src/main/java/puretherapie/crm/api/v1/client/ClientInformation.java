@@ -2,7 +2,7 @@ package puretherapie.crm.api.v1.client;
 
 import lombok.*;
 import puretherapie.crm.data.person.PersonOrigin;
-import puretherapie.crm.data.person.PersonOriginRepository;
+import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.tool.PhoneTool;
 
@@ -35,7 +35,7 @@ public class ClientInformation {
     private boolean gender;
     private LocalDate birthday;
     private String phone;
-    private long idOrigin;
+    private int idOrigin;
 
     public void verify() throws ClientInformationVerificationException {
         Map<String, String> error = new HashMap<>();

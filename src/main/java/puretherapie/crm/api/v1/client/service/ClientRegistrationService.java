@@ -7,10 +7,12 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import puretherapie.crm.api.v1.client.ClientInformation;
-import puretherapie.crm.data.person.PersonOriginRepository;
 import puretherapie.crm.data.person.client.Client;
-import puretherapie.crm.data.person.client.ClientRepository;
+import puretherapie.crm.data.person.client.repository.ClientRepository;
+import puretherapie.crm.data.person.repository.PersonOriginRepository;
 
 import java.util.*;
 
@@ -31,6 +33,7 @@ public class ClientRegistrationService {
 
     // Methods.
 
+    @Transactional(propagation = Propagation.NEVER)
     public ResponseEntity<Map<String, Object>> clientRegistration(ClientInformation clientInformation, boolean doubloonVerification) {
         log.debug("Client registration for ClientInformation = {}", clientInformation);
 

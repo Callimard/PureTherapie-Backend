@@ -5,7 +5,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import puretherapie.crm.data.person.user.User;
-import puretherapie.crm.data.person.user.UserRepository;
+import puretherapie.crm.data.person.user.repository.UserRepository;
 
 @Service
 public class SecurityUserService implements UserDetailsService {

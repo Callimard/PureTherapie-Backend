@@ -14,9 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import puretherapie.crm.api.v1.client.ClientInformation;
 import puretherapie.crm.data.person.PersonOrigin;
-import puretherapie.crm.data.person.PersonOriginRepository;
+import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import puretherapie.crm.data.person.client.Client;
-import puretherapie.crm.data.person.client.ClientRepository;
+import puretherapie.crm.data.person.client.repository.ClientRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -258,7 +258,7 @@ class ClientRegistrationServiceTest {
     }
 
     private void prepareGetNonPersonOrigin() {
-        given(mockPersonOriginRepo.getNonePersonOrigin()).willReturn(new PersonOrigin(1L, PersonOrigin.NONE_TYPE));
+        given(mockPersonOriginRepo.getNonePersonOrigin()).willReturn(new PersonOrigin(1, PersonOrigin.NONE_TYPE));
     }
 
     private void prepareNoDoubloonsFind() {

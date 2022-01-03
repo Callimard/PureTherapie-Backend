@@ -3,6 +3,7 @@ package puretherapie.crm.api.v1.notification.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import puretherapie.crm.data.notification.Notification;
@@ -33,12 +34,13 @@ public class NotificationService {
 
     // Methods.
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public boolean createNotification(String notificationTitle, String text, NotificationLevel notificationLevel, boolean isAnAlert) {
         if (notificationLevel == null || notificationLevel.getNotificationLevelName().isBlank())
             return false;
 
         Notification notification = notificationRepository.save(buildNotification(notificationTitle, text, notificationLevel, isAnAlert));
+        log.info("Create Notification {}", notification);
 
         List<Role> roles = roleRepository.findByNotificationLevels(notificationLevel);
         if (roles != null && !roles.isEmpty()) {
@@ -63,6 +65,7 @@ public class NotificationService {
     private Set<User> searchUserFromRole(List<Role> roles) {
         Set<User> users = new HashSet<>();
         roles.forEach(r -> users.addAll(userRepository.findByRoles(r)));
+        log.debug("For roles: {} find users: {}", roles, users);
         return users;
     }
 
@@ -76,7 +79,8 @@ public class NotificationService {
 
     private void createNotificationView(Notification notification, Set<User> users) {
         for (User user : users) {
-            notificationViewRepository.save(buildNotificationView(notification, user));
+            NotificationView notificationView = notificationViewRepository.save(buildNotificationView(notification, user));
+            log.info("Create NotificationView {}", notificationView);
         }
     }
 

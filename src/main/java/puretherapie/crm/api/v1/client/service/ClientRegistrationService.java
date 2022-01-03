@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import puretherapie.crm.api.v1.client.ClientInformation;
+import puretherapie.crm.api.v1.notification.service.NotificationService;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
@@ -17,6 +18,7 @@ import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import java.util.*;
 
 import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_DOUBLOON_FIELD;
+import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
 import static puretherapie.crm.data.person.Person.*;
 import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
 import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
@@ -26,10 +28,16 @@ import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
 @Service
 public class ClientRegistrationService {
 
+    // Constants.
+
+    private static final String CLIENT_REGISTRATION_TITLE = "Registration of the client %s";
+    private static final String CLIENT_REGISTRATION_TEXT = "The client %s has been register";
+
     // Variables.
 
     private final PersonOriginRepository personOriginRepository;
     private final ClientRepository clientRepository;
+    private final NotificationService notificationService;
 
     // Methods.
 
@@ -60,7 +68,9 @@ public class ClientRegistrationService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap(CLIENT_DOUBLOON_FIELD, doubloon));
         }
 
-        // TODO Add notification creation
+        String clientIdentification = c.getFirstName() + " " + c.getLastName();
+        notificationService.createNotification(CLIENT_REGISTRATION_TITLE.formatted(clientIdentification),
+                                               CLIENT_REGISTRATION_TEXT.formatted(clientIdentification), BOSS_SECRETARY_LEVEL, false);
 
         return ResponseEntity.ok(Collections.singletonMap(SUCCESS_FIELD, "Client registration success"));
     }

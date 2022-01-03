@@ -36,15 +36,20 @@ public class NotificationService {
 
     // Methods.
 
+    @Transactional
+    public boolean createNotification(String title, String text, String levelName, boolean isAnAlert) {
+        return createNotification(title, text, notificationLevelRepository.findByNotificationLevelName(levelName), isAnAlert);
+    }
+
     @Transactional(propagation = Propagation.REQUIRED)
-    public boolean createNotification(String notificationTitle, String text, NotificationLevel notificationLevel, boolean isAnAlert) {
+    public boolean createNotification(String title, String text, NotificationLevel notificationLevel, boolean isAnAlert) {
         if (notificationLevel == null)
             notificationLevel = notificationLevelRepository.getAllRolesLevel();
 
-        if (unCorrectArgs(notificationTitle, text, notificationLevel)) return false;
+        if (unCorrectArgs(title, text, notificationLevel)) return false;
 
         try {
-            Notification notification = buildAndSaveNotification(notificationTitle, text, notificationLevel, isAnAlert);
+            Notification notification = buildAndSaveNotification(title, text, notificationLevel, isAnAlert);
 
             List<Role> roles = findRoles(notificationLevel);
             if (roles != null && !roles.isEmpty()) {

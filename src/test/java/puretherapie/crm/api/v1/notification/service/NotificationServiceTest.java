@@ -81,7 +81,7 @@ public class NotificationServiceTest {
             prepareUserRepositoryFindByRoles();
             given(mockNotificationViewRepository.save(any())).willThrow(new IllegalArgumentException());
 
-            boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, null, false);
+            boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, (NotificationLevel)null, false);
 
             verifyFail(success);
         }
@@ -103,13 +103,13 @@ public class NotificationServiceTest {
         @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
         @DisplayName("Test if createNotification returns false if black title or text is pass in parameter")
         void testWithBlankTitleOrText(String blank) {
-            boolean success = notificationService.createNotification(blank, CORRECT_TEXT, null, false);
+            boolean success = notificationService.createNotification(blank, CORRECT_TEXT, (NotificationLevel)null, false);
             verifyFail(success);
 
-            success = notificationService.createNotification(CORRECT_TITLE, blank, null, false);
+            success = notificationService.createNotification(CORRECT_TITLE, blank, (NotificationLevel)null, false);
             verifyFail(success);
 
-            success = notificationService.createNotification(blank, blank, null, false);
+            success = notificationService.createNotification(blank, blank, (NotificationLevel)null, false);
             verifyFail(success);
 
             success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT,
@@ -125,7 +125,7 @@ public class NotificationServiceTest {
         void testWithNullLevel() {
             prepareUserRepositoryFindByRoles();
 
-            boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, null, false);
+            boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, (NotificationLevel)null, false);
 
             verifySuccess(success);
 

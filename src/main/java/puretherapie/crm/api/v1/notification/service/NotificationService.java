@@ -16,6 +16,7 @@ import puretherapie.crm.data.person.user.User;
 import puretherapie.crm.data.person.user.repository.RoleRepository;
 import puretherapie.crm.data.person.user.repository.UserRepository;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,15 +37,18 @@ public class NotificationService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean createNotification(String notificationTitle, String text, NotificationLevel notificationLevel, boolean isAnAlert) {
-        if (notificationLevel == null || notificationLevel.getNotificationLevelName().isBlank())
+        if (notificationLevel == null || notificationLevel.getNotificationLevelName().isBlank()) {
+            log.error("NotificationLevel is null or blank");
             return false;
+        }
 
         Notification notification = notificationRepository.save(buildNotification(notificationTitle, text, notificationLevel, isAnAlert));
         log.info("Create Notification {}", notification);
 
         List<Role> roles = roleRepository.findByNotificationLevels(notificationLevel);
+        log.debug("For level {} find roles {}", notificationLevel, roles);
         if (roles != null && !roles.isEmpty()) {
-            Set<User> users = searchUserFromRole(roles);
+            Set<User> users = new HashSet<>(searchUserFromRole(roles));
             createNotificationView(notification, users);
             return true;
         } else {
@@ -62,8 +66,8 @@ public class NotificationService {
                 .build();
     }
 
-    private Set<User> searchUserFromRole(List<Role> roles) {
-        Set<User> users = new HashSet<>();
+    private List<User> searchUserFromRole(List<Role> roles) {
+        List<User> users = new ArrayList<>();
         roles.forEach(r -> users.addAll(userRepository.findByRoles(r)));
         log.debug("For roles: {} find users: {}", roles, users);
         return users;
@@ -77,7 +81,7 @@ public class NotificationService {
                 .build();
     }
 
-    private void createNotificationView(Notification notification, Set<User> users) {
+    private void createNotificationView(Notification notification, Iterable<User> users) {
         for (User user : users) {
             NotificationView notificationView = notificationViewRepository.save(buildNotificationView(notification, user));
             log.info("Create NotificationView {}", notificationView);

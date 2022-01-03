@@ -21,6 +21,8 @@ public class NotificationLevel implements Serializable {
 
     public static final String ALL_ROLES_LEVEL = "ALL_ROLES";
     public static final String BOSS_SECRETARY_LEVEL = "BOSS_SECRETARY";
+    public static final String BOSS_SECRETARY_MAMY_LEVEL = "BOSS_SECRETARY_MAMY";
+    public static final String BOSS_SECRETARY_MAMY_TECHNICIAN_LEVEL = "BOSS_SECRETARY_MAMY_TECHNICIAN";
 
     // Variables.
 

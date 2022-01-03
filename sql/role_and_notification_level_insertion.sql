@@ -1,9 +1,3 @@
-INSERT IGNORE INTO puretherapie.PersonOrigin (puretherapie.PersonOrigin.type)
-VALUES ('None'),
-       ('Facebook'),
-       ('Groupon'),
-       ('Friend');
-
 INSERT IGNORE INTO puretherapie.Role (puretherapie.Role.roleName)
 VALUES ('BOSS');
 SET @boss_role_id = LAST_INSERT_ID();

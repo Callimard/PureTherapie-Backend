@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.notification.service.NotificationService;
+import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
 import puretherapie.crm.data.appointment.Appointment;
@@ -44,7 +44,7 @@ public class AppointmentCreationService {
     private final AestheticCareRepository aestheticCareRepository;
     private final TimeSlotRepository timeSlotRepository;
     private final AppointmentRepository appointmentRepository;
-    private final NotificationService notificationService;
+    private final NotificationCreationService notificationCreationService;
 
     // Methods.
 
@@ -220,11 +220,11 @@ public class AppointmentCreationService {
     }
 
     private void createNotification(Client client, Technician technician, TimeSlot timeSlot) {
-        boolean success = notificationService.createNotification(NOTIFICATION_APPOINTMENT_CREATION_TITLE.formatted(client.simplyIdentifier()),
-                                                                 NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(timeSlot.getBegin(),
+        boolean success = notificationCreationService.createNotification(NOTIFICATION_APPOINTMENT_CREATION_TITLE.formatted(client.simplyIdentifier()),
+                                                                         NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(timeSlot.getBegin(),
                                                                                                                   client.simplyIdentifier(),
                                                                                                                   technician.simplyIdentifier()),
-                                                                 BOSS_LEVEL, false);
+                                                                         BOSS_LEVEL, false);
         if (!success)
             log.error("Fail to create appointment notification");
     }

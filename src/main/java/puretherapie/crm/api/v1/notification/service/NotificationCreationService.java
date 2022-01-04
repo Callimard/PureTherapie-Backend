@@ -24,7 +24,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Service
-public class NotificationService {
+public class NotificationCreationService {
 
     // Variables.
 

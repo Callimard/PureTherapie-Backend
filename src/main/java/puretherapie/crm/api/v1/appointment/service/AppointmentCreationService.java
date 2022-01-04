@@ -35,6 +35,8 @@ public class AppointmentCreationService {
     private static final String NOTIFICATION_APPOINTMENT_CREATION_TITLE = "New appointment for client %s";
     private static final String NOTIFICATION_APPOINTMENT_CREATION_TEXT = "New appointment at %s for the client %s with the technician %s";
 
+    public static final int MAX_OVERLAP_AUTHORIZED = 10;
+
     // Variables.
 
     private final ClientRepository clientRepository;
@@ -48,11 +50,18 @@ public class AppointmentCreationService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime timeBegin) {
+        return createAppointment(idClient, idTechnician, idAestheticCare, day, timeBegin, 0);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public boolean createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime timeBegin,
+                                     int overlapAuthorized) {
         try {
+            overlapAuthorized = verifyOverLap(overlapAuthorized);
             Client client = verifyClient(idClient);
             Technician technician = verifyTechnician(idTechnician);
             AestheticCare aestheticCare = verifyAestheticCare(idAestheticCare);
-            TimeSlot timeSlot = verifyTimeSlot(technician, day, timeBegin, aestheticCare.getTimeExecution());
+            TimeSlot timeSlot = verifyTimeSlot(technician, day, timeBegin, aestheticCare.getTimeExecution(), overlapAuthorized);
             Appointment appointment = buildAppointment(client, technician, aestheticCare, timeSlot);
             saveAppointment(appointment);
             createNotification(client, technician, timeSlot);
@@ -62,6 +71,18 @@ public class AppointmentCreationService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return false;
         }
+    }
+
+    private int verifyOverLap(int overlapAuthorized) {
+        if (overlapAuthorized > MAX_OVERLAP_AUTHORIZED) {
+            log.debug("Argument overlapAuthorized ({}) greater than MAX_OVERLAP_AUTHORIZED ({}) -> update value", overlapAuthorized,
+                      MAX_OVERLAP_AUTHORIZED);
+            overlapAuthorized = MAX_OVERLAP_AUTHORIZED;
+        }
+
+        if (overlapAuthorized < 0)
+            overlapAuthorized = 0;
+        return overlapAuthorized;
     }
 
     private Client verifyClient(int idClient) {
@@ -85,7 +106,7 @@ public class AppointmentCreationService {
         return ac;
     }
 
-    private TimeSlot verifyTimeSlot(Technician technician, LocalDate day, LocalTime beginTime, Integer timeExecution) {
+    private TimeSlot verifyTimeSlot(Technician technician, LocalDate day, LocalTime beginTime, int timeExecution, int overlapAuthorized) {
         if (thereIsTimeSlotAtDayTime(technician, day, beginTime)) {
             log.debug("Time Slot for technician {} already take for day {} at time {}", technician.simplyIdentifier(), day, beginTime);
             throw new TimeSlotOverlapException(
@@ -93,7 +114,7 @@ public class AppointmentCreationService {
                                                                                                beginTime));
         }
 
-        if (thereIsOverlap(technician, day, beginTime, timeExecution)) {
+        if (thereIsOverlap(technician, day, beginTime, timeExecution, overlapAuthorized)) {
             log.debug("Time Slot over lap find for the technician {} for the day {} at time {}", technician.simplyIdentifier(), day, beginTime);
             throw new TimeSlotOverlapException(
                     "Time Slot over lap find for the technician %s for the day %s at time %s".formatted(technician.simplyIdentifier(), day,
@@ -111,27 +132,27 @@ public class AppointmentCreationService {
         return atDayTimeTS != null && !atDayTimeTS.isFree();
     }
 
-    private boolean thereIsOverlap(Technician technician, LocalDate day, LocalTime beginTime, Integer timeExecution) {
+    private boolean thereIsOverlap(Technician technician, LocalDate day, LocalTime beginTime, int timeExecution, int overlapAuthorized) {
         List<TimeSlot> dayTS = timeSlotRepository.findByTechnicianAndDay(technician, day);
         if (dayTS != null)
             for (TimeSlot timeSlot : dayTS)
-                if (hasOverlap(timeSlot, beginTime, timeExecution))
+                if (hasOverlap(timeSlot, beginTime, timeExecution, overlapAuthorized))
                     return true;
 
         return false;
     }
 
-    private boolean hasOverlap(TimeSlot existingTS, LocalTime beginTime, Integer lockTime) {
+    private boolean hasOverlap(TimeSlot existingTS, LocalTime beginTime, int lockTime, int overlapAuthorized) {
         LocalTime existingBeginTime = existingTS.getBegin();
         int existingLockTime = existingTS.getTime();
 
         if (!existingTS.isFree()) {
             if (existingBeginTime.isBefore(beginTime)) {
                 // Verify if the new time slot is not in the existing time slot
-                return hasOverlap(existingBeginTime, existingLockTime, beginTime);
+                return hasOverlap(existingBeginTime, existingLockTime, beginTime, overlapAuthorized);
             } else if (existingBeginTime.isAfter(beginTime)) {
                 // Verify if the existing time slot is not in the new time slot
-                return hasOverlap(beginTime, lockTime, existingBeginTime);
+                return hasOverlap(beginTime, lockTime, existingBeginTime, overlapAuthorized);
             } else {
                 // new time slot same has existing time slot
                 log.error("New time slot same has existing time slot. Begin time new time slot = {}, begin time existing time slot {}", beginTime,
@@ -146,29 +167,34 @@ public class AppointmentCreationService {
      * ORDER VERY IMPORTANT. The beforeBeginTime must be before the afterBeginTime. In other words, the method {@link LocalTime#isBefore(LocalTime)}
      * call on beforeBeginTime must return true. If it not the case, the throw an {@link IllegalArgumentException}
      *
-     * @param beforeBeginTime the LocalTime before
-     * @param beforeLockTime  the number of minute lock by the before time slot
-     * @param afterBeginTime  the LocalTime after
+     * @param beforeBeginTime   the LocalTime before
+     * @param beforeLockTime    the number of minute lock by the before time slot
+     * @param afterBeginTime    the LocalTime after
+     * @param overlapAuthorized overlap max minute authorized
      *
      * @return true if the after time slot is in the before time slot.
      *
      * @throws IllegalArgumentException if beforeBeginTime is not before the afterBeginTime
      */
-    private boolean hasOverlap(LocalTime beforeBeginTime, Integer beforeLockTime, LocalTime afterBeginTime) {
+    private boolean hasOverlap(LocalTime beforeBeginTime, int beforeLockTime, LocalTime afterBeginTime, int overlapAuthorized) {
         if (!beforeBeginTime.isBefore(afterBeginTime))
             throw new IllegalArgumentException("Argument beforeBeginTime %s is not before afterBeginTime %s".formatted(beforeBeginTime,
                                                                                                                        afterBeginTime));
 
         long minuteDiff = ChronoUnit.MINUTES.between(beforeBeginTime, afterBeginTime);
-        if (minuteDiff < beforeLockTime) {
+        if (minuteDiff < beforeLockTime - overlapAuthorized) {
             log.debug(
                     "Overlap between before TS beginTime {} lockTime {} and after TS beginTime {}", beforeBeginTime, beforeLockTime, afterBeginTime);
             return true;
         }
+
+        if (minuteDiff < beforeLockTime)
+            log.info("Sur booking done with a overlap of {} minutes", (beforeLockTime - minuteDiff));
+
         return false;
     }
 
-    private TimeSlot buildTimeSlot(Technician technician, LocalDate day, LocalTime beginTime, Integer timeExecution) {
+    private TimeSlot buildTimeSlot(Technician technician, LocalDate day, LocalTime beginTime, int timeExecution) {
         return TimeSlot.builder()
                 .day(day)
                 .begin(beginTime)

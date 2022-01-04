@@ -46,8 +46,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
-        http.anonymous()
-                .and()
+        http
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST, API_V1_CLIENT_URL).permitAll()
                 .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGIN).authenticated()

@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static puretherapie.crm.api.v1.appointment.service.AppointmentCreationService.MAX_OVERLAP_AUTHORIZED;
 
 @Slf4j
 @SpringBootTest
@@ -44,7 +45,13 @@ public class AppointmentCreationServiceTest {
     private static final LocalTime NOT_FREE_TIME = LocalTime.of(10, 15);
     private static final LocalTime BEFORE_OVERLAP = LocalTime.of(12, 15);
     private static final LocalTime AFTER_OVERLAP = LocalTime.of(11, 45);
+    private static final LocalTime IN_FOLLOWING_APPOINTMENT = LocalTime.of(13, 35);
     private static final LocalTime FREE_TIME_SLOT = LocalTime.of(14, 20);
+    private static final LocalTime FIVE_MIN_BEFORE_OVER_LAP = LocalTime.of(14, 15);
+    private static final LocalTime FIVE_MIN_AFTER_OVER_LAP = LocalTime.of(11, 25);
+    private static final LocalTime TEN_MIN_BEFORE_OVER_LAP = LocalTime.of(14, 10);
+    private static final LocalTime TEN_MIN_AFTER_OVER_LAP = LocalTime.of(11, 30);
+    private static final LocalTime NO_OVERLAP_POSSIBLE = LocalTime.of(14, 0);
 
     @Autowired
     private AppointmentCreationService appointmentCreationService;
@@ -128,6 +135,7 @@ public class AppointmentCreationServiceTest {
 
             TimeSlot timeSlot = timeSlotRepository.findByTechnicianAndDayAndBegin(t, DAY, FREE_TIME_SLOT);
             assertThat(timeSlot).isNotNull();
+
             verify(mockAppointmentRepository, times(1)).save(any());
         }
 
@@ -144,6 +152,61 @@ public class AppointmentCreationServiceTest {
             assertThat(timeSlot).isNull();
         }
 
+        @Test
+        @DisplayName("Test with appointment between two following appointment return false")
+        void testBetweenTwoFollowingAppointment() {
+            boolean success =
+                    appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
+                                                                 IN_FOLLOWING_APPOINTMENT, 5);
+            assertThat(success).isFalse();
+        }
+
+        @Test
+        @DisplayName("Test with 5 minutes overlap returns true")
+        void testWithFiveMinutesOverlap() {
+            boolean success =
+                    appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
+                                                                 FIVE_MIN_BEFORE_OVER_LAP, 5);
+            assertThat(success).isTrue();
+            verifyTimeSlotCreated(FIVE_MIN_BEFORE_OVER_LAP);
+
+            success =
+                    appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
+                                                                 FIVE_MIN_AFTER_OVER_LAP, 5);
+            assertThat(success).isTrue();
+            verifyTimeSlotCreated(FIVE_MIN_AFTER_OVER_LAP);
+        }
+
+        @Test
+        @DisplayName("Test with more than MAX_OVERLAP_AUTHORIZED returns true if the overlap is less or equal to MAX_OVERLAP_AUTHORIZED")
+        void testWithMoreThanMaxOverlapAuthorized() {
+            boolean success =
+                    appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
+                                                                 TEN_MIN_BEFORE_OVER_LAP, MAX_OVERLAP_AUTHORIZED + 10);
+            assertThat(success).isTrue();
+            verifyTimeSlotCreated(TEN_MIN_BEFORE_OVER_LAP);
+
+            success =
+                    appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
+                                                                 TEN_MIN_AFTER_OVER_LAP, MAX_OVERLAP_AUTHORIZED + 10);
+            assertThat(success).isTrue();
+            verifyTimeSlotCreated(TEN_MIN_AFTER_OVER_LAP);
+        }
+
+        @Test
+        @DisplayName("Test with overlap authorized cannot be apply")
+        void testWithOverlapNotApply() {
+            boolean success =
+                    appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
+                                                                 NO_OVERLAP_POSSIBLE, MAX_OVERLAP_AUTHORIZED);
+            assertThat(success).isFalse();
+        }
+
+    }
+
+    private void verifyTimeSlotCreated(LocalTime fiveMinBeforeOverLap) {
+        TimeSlot timeSlot = timeSlotRepository.findByTechnicianAndDayAndBegin(t, DAY, fiveMinBeforeOverLap);
+        assertThat(timeSlot).isNotNull();
     }
 
 }

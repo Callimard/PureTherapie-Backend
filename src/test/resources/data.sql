@@ -31,7 +31,7 @@ VALUES (@boss_role_id, @all_roles_level),
        (@mamy_role_id, @all_roles_level),
        (@technician_role_id, @all_roles_level);
 
-INSERT IGNORE INTO puretherapie.notificationlevel (puretherapie.NotificationLevel.notificationLevelName)
+INSERT IGNORE INTO puretherapie.notificationLevel (puretherapie.NotificationLevel.notificationLevelName)
 VALUES ('BOSS');
 SET @boss_level = LAST_INSERT_ID();
 

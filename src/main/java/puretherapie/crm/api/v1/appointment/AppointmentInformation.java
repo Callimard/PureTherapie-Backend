@@ -16,7 +16,7 @@ public class AppointmentInformation {
     private int idTechnician;
     private int idAestheticCare;
     private LocalDate day;
-    private LocalTime time;
+    private LocalTime beginTime;
     private int overlapAuthorized;
 
 }

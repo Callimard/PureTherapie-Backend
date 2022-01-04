@@ -16,6 +16,16 @@ import java.util.List;
 @Entity
 @Table(name = "Role")
 public class Role implements Serializable {
+
+    // Constants.
+
+    public static final String BOSS_ROLE = "ROLE_BOSS";
+    public static final String SECRETARY_ROLE = "ROLE_SECRETARY";
+    public static final String MAMY_ROLE = "ROLE_MAMY";
+    public static final String TECHNICIAN_ROLE = "ROLE_TECHNICIAN";
+
+    // Variables.
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idRole", nullable = false)

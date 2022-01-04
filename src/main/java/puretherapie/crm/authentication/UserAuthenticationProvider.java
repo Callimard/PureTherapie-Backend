@@ -37,7 +37,7 @@ public class UserAuthenticationProvider implements AuthenticationProvider {
             if (!user.getPassword().equals(password))
                 throw new BadCredentialsException("Authentication failed for " + username);
 
-            return new UsernamePasswordAuthenticationToken(authentication.getName(), authentication.getCredentials().toString(),
+            return new UsernamePasswordAuthenticationToken(user, authentication.getCredentials().toString(),
                                                            user.getAuthorities());
         } catch (UsernameNotFoundException e) {
             throw new BadCredentialsException("Authentication failed for " + username);

@@ -51,30 +51,13 @@ public class AppointmentCreationService {
 
         try {
             Client client = verifyClient(idClient);
-            if (client == null)
-                return false;
-
             Technician technician = verifyTechnician(idTechnician);
-            if (technician == null)
-                return false;
-
             AestheticCare aestheticCare = verifyAestheticCare(idAestheticCare);
-            if (aestheticCare == null)
-                return false;
-
             TimeSlot timeSlot = verifyTimeSlot(technician, day, timeBegin, aestheticCare.getTimeExecution());
-            if (timeSlot == null)
-                return false;
-
             Appointment appointment = buildAppointment(client, technician, aestheticCare, timeSlot);
-            if (appointment == null)
-                return false;
-
-
             saveAppointment(appointment);
-
+            //noinspection ConstantConditions
             createNotification(client, technician, timeSlot);
-
             return true;
         } catch (Exception e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -83,15 +66,24 @@ public class AppointmentCreationService {
     }
 
     private Client verifyClient(int idClient) {
-        return clientRepository.findByIdPerson(idClient);
-    }
-
-    private AestheticCare verifyAestheticCare(int idAestheticCare) {
-        return aestheticCareRepository.findByIdAestheticCare(idAestheticCare);
+        Client c = clientRepository.findByIdPerson(idClient);
+        if (c == null)
+            throw new IllegalArgumentException("Not find client for idClient %s".formatted(idClient));
+        return c;
     }
 
     private Technician verifyTechnician(int idTechnician) {
-        return technicianRepository.findByIdPerson(idTechnician);
+        Technician t = technicianRepository.findByIdPerson(idTechnician);
+        if (t == null)
+            throw new IllegalArgumentException("Not find technician for idTechnician %s".formatted(idTechnician));
+        return t;
+    }
+
+    private AestheticCare verifyAestheticCare(int idAestheticCare) {
+        AestheticCare ac = aestheticCareRepository.findByIdAestheticCare(idAestheticCare);
+        if (ac == null)
+            throw new IllegalArgumentException("Not find aesthetic care for idAestheticCare %s".formatted(idAestheticCare));
+        return ac;
     }
 
     private TimeSlot verifyTimeSlot(Technician technician, LocalDate day, LocalTime beginTime, Integer timeExecution) {

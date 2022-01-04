@@ -48,7 +48,6 @@ public class AppointmentCreationService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime timeBegin) {
-
         try {
             Client client = verifyClient(idClient);
             Technician technician = verifyTechnician(idTechnician);
@@ -56,10 +55,10 @@ public class AppointmentCreationService {
             TimeSlot timeSlot = verifyTimeSlot(technician, day, timeBegin, aestheticCare.getTimeExecution());
             Appointment appointment = buildAppointment(client, technician, aestheticCare, timeSlot);
             saveAppointment(appointment);
-            //noinspection ConstantConditions
             createNotification(client, technician, timeSlot);
             return true;
         } catch (Exception e) {
+            log.debug("Fail to create appointment", e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return false;
         }
@@ -87,14 +86,24 @@ public class AppointmentCreationService {
     }
 
     private TimeSlot verifyTimeSlot(Technician technician, LocalDate day, LocalTime beginTime, Integer timeExecution) {
-        if (thereIsTimeSlotAtDayTime(technician, day, beginTime)) return null;
+        if (thereIsTimeSlotAtDayTime(technician, day, beginTime)) {
+            log.debug("Time Slot for technician {} already take for day {} at time {}", technician.simplyIdentifier(), day, beginTime);
+            throw new TimeSlotOverlapException(
+                    "Time Slot for technician %s already take for day %s at time %s".formatted(technician.simplyIdentifier(), day,
+                                                                                               beginTime));
+        }
 
-        if (thereIsOverlap(technician, day, beginTime, timeExecution)) return null;
+        if (thereIsOverlap(technician, day, beginTime, timeExecution)) {
+            log.debug("Time Slot over lap find for the technician {} for the day {} at time {}", technician.simplyIdentifier(), day, beginTime);
+            throw new TimeSlotOverlapException(
+                    "Time Slot over lap find for the technician %s for the day %s at time %s".formatted(technician.simplyIdentifier(), day,
+                                                                                                        beginTime));
+        }
 
         // No overlap found
-        TimeSlot timeSlot = buildTimeSlot(technician, day, beginTime, timeExecution);
-
-        return timeSlotRepository.save(timeSlot);
+        TimeSlot timeSlot = timeSlotRepository.save(buildTimeSlot(technician, day, beginTime, timeExecution));
+        log.debug("Create time slot {}", timeSlot);
+        return timeSlot;
     }
 
     private boolean thereIsTimeSlotAtDayTime(Technician technician, LocalDate day, LocalTime beginTime) {
@@ -194,4 +203,9 @@ public class AppointmentCreationService {
             log.error("Fail to create appointment notification");
     }
 
+    private static class TimeSlotOverlapException extends RuntimeException {
+        public TimeSlotOverlapException(String message) {
+            super(message);
+        }
+    }
 }

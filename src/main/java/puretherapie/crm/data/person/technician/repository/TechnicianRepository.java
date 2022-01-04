@@ -9,4 +9,6 @@ public interface TechnicianRepository extends JpaRepository<Technician, Integer>
 
     Technician findByIdPerson(Integer idPerson);
 
+    Technician findByEmail(String email);
+
 }

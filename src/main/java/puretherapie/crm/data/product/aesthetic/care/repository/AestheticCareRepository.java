@@ -9,4 +9,6 @@ public interface AestheticCareRepository extends JpaRepository<AestheticCare, In
 
     AestheticCare findByIdAestheticCare(Integer idAestheticCare);
 
+    AestheticCare findByName(String name);
+
 }

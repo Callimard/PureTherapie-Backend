@@ -2,7 +2,7 @@ package puretherapie.crm.data.person.technician;
 
 import lombok.*;
 import puretherapie.crm.data.person.client.Client;
-import puretherapie.crm.data.person.client.appointment.Appointment;
+import puretherapie.crm.data.appointment.Appointment;
 
 import javax.persistence.*;
 import java.time.Instant;

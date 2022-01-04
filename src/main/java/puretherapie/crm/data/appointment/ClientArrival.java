@@ -1,9 +1,10 @@
-package puretherapie.crm.data.person.client.appointment;
+package puretherapie.crm.data.appointment;
 
 import lombok.*;
 import puretherapie.crm.data.person.client.Client;
 
 import javax.persistence.*;
+import java.time.OffsetDateTime;
 
 @Builder
 @Getter
@@ -12,22 +13,18 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "ClientAbsence")
-public class ClientAbsence {
+@Table(name = "ClientArrival")
+public class ClientArrival {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idClientAbsence", nullable = false)
+    @Column(name = "idClientArrival", nullable = false)
     private Integer id;
 
-    @Column(name = "level", nullable = false)
-    private Integer level;
+    @Column(name = "arrivalDate", nullable = false)
+    private OffsetDateTime arrivalDate;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idClient", nullable = false)
     private Client client;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "idAppointment", nullable = false)
-    private Appointment appointment;
 }

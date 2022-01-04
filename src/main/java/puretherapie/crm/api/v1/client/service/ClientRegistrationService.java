@@ -30,8 +30,8 @@ public class ClientRegistrationService {
 
     // Constants.
 
-    private static final String CLIENT_REGISTRATION_TITLE = "Registration of the client %s";
-    private static final String CLIENT_REGISTRATION_TEXT = "The client %s has been register";
+    private static final String NOTIFICATION_CLIENT_REGISTRATION_TITLE = "Registration of the client %s";
+    private static final String NOTIFICATION = "The client %s has been register";
 
     // Variables.
 
@@ -69,8 +69,8 @@ public class ClientRegistrationService {
         }
 
         String clientIdentification = c.getFirstName() + " " + c.getLastName();
-        boolean success = notificationService.createNotification(CLIENT_REGISTRATION_TITLE.formatted(clientIdentification),
-                                                                 CLIENT_REGISTRATION_TEXT.formatted(clientIdentification),
+        boolean success = notificationService.createNotification(NOTIFICATION_CLIENT_REGISTRATION_TITLE.formatted(clientIdentification),
+                                                                 NOTIFICATION.formatted(clientIdentification),
                                                                  BOSS_SECRETARY_LEVEL,
                                                                  false);
 

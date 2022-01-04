@@ -1,7 +1,7 @@
 package puretherapie.crm.data.note;
 
 import lombok.*;
-import puretherapie.crm.data.person.client.appointment.Appointment;
+import puretherapie.crm.data.appointment.Appointment;
 
 import javax.persistence.*;
 

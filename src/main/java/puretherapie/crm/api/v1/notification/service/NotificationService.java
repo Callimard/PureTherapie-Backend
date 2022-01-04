@@ -36,7 +36,7 @@ public class NotificationService {
 
     // Methods.
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean createNotification(String title, String text, String levelName, boolean isAnAlert) {
         if (unCorrectArgs(title, text, levelName)) return false;
 
@@ -49,7 +49,7 @@ public class NotificationService {
         return createNotification(title, text, level, isAnAlert);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean createNotification(String title, String text, NotificationLevel notificationLevel, boolean isAnAlert) {
         if (notificationLevel == null)
             notificationLevel = notificationLevelRepository.getAllRolesLevel();

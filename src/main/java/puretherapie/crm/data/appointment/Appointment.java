@@ -1,4 +1,4 @@
-package puretherapie.crm.data.person.client.appointment;
+package puretherapie.crm.data.appointment;
 
 import lombok.*;
 import puretherapie.crm.data.agenda.TimeSlot;
@@ -21,10 +21,7 @@ public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idAppointment", nullable = false)
-    private Integer id;
-
-    @Column(name = "clientArrived")
-    private Integer clientArrived;
+    private Integer idAppointment;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idAestheticCare", nullable = false)

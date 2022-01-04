@@ -1,4 +1,4 @@
-package puretherapie.crm.data.person.client.appointment;
+package puretherapie.crm.data.appointment;
 
 import lombok.*;
 import puretherapie.crm.data.person.client.Client;

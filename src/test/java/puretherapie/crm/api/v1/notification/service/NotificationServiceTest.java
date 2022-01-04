@@ -26,11 +26,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static puretherapie.crm.data.notification.NotificationLevel.ALL_ROLES_LEVEL;
 
 @Slf4j
 @SpringBootTest
 @DisplayName("Notification Service Tests")
 public class NotificationServiceTest {
+
+    private static final String UNKNOWN_NOTIFICATION_LEVEL = "UNKNOWN_LEVEL";
 
     private static final String FALSE_NOTIFICATION_LEVEL = "FALSE_NOTIFICATION_LEVEL";
 
@@ -63,73 +66,125 @@ public class NotificationServiceTest {
     @DisplayName("createNotification tests")
     class CreateNotification {
 
-        @ParameterizedTest
-        @ValueSource(strings = {"\t", "", " ", "      "})
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
-        @DisplayName("Test if createNotification returns false if notification level name is blank")
-        void testWithBlankLevelName(String blank) {
-            NotificationLevel level = NotificationLevel.builder().notificationLevelName(blank).build();
-            boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, level, false);
+        @Nested
+        @DisplayName("With NotificationLevel name arg")
+        class WithNotificationLevelNameAgr {
 
-            verifyFail(success);
+            @ParameterizedTest
+            @ValueSource(strings = {"\t", "", " ", "      "})
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
+            @DisplayName("Test if createNotification returns false if level name is blank")
+            void testWithBlankLevelName(String blank) {
+                boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, blank, false);
+
+                verifyFail(success);
+            }
+
+            @Test
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
+            @DisplayName("Test if createNotification returns false with unknown level name")
+            void testWithUnknownLevelName() {
+                boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, UNKNOWN_NOTIFICATION_LEVEL, false);
+
+                verifyFail(success);
+            }
+
+            @Test
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"create_false_notification_level.sql",
+                                                                                    "delete_all_notifications.sql"})
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = {"delete_false_notification_level.sql"})
+            @DisplayName("Test if createNotification returns false with known level name but without associated roles")
+            void testWithKnownLevelNameWithoutRoles() {
+                boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, FALSE_NOTIFICATION_LEVEL, false);
+
+                verifyFail(success);
+            }
+
+            @Test
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
+            @DisplayName("Test if createNotification returns true with known level name and with associated roles")
+            void testWithKnownLevelNameWithRole() {
+                prepareUserRepositoryFindByRoles();
+                boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, ALL_ROLES_LEVEL, false);
+
+                verifySuccess(success);
+            }
+
         }
 
-        @Test
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
-        @DisplayName("Test if createNotification returns false and rollback work if notification view creation fail")
-        void testWithFailDuringNotificationViewCreation() {
-            prepareUserRepositoryFindByRoles();
-            given(mockNotificationViewRepository.save(any())).willThrow(new IllegalArgumentException());
+        @Nested
+        @DisplayName("With NotificationLevel object arg")
+        class WithNotificationLevelArg {
 
-            boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, (NotificationLevel)null, false);
+            @ParameterizedTest
+            @ValueSource(strings = {"\t", "", " ", "      "})
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
+            @DisplayName("Test if createNotification returns false if notification level name is blank")
+            void testWithBlankLevelName(String blank) {
+                NotificationLevel level = NotificationLevel.builder().notificationLevelName(blank).build();
+                boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, level, false);
 
-            verifyFail(success);
-        }
+                verifyFail(success);
+            }
 
-        @Test
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"create_false_notification_level.sql", "delete_all_notifications.sql"})
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = {"delete_false_notification_level.sql"})
-        @DisplayName("Test if createNotification returns false if no roles is found for a correct notification level")
-        void testWithNonRoleNotificationLevel() {
-            NotificationLevel level = notificationLevelRepository.findByNotificationLevelName(FALSE_NOTIFICATION_LEVEL);
-            log.debug("False level find = {}", level);
-            boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, level, false);
+            @Test
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
+            @DisplayName("Test if createNotification returns false and rollback work if notification view creation fail")
+            void testWithFailDuringNotificationViewCreation() {
+                prepareUserRepositoryFindByRoles();
+                given(mockNotificationViewRepository.save(any())).willThrow(new IllegalArgumentException());
 
-            verifyFail(success);
-        }
+                boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, (NotificationLevel) null, false);
 
-        @ParameterizedTest
-        @ValueSource(strings = {"\t", "", " ", "   "})
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
-        @DisplayName("Test if createNotification returns false if black title or text is pass in parameter")
-        void testWithBlankTitleOrText(String blank) {
-            boolean success = notificationService.createNotification(blank, CORRECT_TEXT, (NotificationLevel)null, false);
-            verifyFail(success);
+                verifyFail(success);
+            }
 
-            success = notificationService.createNotification(CORRECT_TITLE, blank, (NotificationLevel)null, false);
-            verifyFail(success);
+            @Test
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"create_false_notification_level.sql",
+                                                                                    "delete_all_notifications.sql"})
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = {"delete_false_notification_level.sql"})
+            @DisplayName("Test if createNotification returns false if no roles is found for a correct notification level")
+            void testWithNonRoleNotificationLevel() {
+                NotificationLevel level = notificationLevelRepository.findByNotificationLevelName(FALSE_NOTIFICATION_LEVEL);
+                log.debug("False level find = {}", level);
+                boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, level, false);
 
-            success = notificationService.createNotification(blank, blank, (NotificationLevel)null, false);
-            verifyFail(success);
+                verifyFail(success);
+            }
 
-            success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT,
-                                                             NotificationLevel.builder().notificationLevelName(blank).build(),
-                                                             false);
-            verifyFail(success);
-        }
+            @ParameterizedTest
+            @ValueSource(strings = {"\t", "", " ", "   "})
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
+            @DisplayName("Test if createNotification returns false if black title or text is pass in parameter")
+            void testWithBlankTitleOrText(String blank) {
+                boolean success = notificationService.createNotification(blank, CORRECT_TEXT, (NotificationLevel) null, false);
+                verifyFail(success);
 
-        @Test
-        @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
-        @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
-        @DisplayName("Test if createNotification returns true and create notification for all users with null level")
-        void testWithNullLevel() {
-            prepareUserRepositoryFindByRoles();
+                success = notificationService.createNotification(CORRECT_TITLE, blank, (NotificationLevel) null, false);
+                verifyFail(success);
 
-            boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, (NotificationLevel)null, false);
+                success = notificationService.createNotification(blank, blank, (NotificationLevel) null, false);
+                verifyFail(success);
 
-            verifySuccess(success);
+                success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT,
+                                                                 NotificationLevel.builder().notificationLevelName(blank).build(),
+                                                                 false);
+                verifyFail(success);
+            }
 
-            verify(mockNotificationViewRepository, times(2)).save(any());
+            @Test
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = {"delete_all_notifications.sql"})
+            @DisplayName("Test if createNotification returns true and create notification for all users with null level")
+            void testWithNullLevel() {
+                prepareUserRepositoryFindByRoles();
+
+                boolean success = notificationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, (NotificationLevel) null, false);
+
+                verifySuccess(success);
+
+                verify(mockNotificationViewRepository, times(2)).save(any());
+            }
         }
     }
 

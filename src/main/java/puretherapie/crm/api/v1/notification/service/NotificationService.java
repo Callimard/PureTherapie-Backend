@@ -38,7 +38,15 @@ public class NotificationService {
 
     @Transactional
     public boolean createNotification(String title, String text, String levelName, boolean isAnAlert) {
-        return createNotification(title, text, notificationLevelRepository.findByNotificationLevelName(levelName), isAnAlert);
+        if (unCorrectArgs(title, text, levelName)) return false;
+
+        NotificationLevel level = notificationLevelRepository.findByNotificationLevelName(levelName);
+        if (level == null) {
+            log.debug("Level not found for the level name {}", levelName);
+            return false;
+        }
+
+        return createNotification(title, text, level, isAnAlert);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -46,7 +54,7 @@ public class NotificationService {
         if (notificationLevel == null)
             notificationLevel = notificationLevelRepository.getAllRolesLevel();
 
-        if (unCorrectArgs(title, text, notificationLevel)) return false;
+        if (unCorrectArgs(title, text, notificationLevel.getNotificationLevelName())) return false;
 
         try {
             Notification notification = buildAndSaveNotification(title, text, notificationLevel, isAnAlert);
@@ -78,14 +86,10 @@ public class NotificationService {
         return notification;
     }
 
-    private boolean unCorrectArgs(String notificationTitle, String text, NotificationLevel notificationLevel) {
-        if ((notificationTitle == null || notificationTitle.isBlank()) || (text == null || text.isBlank())) {
-            log.debug("Notification title and text must not be null or blank");
-            return true;
-        }
-
-        if (notificationLevel.getNotificationLevelName().isBlank()) {
-            log.debug("NotificationLevel is null or blank");
+    private boolean unCorrectArgs(String notificationTitle, String text, String levelName) {
+        if ((notificationTitle == null || notificationTitle.isBlank()) || (text == null || text.isBlank()) ||
+                (levelName == null || levelName.isBlank())) {
+            log.debug("Notification title, text or level name must not be null or blank");
             return true;
         }
         return false;

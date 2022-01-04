@@ -69,8 +69,13 @@ public class ClientRegistrationService {
         }
 
         String clientIdentification = c.getFirstName() + " " + c.getLastName();
-        notificationService.createNotification(CLIENT_REGISTRATION_TITLE.formatted(clientIdentification),
-                                               CLIENT_REGISTRATION_TEXT.formatted(clientIdentification), BOSS_SECRETARY_LEVEL, false);
+        boolean success = notificationService.createNotification(CLIENT_REGISTRATION_TITLE.formatted(clientIdentification),
+                                                                 CLIENT_REGISTRATION_TEXT.formatted(clientIdentification),
+                                                                 BOSS_SECRETARY_LEVEL,
+                                                                 false);
+
+        if (!success)
+            log.error("Notification creation for client registration failed.");
 
         return ResponseEntity.ok(Collections.singletonMap(SUCCESS_FIELD, "Client registration success"));
     }

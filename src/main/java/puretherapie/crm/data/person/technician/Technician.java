@@ -25,7 +25,7 @@ public class Technician extends Person {
     private String speciality;
 
     @Builder
-    public Technician(Long idPerson, String firstName, String lastName, String mail, boolean gender, LocalDate birthday, String phone,
+    public Technician(Integer idPerson, String firstName, String lastName, String mail, boolean gender, LocalDate birthday, String phone,
                       OffsetDateTime creationDate, PersonOrigin personOrigin, String speciality) {
         super(idPerson, firstName, lastName, mail, gender, birthday, phone, creationDate, personOrigin);
         this.speciality = speciality;

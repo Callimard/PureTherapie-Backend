@@ -23,7 +23,7 @@
 
     <groupId>org.puretherapie</groupId>
     <artifactId>puretherapie-crm</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.101-SNAPSHOT</version>
     <name>puretherapie-crm</name>
     <description>puretherapie-crm</description>
 
@@ -103,6 +103,20 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.0.204</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

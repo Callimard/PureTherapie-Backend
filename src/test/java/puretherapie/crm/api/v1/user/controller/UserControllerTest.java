@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.user;
+package puretherapie.crm.api.v1.user.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,12 +16,14 @@ import puretherapie.crm.authentication.SecurityUserService;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static puretherapie.crm.api.v1.user.UseLoginController.*;
+import static puretherapie.crm.api.v1.user.controller.UserController.*;
+import static util.RequestTool.JSON_CONTENT_TYPE;
 import static util.TestTool.btoaCredentials;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class UserLoginControllerTest {
+@DisplayName("UserController tests")
+class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -32,12 +34,11 @@ class UserLoginControllerTest {
     @Mock
     private UserDetails mockUserDetails;
 
-    private static final String JSON_CONTENT_TYPE = "application/json";
-
     private static final String USERNAME_0 = "username_0";
 
     private static final String PASSWORD_0 = "password_0";
     private static final String PASSWORD_1 = "password_1";
+
 
     @Nested
     @DisplayName("User login tests")
@@ -138,5 +139,4 @@ class UserLoginControllerTest {
         given(mockUserDetails.getPassword()).willReturn(PASSWORD_0);
         return authorization;
     }
-
 }

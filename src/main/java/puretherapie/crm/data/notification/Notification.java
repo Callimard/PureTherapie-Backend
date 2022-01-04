@@ -13,18 +13,21 @@ import javax.persistence.*;
 @Entity
 @Table(name = "Notification")
 public class Notification {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idNotification", nullable = false)
-    private Integer id;
+    private Integer idNotification;
 
     @Column(name = "type", nullable = false)
-    private Integer type;
+    private Boolean type;
+
+    @Column(name = "notificationTitle", nullable = false, length = 125)
+    private String notificationTitle;
 
     @Column(name = "text", nullable = false)
     private String text;
 
-    @Column(name = "level", nullable = false)
-    private Integer level;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "idNotificationLevel", nullable = false)
+    private NotificationLevel notificationLevel;
 }

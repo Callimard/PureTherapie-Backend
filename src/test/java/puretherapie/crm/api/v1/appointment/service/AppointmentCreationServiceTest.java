@@ -38,7 +38,7 @@ import static puretherapie.crm.api.v1.appointment.service.AppointmentCreationSer
 public class AppointmentCreationServiceTest {
 
     private static final String CLIENT_EMAIL = "client@email.fr";
-    private static final String TECHNICIAN_EMAIL = "technician@email.fr";
+    private static final String TECHNICIAN_EMAIL = "tech@email.fr";
     private static final String AESTHETIC_CARE_NAME = "AC";
 
     private static final LocalDate DAY = LocalDate.of(2022, 1, 1);

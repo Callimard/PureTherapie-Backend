@@ -1,6 +1,6 @@
 SELECT @technician_id := Person.idPerson
 FROM puretherapie.Person
-WHERE email = 'technician@email.fr';
+WHERE email = 'tech@email.fr';
 
 INSERT IGNORE INTO puretherapie.TimeSlot (puretherapie.TimeSlot.day, puretherapie.TimeSlot.begin, puretherapie.TimeSlot.time,
                                           puretherapie.TimeSlot.free, puretherapie.TimeSlot.idTechnician)

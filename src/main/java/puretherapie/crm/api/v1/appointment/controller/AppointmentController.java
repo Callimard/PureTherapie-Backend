@@ -43,7 +43,7 @@ public class AppointmentController {
 
     public static final String NOTIFICATION_SUR_BOOKING_TITLE = "Sur booking fait lors de la prise d'un rendez-vous";
     public static final String NOTIFICATION_SUR_BOOKING_TEXT = "Sur booking de %s minutes pour le rendez-vous du client %s avec le technicien %s " +
-            "le%s à %s";
+            "le %s à %s";
 
     // Variables.
 
@@ -83,7 +83,7 @@ public class AppointmentController {
             if (surBookingHasBeenDone(aInfo, potentialSurBooking))
                 createSurBookingNotification(aInfo);
 
-            resp.put(SUCCESS_FIELD, "Fail to create appointment");
+            resp.put(SUCCESS_FIELD, "Success to create appointment");
             return ResponseEntity.ok(resp);
         } else {
             resp.put(ERROR_FIELD, "Fail to create appointment");
@@ -98,15 +98,23 @@ public class AppointmentController {
     private void createSurBookingNotification(AppointmentInformation aInfo) {
         Client c = clientRepository.findByIdPerson(aInfo.getIdClient());
         Technician t = technicianRepository.findByIdPerson(aInfo.getIdTechnician());
-        notificationCreationService.createNotification(NOTIFICATION_SUR_BOOKING_TITLE,
-                                                       NOTIFICATION_SUR_BOOKING_TEXT.formatted(aInfo.getOverlapAuthorized(),
-                                                                                               c.simplyIdentifier(),
-                                                                                               t.simplyIdentifier(), aInfo.getDay(),
-                                                                                               aInfo.getBeginTime()), BOSS_SECRETARY_LEVEL,
-                                                       true);
+        if (c != null && t != null) {
+            boolean success = notificationCreationService.createNotification(NOTIFICATION_SUR_BOOKING_TITLE,
+                                                                             NOTIFICATION_SUR_BOOKING_TEXT.formatted(aInfo.getOverlapAuthorized(),
+                                                                                                                     c.simplyIdentifier(),
+                                                                                                                     t.simplyIdentifier(),
+                                                                                                                     aInfo.getDay(),
+                                                                                                                     aInfo.getBeginTime()),
+                                                                             BOSS_SECRETARY_LEVEL,
+                                                                             true);
+            if (!success)
+                log.debug("Fail to create sur booking alert");
+        } else
+            log.debug("Fail to found client or technician to send notification");
     }
 
     private boolean canHadOverlap(Authentication auth) {
+        log.debug("Authentication = {}", auth);
         if (auth == null)
             return false;
         else {

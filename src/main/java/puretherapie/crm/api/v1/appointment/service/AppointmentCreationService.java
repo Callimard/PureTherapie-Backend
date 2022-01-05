@@ -24,6 +24,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
+import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -49,19 +50,21 @@ public class AppointmentCreationService {
     // Methods.
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public boolean createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime timeBegin) {
-        return createAppointment(idClient, idTechnician, idAestheticCare, day, timeBegin, 0);
+    public boolean createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime) {
+        return createAppointment(idClient, idTechnician, idAestheticCare, day, beginTime, 0);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public boolean createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime timeBegin,
+    public boolean createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime,
                                      int overlapAuthorized) {
         try {
+            if (unCorrectDayOrBeginTime(day, beginTime)) return false;
+
             overlapAuthorized = verifyOverLap(overlapAuthorized);
             Client client = verifyClient(idClient);
             Technician technician = verifyTechnician(idTechnician);
             AestheticCare aestheticCare = verifyAestheticCare(idAestheticCare);
-            TimeSlot timeSlot = verifyTimeSlot(technician, day, timeBegin, aestheticCare.getTimeExecution(), overlapAuthorized);
+            TimeSlot timeSlot = verifyTimeSlot(technician, day, beginTime, aestheticCare.getTimeExecution(), overlapAuthorized);
             Appointment appointment = buildAppointment(client, technician, aestheticCare, timeSlot);
             saveAppointment(appointment);
             createNotification(client, technician, timeSlot);
@@ -71,6 +74,14 @@ public class AppointmentCreationService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return false;
         }
+    }
+
+    private boolean unCorrectDayOrBeginTime(LocalDate day, LocalTime beginTime) {
+        if (day == null || beginTime == null) {
+            log.debug("Day or beginTime is null");
+            return true;
+        }
+        return false;
     }
 
     private int verifyOverLap(int overlapAuthorized) {
@@ -222,9 +233,9 @@ public class AppointmentCreationService {
     private void createNotification(Client client, Technician technician, TimeSlot timeSlot) {
         boolean success = notificationCreationService.createNotification(NOTIFICATION_APPOINTMENT_CREATION_TITLE.formatted(client.simplyIdentifier()),
                                                                          NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(timeSlot.getBegin(),
-                                                                                                                  client.simplyIdentifier(),
-                                                                                                                  technician.simplyIdentifier()),
-                                                                         BOSS_LEVEL, false);
+                                                                                                                          client.simplyIdentifier(),
+                                                                                                                          technician.simplyIdentifier()),
+                                                                         BOSS_SECRETARY_LEVEL, false);
         if (!success)
             log.error("Fail to create appointment notification");
     }

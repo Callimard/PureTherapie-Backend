@@ -93,7 +93,7 @@ public class AppointmentControllerTest {
         @Test
         @DisplayName("Test if with correct authentication with overlap permission enable; returns 200")
         void testWithPermissionAuthentication() throws Exception {
-            prepareUserSecurityService(USERNAME, PASSWORD, BOSS_ROLE);
+            prepareUserSecurityService(BOSS_ROLE);
             given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any(), anyInt())).willReturn(true);
 
             mockMvc.perform(httpPostJsonWithAuthorization(API_V1_APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
@@ -103,7 +103,7 @@ public class AppointmentControllerTest {
         @Test
         @DisplayName("Test if with correct authentication without overlap permission enable, returns 200 without overlap")
         void testWithNoPermissionAuthentication() throws Exception {
-            prepareUserSecurityService(USERNAME, PASSWORD, MAMY_ROLE);
+            prepareUserSecurityService(MAMY_ROLE);
             given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(true);
 
             mockMvc.perform(httpPostJsonWithAuthorization(API_V1_APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
@@ -124,13 +124,13 @@ public class AppointmentControllerTest {
         given(mockNotifCreatService.createNotification(anyString(), anyString(), anyString(), anyBoolean())).willReturn(true);
     }
 
-    private void prepareUserSecurityService(String username, String password, String role) {
+    private void prepareUserSecurityService(String role) {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(role));
 
         given(mockSecurityUserService.loadUserByUsername(anyString())).willReturn(mockUser);
-        given(mockUser.getUsername()).willReturn(username);
-        given(mockUser.getPassword()).willReturn(password);
+        given(mockUser.getUsername()).willReturn(USERNAME);
+        given(mockUser.getPassword()).willReturn(PASSWORD);
         //noinspection unchecked
         given((Collection<GrantedAuthority>) mockUser.getAuthorities()).willReturn(authorities);
     }

@@ -3,7 +3,7 @@ default:
 
 stages:
   - build
-  - test-scan
+  - scan
   - deploy-artifact
 
 variables:
@@ -26,7 +26,7 @@ compile-job:
     - merge_requests
 
 sonarqube-check:
-  stage: test-scan
+  stage: scan
   needs: [ "compile-job" ]
   artifacts:
     paths:

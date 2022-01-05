@@ -3,8 +3,7 @@ default:
 
 stages:
   - build
-  - test
-  - scan
+  - test-scan
   - deploy-artifact
 
 variables:
@@ -26,22 +25,9 @@ compile-job:
     - pushes
     - merge_requests
 
-test-job:
-  stage: test
-  needs: [ "compile-job" ]
-  artifacts:
-    paths:
-      - "target"
-  script:
-    - mvn $MAVEN_CLI_OPTS clean test
-  when: on_success
-  only:
-    - pushes
-    - merge_requests
-
 sonarqube-check:
-  stage: scan
-  needs: [ "test-job" ]
+  stage: test-scan
+  needs: [ "compile-job" ]
   artifacts:
     paths:
       - "target"

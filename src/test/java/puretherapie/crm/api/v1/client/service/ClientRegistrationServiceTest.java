@@ -10,13 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import puretherapie.crm.api.v1.client.ClientInformation;
 import puretherapie.crm.data.person.PersonOrigin;
-import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
+import puretherapie.crm.data.person.repository.PersonOriginRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_DOUBLOON_FIELD;
+import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.ID_CLIENT_FIELD;
 import static puretherapie.crm.data.person.Person.*;
 import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
 import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
@@ -43,14 +42,14 @@ class ClientRegistrationServiceTest {
 
     // Variables.
 
+    @Autowired
+    private ClientRegistrationService clientRegistrationService;
+
     @MockBean
     private PersonOriginRepository mockPersonOriginRepo;
 
     @MockBean
     private ClientRepository mockClientRepo;
-
-    @Autowired
-    private ClientRegistrationService clientRegistrationService;
 
     @Mock
     private DataIntegrityViolationException mockDataIntegrityViolationException;
@@ -61,19 +60,20 @@ class ClientRegistrationServiceTest {
     @Mock
     private Exception mockOtherCause;
 
+    @Mock
+    private Client mockClient;
+
     // Tests.
 
     @Test
-    @DisplayName("Test if clientRegistration returns 400 all null fields client information")
+    @DisplayName("Test if clientRegistration fail all null fields client information")
     void testClientRegistration() {
         ClientInformation emptyInfo = ClientInformation.builder().build();
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(emptyInfo, true);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(emptyInfo, true);
 
-        Map<String, Object> body = response.getBody();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(body).isNotNull().containsKey(ERROR_FIELD);
+        verifyFailResponse(response, ERROR_FIELD);
 
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) body.get(ERROR_FIELD);
+        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) response.get(ERROR_FIELD);
         assertThat(errors).isNotNull()
                 .containsKey(FIRST_NAME_FIELD)
                 .containsKey(LAST_NAME_FIELD)
@@ -81,98 +81,110 @@ class ClientRegistrationServiceTest {
     }
 
     @Test
-    @DisplayName("Test if clientRegistration returns 200 with only required fields client information and there is no doubloons are already client")
+    @DisplayName("Test if clientRegistration success with only required fields client information and there is no doubloons are already client")
     void testClientRegistrationWithOnlyRequiredFields() {
+        prepareClientRepoForSuccess();
+
         ClientInformation c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
     @Test
-    @DisplayName("Test if clientRegistration returns 200")
+    @DisplayName("Test if clientRegistration success")
     void testClientRegistrationWithNoPhoneClient() {
-        ClientInformation c = prepareClientInfoWithNoPhone();
+        prepareClientRepoForSuccess();
+
+        ClientInformation c = createClientInfoWithNoPhone();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
     @Test
-    @DisplayName("Test if clientRegistration returns 200")
+    @DisplayName("Test if clientRegistration success")
     void testClientRegistrationWithNoPhotoClient() {
+        prepareClientRepoForSuccess();
+
         ClientInformation c = createClientInfoWithNoPhoto();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
     @Test
-    @DisplayName("Test if clientRegistration with client info has doubloons and doubloonVerification is true returns 400")
+    @DisplayName("Test if clientRegistration with client info has doubloons and doubloonVerification is true fail")
     void testClientRegistrationWithDoubloonsButWithDoubloonsVerification() {
+        prepareClientRepoForSuccess();
+
         ClientInformation c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
 
-        Map<String, Object> body = verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, CLIENT_DOUBLOON_FIELD);
+        verifyFailResponse(response, CLIENT_DOUBLOON_FIELD);
     }
 
     @Test
-    @DisplayName("Test if clientRegistration with client info has doubloons and doubloonVerification is false returns 200")
+    @DisplayName("Test if clientRegistration with client info has doubloons and doubloonVerification is false success")
     void testClientRegistrationWithDoubloonsButNoDoubloonsVerification() {
+        prepareClientRepoForSuccess();
+
         ClientInformation c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, false);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, false);
         verifySuccessResponse(response);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"Guillaume", "guillaume", "GuiLLaume", "Léa", "Léa-Paci", "JeAn-Phillipe", "Phillipe", "Héèaa", "Hàbon"})
-    @DisplayName("Test if clientRegistration returns 200 with correct firstName format")
+    @DisplayName("Test if clientRegistration success with correct firstName format")
     void testClientRegistrationWithCorrectFormat(String correctFirstName) {
+        prepareClientRepoForSuccess();
+
         ClientInformation c = createClientInfoWithFirstName(correctFirstName);
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"\n", "\t", "       ", "", "Léa-", "Lé~", "@", "&", "L\"éa", "Jean Phillipe",
                             "toooooooooooooooooooooooooooooooooooooooooooooooooooolong"})
-    @DisplayName("Test if clientRegistration returns 400 with not corrected firstName format")
+    @DisplayName("Test if clientRegistration fail with not corrected firstName format")
     void testClientRegistrationWithWrongFirstName(String wrongFirstName) {
         ClientInformation c = createClientInfoWithFirstName(wrongFirstName);
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
-        Map<String, Object> body = verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, ERROR_FIELD);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response, ERROR_FIELD);
 
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) body.get(ERROR_FIELD);
+        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) response.get(ERROR_FIELD);
         assertThat(errors).isNotNull().containsKey(FIRST_NAME_FIELD);
     }
 
     @Test
-    @DisplayName("Test if clientRegistration returns 400 with already used email")
+    @DisplayName("Test if clientRegistration fail with already used email")
     void testClientRegistrationWithAlreadyUsedEmail() {
         ClientInformation c = createClientInfoMinimalRequirement();
 
@@ -180,12 +192,12 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         prepareEmailAlreadyUsed();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
-        verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, ERROR_FIELD);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response, ERROR_FIELD);
     }
 
     @Test
-    @DisplayName("Test if clientRegistration returns 400 with already used phone")
+    @DisplayName("Test if clientRegistration fail with already used phone")
     void testClientRegistrationWithAlreadyUsedPhone() {
         ClientInformation c = createClientInfoMinimalRequirement();
 
@@ -193,12 +205,12 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         preparePhoneAlreadyUsed();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
-        verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, ERROR_FIELD);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response, ERROR_FIELD);
     }
 
     @Test
-    @DisplayName("Test if clientRegistration returns 400 with undefined constraints violation")
+    @DisplayName("Test if clientRegistration fail with undefined constraints violation")
     void testClientRegistrationWithUndefineViolationConstraint() {
         ClientInformation c = createClientInfoMinimalRequirement();
 
@@ -206,12 +218,12 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         prepareUndefinedViolatedConstraint();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
-        verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, ERROR_FIELD);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response, ERROR_FIELD);
     }
 
     @Test
-    @DisplayName("Test if clientRegistration returns 400 with other cause than constraint violation")
+    @DisplayName("Test if clientRegistration fail with other cause than constraint violation")
     void testClientRegistrationWithOtherCauseThanConstraintViolation() {
         ClientInformation c = createClientInfoMinimalRequirement();
 
@@ -219,19 +231,21 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         prepareOtherCauseThanConstraintViolation();
 
-        ResponseEntity<Map<String, Object>> response = clientRegistrationService.clientRegistration(c, true);
-        verifyIsBadRequest(response, HttpStatus.BAD_REQUEST, ERROR_FIELD);
+        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response, ERROR_FIELD);
     }
 
-    private void verifySuccessResponse(ResponseEntity<Map<String, Object>> response) {
-        verifyIsBadRequest(response, HttpStatus.OK, SUCCESS_FIELD);
+    private void verifyFailResponse(Map<String, Object> response, String errorField) {
+        assertThat(response).isNotNull().containsKey(errorField);
     }
 
-    private Map<String, Object> verifyIsBadRequest(ResponseEntity<Map<String, Object>> response, HttpStatus badRequest, String errorField) {
-        assertThat(response.getStatusCode()).isEqualTo(badRequest);
-        Map<String, Object> body = response.getBody();
-        assertThat(body).isNotNull().containsKey(errorField);
-        return body;
+    private void verifySuccessResponse(Map<String, Object> response) {
+        assertThat(response).isNotNull().containsKey(SUCCESS_FIELD).containsKey(ID_CLIENT_FIELD);
+    }
+
+    private void prepareClientRepoForSuccess() {
+        given(mockClient.getIdPerson()).willReturn(1);
+        given(mockClientRepo.save(any())).willReturn(mockClient);
     }
 
     private void prepareOtherCauseThanConstraintViolation() {
@@ -279,7 +293,7 @@ class ClientRegistrationServiceTest {
                 .build();
     }
 
-    private ClientInformation prepareClientInfoWithNoPhone() {
+    private ClientInformation createClientInfoWithNoPhone() {
         ClientInformation info = createClientInfoMinimalRequirement();
         info.setPhone(null);
         return info;

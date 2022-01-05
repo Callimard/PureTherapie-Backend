@@ -41,7 +41,7 @@ sonarqube-check:
 
 deploy-artifact-job:
   stage: deploy-artifact
-  needs: [ "compile-job", "test-job" ]
+  needs: [ "compile-job", "sonarqube-check" ]
   artifacts:
     paths:
       - "target/*.jar"

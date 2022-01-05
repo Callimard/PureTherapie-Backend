@@ -17,7 +17,6 @@ import puretherapie.crm.api.v1.client.ClientInformation;
 import puretherapie.crm.api.v1.client.service.ClientRegistrationService;
 import puretherapie.crm.authentication.SecurityUserService;
 
-import java.util.Base64;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -27,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static puretherapie.crm.api.v1.client.controller.ClientController.API_V1_CLIENT_URL;
 import static puretherapie.crm.api.v1.client.controller.ClientController.PARAM_DOUBLOON_VERIFICATION;
 import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
+import static util.RequestTool.basicAuthorization;
 import static util.RequestTool.httpPostJson;
 
 @SpringBootTest
@@ -79,7 +79,9 @@ public class ClientControllerTest {
             prepareRegistrationSuccess();
             prepareUsernameFind();
 
-            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization()));
+            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization(USERNAME,
+                                                                                                                                        PASSWORD)))
+                    .andExpect(status().isOk());
         }
 
         @Test
@@ -88,7 +90,9 @@ public class ClientControllerTest {
             prepareRegistrationSuccess();
             prepareUsernameNotFound();
 
-            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization()));
+            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization(USERNAME,
+                                                                                                                                        PASSWORD)))
+                    .andExpect(status().isUnauthorized());
         }
 
     }
@@ -121,9 +125,5 @@ public class ClientControllerTest {
                 .idOrigin(1).build();
 
         return MAPPER.writeValueAsString(info);
-    }
-
-    private String basicAuthorization() {
-        return Base64.getEncoder().encodeToString(("Basic " + USERNAME + ":" + PASSWORD).getBytes());
     }
 }

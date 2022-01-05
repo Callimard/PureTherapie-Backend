@@ -74,4 +74,11 @@ public abstract class Person {
     @ManyToOne
     @JoinColumn(name = ID_PERSON_ORIGIN_FIELD, nullable = false)
     private PersonOrigin personOrigin;
+
+    /**
+     * @return "firstName lastName"
+     */
+    public String simplyIdentifier() {
+        return getFirstName() + " " + getLastName();
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 
+import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.API_V1_APPOINTMENT_URL;
 import static puretherapie.crm.api.v1.client.controller.ClientController.API_V1_CLIENT_URL;
 import static puretherapie.crm.api.v1.user.controller.UserController.*;
 
@@ -46,12 +47,12 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
-        http.anonymous()
-                .and()
+        http
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST, API_V1_CLIENT_URL).permitAll()
                 .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGIN).authenticated()
                 .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGOUT).authenticated()
+                .antMatchers(HttpMethod.POST, API_V1_APPOINTMENT_URL).permitAll()
                 .anyRequest().authenticated();
     }
 

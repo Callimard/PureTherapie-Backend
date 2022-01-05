@@ -1,8 +1,11 @@
 package puretherapie.crm.data.agenda;
 
 import lombok.*;
+import puretherapie.crm.data.person.technician.Technician;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Builder
 @Getter
@@ -13,17 +16,24 @@ import javax.persistence.*;
 @Entity
 @Table(name = "TimeSlot")
 public class TimeSlot {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idTimeSlot", nullable = false)
-    private Integer id;
+    private Integer idTimeSlot;
 
-    public Integer getId() {
-        return id;
-    }
+    @Column(name = "day", nullable = false)
+    private LocalDate day;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    @Column(name = "begin", nullable = false)
+    private LocalTime begin;
+
+    @Column(name = "time", nullable = false)
+    private Integer time;
+
+    @Column(name = "free", nullable = false)
+    private boolean free = false;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "idTechnician", nullable = false)
+    private Technician technician;
 }

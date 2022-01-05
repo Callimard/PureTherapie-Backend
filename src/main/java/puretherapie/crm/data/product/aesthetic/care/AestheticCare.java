@@ -17,7 +17,7 @@ public class AestheticCare {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idAestheticCare", nullable = false)
-    private Integer id;
+    private Integer idAestheticCare;
 
     @Column(name = "name", nullable = false)
     private String name;

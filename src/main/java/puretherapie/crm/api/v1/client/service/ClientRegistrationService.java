@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import puretherapie.crm.api.v1.client.ClientInformation;
-import puretherapie.crm.api.v1.notification.service.NotificationService;
+import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
@@ -30,14 +30,14 @@ public class ClientRegistrationService {
 
     // Constants.
 
-    private static final String CLIENT_REGISTRATION_TITLE = "Registration of the client %s";
-    private static final String CLIENT_REGISTRATION_TEXT = "The client %s has been register";
+    private static final String NOTIFICATION_CLIENT_REGISTRATION_TITLE = "Registration of the client %s";
+    private static final String NOTIFICATION = "The client %s has been register";
 
     // Variables.
 
     private final PersonOriginRepository personOriginRepository;
     private final ClientRepository clientRepository;
-    private final NotificationService notificationService;
+    private final NotificationCreationService notificationCreationService;
 
     // Methods.
 
@@ -69,10 +69,10 @@ public class ClientRegistrationService {
         }
 
         String clientIdentification = c.getFirstName() + " " + c.getLastName();
-        boolean success = notificationService.createNotification(CLIENT_REGISTRATION_TITLE.formatted(clientIdentification),
-                                                                 CLIENT_REGISTRATION_TEXT.formatted(clientIdentification),
-                                                                 BOSS_SECRETARY_LEVEL,
-                                                                 false);
+        boolean success = notificationCreationService.createNotification(NOTIFICATION_CLIENT_REGISTRATION_TITLE.formatted(clientIdentification),
+                                                                         NOTIFICATION.formatted(clientIdentification),
+                                                                         BOSS_SECRETARY_LEVEL,
+                                                                         false);
 
         if (!success)
             log.error("Notification creation for client registration failed.");

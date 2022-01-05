@@ -11,6 +11,7 @@ import java.util.Map;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.client.controller.ClientController.API_V1_CLIENT_URL;
+import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
 
 @Slf4j
 @AllArgsConstructor
@@ -35,6 +36,11 @@ public class ClientController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> clientRegistration(@RequestParam(value = PARAM_DOUBLOON_VERIFICATION, required = false,
             defaultValue = "true") boolean doubloonVerification, @RequestBody ClientInformation clientInformation) {
-        return clientRegistrationService.clientRegistration(clientInformation, doubloonVerification);
+
+        Map<String, Object> res = clientRegistrationService.clientRegistration(clientInformation, doubloonVerification);
+        if (res.containsKey(ERROR_FIELD))
+            return ResponseEntity.badRequest().body(res);
+        else
+            return ResponseEntity.ok(res);
     }
 }

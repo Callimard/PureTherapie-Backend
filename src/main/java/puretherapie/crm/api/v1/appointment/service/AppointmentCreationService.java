@@ -23,7 +23,6 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
 import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
 
 @Slf4j
@@ -67,7 +66,7 @@ public class AppointmentCreationService {
             TimeSlot timeSlot = verifyTimeSlot(technician, day, beginTime, aestheticCare.getTimeExecution(), overlapAuthorized);
             Appointment appointment = buildAppointment(client, technician, aestheticCare, timeSlot);
             saveAppointment(appointment);
-            createNotification(client, technician, timeSlot);
+            notifyAppointmentCreate(client, technician, timeSlot);
             return true;
         } catch (Exception e) {
             log.debug("Fail to create appointment", e);
@@ -230,7 +229,7 @@ public class AppointmentCreationService {
         log.info("Create appointment {}", a);
     }
 
-    private void createNotification(Client client, Technician technician, TimeSlot timeSlot) {
+    private void notifyAppointmentCreate(Client client, Technician technician, TimeSlot timeSlot) {
         boolean success = notificationCreationService.createNotification(NOTIFICATION_APPOINTMENT_CREATION_TITLE.formatted(client.simplyIdentifier()),
                                                                          NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(timeSlot.getBegin(),
                                                                                                                           client.simplyIdentifier(),

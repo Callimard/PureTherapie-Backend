@@ -3,7 +3,6 @@ default:
 
 stages:
   - build
-  - test
   - scan
   - deploy-artifact
 
@@ -26,22 +25,9 @@ compile-job:
     - pushes
     - merge_requests
 
-test-job:
-  stage: test
-  needs: [ "compile-job" ]
-  artifacts:
-    paths:
-      - "target"
-  script:
-    - mvn $MAVEN_CLI_OPTS clean test
-  when: on_success
-  only:
-    - pushes
-    - merge_requests
-
 sonarqube-check:
   stage: scan
-  needs: [ "test-job" ]
+  needs: [ "compile-job" ]
   artifacts:
     paths:
       - "target"
@@ -55,7 +41,7 @@ sonarqube-check:
 
 deploy-artifact-job:
   stage: deploy-artifact
-  needs: [ "compile-job", "test-job" ]
+  needs: [ "compile-job", "sonarqube-check" ]
   artifacts:
     paths:
       - "target/*.jar"

@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +29,9 @@ public class ClientRegistrationService {
     // Constants.
 
     private static final String NOTIFICATION_CLIENT_REGISTRATION_TITLE = "Registration of the client %s";
-    private static final String NOTIFICATION = "The client %s has been register";
+    private static final String NOTIFICATION_CLIENT_REGISTRATION_TEXT = "The client %s has been register";
+
+    public static final String ID_CLIENT_FIELD = "idClient";
 
     // Variables.
 
@@ -42,73 +42,69 @@ public class ClientRegistrationService {
     // Methods.
 
     @Transactional(propagation = Propagation.NEVER)
-    public ResponseEntity<Map<String, Object>> clientRegistration(ClientInformation clientInformation, boolean doubloonVerification) {
-        log.debug("Client registration for ClientInformation = {}", clientInformation);
-
-        Map<String, Object> errors = new HashMap<>();
-
-        // Build client form client information
-        Client c = tryBuildClient(clientInformation, errors);
-        if (c == null || !errors.isEmpty())
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap(ERROR_FIELD, errors));
-
-        // Verify doubloon if needed
-        List<ClientInformation> doubloon = null;
-        if (doubloonVerification) {
-            doubloon = verifyDoubloon(c);
+    public Map<String, Object> clientRegistration(ClientInformation clientInformation, boolean doubloonVerification) {
+        try {
+            Client client = buildClient(clientInformation);
+            verifyDoubloon(client, doubloonVerification);
+            client = saveClient(client);
+            notifyClientRegistration(client);
+            return generateSuccessResponse(client);
+        } catch (ClientRegistrationException e) {
+            return Collections.singletonMap(ERROR_FIELD, e.getErrors());
+        } catch (ClientDoubloonException e) {
+            return Collections.singletonMap(CLIENT_DOUBLOON_FIELD, e.getDoubloonList());
         }
-
-        if (doubloon == null || doubloon.isEmpty()) {
-            // Save the client
-            trySaveClient(errors, c);
-            if (!errors.isEmpty())
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap(ERROR_FIELD, errors));
-        } else {
-            log.info("Doubloon(s) find for the client {}", clientInformation);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap(CLIENT_DOUBLOON_FIELD, doubloon));
-        }
-
-        String clientIdentification = c.getFirstName() + " " + c.getLastName();
-        boolean success = notificationCreationService.createNotification(NOTIFICATION_CLIENT_REGISTRATION_TITLE.formatted(clientIdentification),
-                                                                         NOTIFICATION.formatted(clientIdentification),
-                                                                         BOSS_SECRETARY_LEVEL,
-                                                                         false);
-
-        if (!success)
-            log.error("Notification creation for client registration failed.");
-
-        return ResponseEntity.ok(Collections.singletonMap(SUCCESS_FIELD, "Client registration success"));
     }
 
-    private Client tryBuildClient(ClientInformation clientInformation, Map<String, Object> errors) {
+    private void notifyClientRegistration(Client client) {
+        boolean success =
+                notificationCreationService.createNotification(NOTIFICATION_CLIENT_REGISTRATION_TITLE.formatted(client.simplyIdentifier()),
+                                                               NOTIFICATION_CLIENT_REGISTRATION_TEXT.formatted(client.simplyIdentifier()),
+                                                               BOSS_SECRETARY_LEVEL,
+                                                               false);
+        if (!success)
+            log.error("Notification creation for client registration failed.");
+    }
+
+    private Map<String, Object> generateSuccessResponse(Client c) {
+        Map<String, Object> res = new HashMap<>();
+        res.put(SUCCESS_FIELD, "Client registration success");
+        res.put(ID_CLIENT_FIELD, c.getIdPerson());
+
+        return res;
+    }
+
+    private Client buildClient(ClientInformation clientInformation) throws ClientRegistrationException {
         try {
             return createClient(clientInformation);
         } catch (ClientInformation.ClientInformationVerificationException e) {
-            log.debug("Exception during client information verification. Error = {}", errors);
-            errors.putAll(e.getErrors());
-            return null;
+            log.debug("Exception during client information verification. Error = {}", e.getErrors());
+            throw new ClientRegistrationException(e.getErrors());
         }
     }
 
-    private List<ClientInformation> verifyDoubloon(Client c) {
-        List<Client> clients = clientRepository.findByFirstNameAndLastName(c.getFirstName(), c.getLastName());
-        if (clients != null && !clients.isEmpty()) {
-            List<ClientInformation> doubloons = new ArrayList<>();
-            for (Client doubloon : clients) {
-                doubloons.add(doubloon.getClientInformation());
+    private void verifyDoubloon(Client c, boolean verify) throws ClientDoubloonException {
+        if (verify) {
+            List<Client> clients = clientRepository.findByFirstNameAndLastName(c.getFirstName(), c.getLastName());
+            if (clients != null && !clients.isEmpty()) {
+                List<ClientInformation> doubloons = new ArrayList<>();
+                for (Client doubloon : clients) {
+                    doubloons.add(doubloon.getClientInformation());
+                }
+                throw new ClientDoubloonException(doubloons);
             }
-            return doubloons;
-        } else {
-            return Collections.emptyList();
         }
     }
 
-    private void trySaveClient(Map<String, Object> errors, Client c) {
+    private Client saveClient(Client c) throws ClientRegistrationException {
         try {
             Client saved = clientRepository.save(c);
             log.info("Client registration success. The new client {}", saved);
+            return saved;
         } catch (DataIntegrityViolationException e) {
+            Map<String, String> errors = new HashMap<>();
             treatDataIntegrityViolation(errors, e);
+            throw new ClientRegistrationException(errors);
         }
     }
 
@@ -117,14 +113,14 @@ public class ClientRegistrationService {
         return clientInformation.buildClient(personOriginRepository);
     }
 
-    private void treatDataIntegrityViolation(Map<String, Object> errors, DataIntegrityViolationException e) {
+    private void treatDataIntegrityViolation(Map<String, String> errors, DataIntegrityViolationException e) {
         if (e.getCause() instanceof ConstraintViolationException constraintViolation)
             treatConstraintViolationCause(errors, constraintViolation);
         else
             treatUndefineViolationCause(errors, e);
     }
 
-    private void treatConstraintViolationCause(Map<String, Object> errors, ConstraintViolationException constraintViolation) {
+    private void treatConstraintViolationCause(Map<String, String> errors, ConstraintViolationException constraintViolation) {
         log.debug("Detect constraint violation.");
         String fieldViolated = extractNotUniqueField(constraintViolation);
         if (fieldViolated != null) {
@@ -136,7 +132,7 @@ public class ClientRegistrationService {
         }
     }
 
-    private void treatUndefineViolationCause(Map<String, Object> errors, DataIntegrityViolationException e) {
+    private void treatUndefineViolationCause(Map<String, String> errors, DataIntegrityViolationException e) {
         log.debug("Detect DataIntegrityViolationException", e);
         errors.put(ERROR_FIELD, e.getMessage());
     }
@@ -148,5 +144,33 @@ public class ClientRegistrationService {
             return EMAIL_FIELD;
         } else
             return null;
+    }
+
+    private static class ClientRegistrationException extends Exception {
+
+        private final Map<String, String> errors;
+
+        public ClientRegistrationException(Map<String, String> errors) {
+            super();
+            this.errors = errors;
+        }
+
+        public Map<String, String> getErrors() {
+            return errors;
+        }
+    }
+
+    private static class ClientDoubloonException extends Exception {
+
+        private final transient List<ClientInformation> doubloonList;
+
+        public ClientDoubloonException(List<ClientInformation> doubloonList) {
+            super();
+            this.doubloonList = doubloonList;
+        }
+
+        public List<ClientInformation> getDoubloonList() {
+            return doubloonList;
+        }
     }
 }

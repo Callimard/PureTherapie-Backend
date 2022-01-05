@@ -41,7 +41,7 @@ test-job:
 
 sonarqube-check:
   stage: scan
-  needs: [ "compile-job" ]
+  needs: [ "test-job" ]
   artifacts:
     paths:
       - "target"

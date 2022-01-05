@@ -1,6 +1,7 @@
 package puretherapie.crm.data.agenda;
 
 import lombok.*;
+import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.person.technician.Technician;
 
 import javax.persistence.*;
@@ -31,9 +32,13 @@ public class TimeSlot {
     private Integer time;
 
     @Column(name = "free", nullable = false)
-    private boolean free = false;
+    private boolean free;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idTechnician", nullable = false)
     private Technician technician;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "idAppointment", nullable = false)
+    private Appointment appointment;
 }

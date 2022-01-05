@@ -7,23 +7,28 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
-import puretherapie.crm.data.agenda.TimeSlot;
-import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
+import puretherapie.crm.data.agenda.*;
+import puretherapie.crm.data.agenda.repository.*;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
+import puretherapie.crm.data.person.technician.LaunchBreak;
 import puretherapie.crm.data.person.technician.Technician;
+import puretherapie.crm.data.person.technician.repository.LaunchBreakRepository;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
+import static puretherapie.crm.tool.TimeTool.minuteBetween;
 
 @Slf4j
 @AllArgsConstructor
@@ -42,31 +47,70 @@ public class AppointmentCreationService {
     private final ClientRepository clientRepository;
     private final TechnicianRepository technicianRepository;
     private final AestheticCareRepository aestheticCareRepository;
-    private final TimeSlotRepository timeSlotRepository;
     private final AppointmentRepository appointmentRepository;
+    private final TimeSlotRepository timeSlotRepository;
+    private final TimeSlotAtomRepository tsaRepository;
+    private final ExceptionalOpeningRepository eoRepository;
+    private final ExceptionalCloseRepository ecRepository;
+    private final GlobalOpeningTimeRepository gotRepository;
+    private final LaunchBreakRepository lbRepository;
     private final NotificationCreationService notificationCreationService;
 
     // Methods.
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime) {
-        return createAppointment(idClient, idTechnician, idAestheticCare, day, beginTime, 0);
+        return createAppointment(idClient, idTechnician, idAestheticCare, day, beginTime, false);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime,
-                                     int overlapAuthorized) {
+                                     boolean overlapAuthorized) {
         try {
-            if (unCorrectDayOrBeginTime(day, beginTime)) return false;
+            verifyDayOrBeginTime(day, beginTime);
 
-            overlapAuthorized = verifyOverLap(overlapAuthorized);
             Client client = verifyClient(idClient);
             Technician technician = verifyTechnician(idTechnician);
             AestheticCare aestheticCare = verifyAestheticCare(idAestheticCare);
-            TimeSlot timeSlot = verifyTimeSlot(technician, day, beginTime, aestheticCare.getTimeExecution(), overlapAuthorized);
-            Appointment appointment = buildAppointment(client, technician, aestheticCare, timeSlot);
-            saveAppointment(appointment);
-            notifyAppointmentCreate(client, technician, timeSlot);
+
+            List<TimeSlotAtom> tsaList = tsaRepository.findAllByOrderByEffectiveDate();
+
+            List<Opening> openingList = getOpenings(day);
+            TimeSlotAtom tsa = searchCorrectTSA(tsaList, day);
+            int appointmentDuration = computeAppointmentDuration(aestheticCare, tsa, overlapAuthorized);
+
+            if (instituteIsOpen(openingList)) {
+                if (appointmentInOpeningTime(beginTime, openingList, appointmentDuration)) {
+                    if (appointmentNotDuringLaunchBreak(technician, day, beginTime, appointmentDuration)) {
+                        if (isCompatibleTimeSlotTime(beginTime, openingList, tsa)) {
+                            int nbTimeSlot = getNbTimeSlot(aestheticCare, overlapAuthorized, tsa);
+                            List<TimeSlot> timeSlots = createTimeSlot(technician, day, beginTime, tsa, nbTimeSlot);
+                            if (noOverlapForAll(timeSlots)) {
+                                Appointment appointment = buildAppointment(client, technician, aestheticCare);
+                                saveAppointment(appointment);
+                                saveAllTimeSlot(timeSlots, appointment);
+                                notifyAppointmentCreate(client, technician, beginTime);
+                            } else {
+                                log.debug("Fail to create appointment, time slot are not free for the begin time {}", beginTime);
+                                return false;
+                            }
+                        } else {
+                            log.debug("Fail to create appointment, incompatible time slot time with time slot duration as {} minutes",
+                                      tsa.getNumberOfMinutes());
+                            return false;
+                        }
+                    } else {
+                        log.debug("Fail to create appointment, time {} is during technician launch break", beginTime);
+                    }
+                } else {
+                    log.debug("Fail to create appointment, time {} out of opening time", beginTime);
+                    return false;
+                }
+            } else {
+                log.debug("Fail to create appointment, institute is closed at this day {}", day);
+                return false;
+            }
+
             return true;
         } catch (Exception e) {
             log.debug("Fail to create appointment", e);
@@ -75,24 +119,133 @@ public class AppointmentCreationService {
         }
     }
 
-    private boolean unCorrectDayOrBeginTime(LocalDate day, LocalTime beginTime) {
-        if (day == null || beginTime == null) {
-            log.debug("Day or beginTime is null");
-            return true;
+    private void saveAllTimeSlot(List<TimeSlot> timeSlots, Appointment appointment) {
+        for (TimeSlot timeSlot : timeSlots) {
+            timeSlot.setAppointment(appointment);
+            TimeSlot ts = timeSlotRepository.save(timeSlot);
+            log.debug("Save time slot {}", ts);
         }
+    }
+
+    private boolean noOverlapForAll(List<TimeSlot> timeSlots) {
+        for (TimeSlot timeSlot : timeSlots)
+            if (thereIsOverlap(timeSlot))
+                return false;
+
+        return true;
+    }
+
+    private List<TimeSlot> createTimeSlot(Technician technician, LocalDate day, LocalTime beginTime, TimeSlotAtom tsa, int nbTimeSlot) {
+        List<TimeSlot> timeSlots = new ArrayList<>();
+        LocalTime time = beginTime;
+        for (int i = 0; i < nbTimeSlot; i++) {
+            timeSlots.add(buildTimeSlotWithoutAppointment(technician, day, time, tsa.getNumberOfMinutes()));
+            time = time.plusMinutes(tsa.getNumberOfMinutes());
+        }
+
+        return timeSlots;
+    }
+
+    private boolean isCompatibleTimeSlotTime(LocalTime beginTime, List<Opening> openingList, TimeSlotAtom tsa) {
+        return allCorrectTimeSlotTimes(openingList, tsa).contains(beginTime);
+    }
+
+    private Set<LocalTime> allCorrectTimeSlotTimes(List<Opening> openingList, TimeSlotAtom tsa) {
+        Set<LocalTime> correctTimeSlotTimes = new HashSet<>();
+        for (Opening opening : openingList) {
+            correctTimeSlotTimes.addAll(opening.correctTimeSlotTime(tsa));
+        }
+        return correctTimeSlotTimes;
+    }
+
+    private boolean appointmentNotDuringLaunchBreak(Technician technician, LocalDate appointmentDay, LocalTime appointmentBeginTime,
+                                                    int appointmentDuration) {
+        LaunchBreak technicianLaunchBreak = lbRepository.findByTechnicianAndDay(technician, appointmentDay);
+        LocalTime launchBreakBegin = technicianLaunchBreak.getBeginHour();
+        int launchBreakDuration = technicianLaunchBreak.getDuration();
+        return (appointmentBeginTime.isBefore(launchBreakBegin) && minuteBetween(appointmentBeginTime, launchBreakBegin) >= appointmentDuration)
+                ||
+                (launchBreakBegin.isBefore(appointmentBeginTime) && minuteBetween(launchBreakBegin, appointmentBeginTime) >= launchBreakDuration);
+    }
+
+    private List<Opening> getOpenings(LocalDate day) {
+        List<ExceptionalOpening> eoList = eoRepository.findByDay(day);
+        List<GlobalOpeningTime> gotList = gotRepository.findByDay(day.getDayOfWeek().getValue());
+
+        List<Opening> openingList = new ArrayList<>();
+        openingList.addAll(eoList);
+        openingList.addAll(gotList);
+        return openingList;
+    }
+
+    private TimeSlotAtom searchCorrectTSA(List<TimeSlotAtom> tsaList, LocalDate day) {
+        verifyTSAList(tsaList);
+        return searchCorrectTSA(tsaList, day, tsaList.get(0));
+    }
+
+    private void verifyTSAList(List<TimeSlotAtom> tsaList) {
+        if (tsaList == null || tsaList.isEmpty())
+            throw new IllegalArgumentException("TimeSlotAtom list is null");
+    }
+
+    private TimeSlotAtom searchCorrectTSA(List<TimeSlotAtom> tsaList, LocalDate day, TimeSlotAtom chosenTSA) {
+        if (!chosenTSA.getEffectiveDate().isBefore(day))
+            for (int i = 1; i < tsaList.size(); i++) {
+                TimeSlotAtom current = tsaList.get(i);
+                if (current.getEffectiveDate().isBefore(day))
+                    return current;
+            }
+
+        return chosenTSA;
+    }
+
+    private int computeAppointmentDuration(AestheticCare aestheticCare, TimeSlotAtom tsa, boolean authorizedOverlap) {
+        return getNbTimeSlot(aestheticCare, authorizedOverlap, tsa) * tsa.getNumberOfMinutes();
+    }
+
+    private int getNbTimeSlot(AestheticCare aestheticCare, boolean authorizedOverlap, TimeSlotAtom chosenTSA) {
+        int timeSlotDuration = chosenTSA.getNumberOfMinutes();
+        int acExecutionTime = aestheticCare.getTimeExecution();
+        int nbTimeSlot = 1;
+        int rest = 0;
+
+        if (isMoreThanOneTimeSlot(timeSlotDuration, acExecutionTime)) {
+            nbTimeSlot = acExecutionTime / timeSlotDuration;
+            rest = acExecutionTime % timeSlotDuration;
+        }
+
+        if (!authorizedOverlap && rest > 0)
+            nbTimeSlot += 1;
+        return nbTimeSlot;
+    }
+
+    private boolean isMoreThanOneTimeSlot(int timeSlotDuration, int acExecutionTime) {
+        return acExecutionTime > timeSlotDuration;
+    }
+
+    private boolean appointmentInOpeningTime(LocalTime beginTime, List<Opening> openingList, int appointmentDuration) {
+        for (Opening opening : openingList) {
+            if (inOpeningTime(opening.openingTime(), opening.closeTime(), beginTime, appointmentDuration))
+                return true;
+        }
+
         return false;
     }
 
-    private int verifyOverLap(int overlapAuthorized) {
-        if (overlapAuthorized > MAX_OVERLAP_AUTHORIZED) {
-            log.debug("Argument overlapAuthorized ({}) greater than MAX_OVERLAP_AUTHORIZED ({}) -> update value", overlapAuthorized,
-                      MAX_OVERLAP_AUTHORIZED);
-            overlapAuthorized = MAX_OVERLAP_AUTHORIZED;
-        }
+    private boolean inOpeningTime(LocalTime openingTime, LocalTime closeTime, LocalTime timeToVerify, int appointmentDuration) {
+        return (openingTime.equals(timeToVerify) || openingTime.isAfter(timeToVerify)) && timeToVerify.isBefore(closeTime) &&
+                minuteBetween(timeToVerify, closeTime) >= appointmentDuration;
+    }
 
-        if (overlapAuthorized < 0)
-            overlapAuthorized = 0;
-        return overlapAuthorized;
+    private boolean instituteIsOpen(List<Opening> openingList) {
+        return openingList != null && !openingList.isEmpty();
+    }
+
+    private void verifyDayOrBeginTime(LocalDate day, LocalTime beginTime) throws IllegalArgumentException {
+        if (day == null || beginTime == null) {
+            log.debug("Day or beginTime is null");
+            throw new IllegalArgumentException("Day or BeginTime is null");
+        }
     }
 
     private Client verifyClient(int idClient) {
@@ -116,37 +269,11 @@ public class AppointmentCreationService {
         return ac;
     }
 
-    private TimeSlot verifyTimeSlot(Technician technician, LocalDate day, LocalTime beginTime, int timeExecution, int overlapAuthorized) {
-        if (thereIsTimeSlotAtDayTime(technician, day, beginTime)) {
-            log.debug("Time Slot for technician {} already take for day {} at time {}", technician.simplyIdentifier(), day, beginTime);
-            throw new TimeSlotOverlapException(
-                    "Time Slot for technician %s already take for day %s at time %s".formatted(technician.simplyIdentifier(), day,
-                                                                                               beginTime));
-        }
-
-        if (thereIsOverlap(technician, day, beginTime, timeExecution, overlapAuthorized)) {
-            log.debug("Time Slot over lap find for the technician {} for the day {} at time {}", technician.simplyIdentifier(), day, beginTime);
-            throw new TimeSlotOverlapException(
-                    "Time Slot over lap find for the technician %s for the day %s at time %s".formatted(technician.simplyIdentifier(), day,
-                                                                                                        beginTime));
-        }
-
-        // No overlap found
-        TimeSlot timeSlot = timeSlotRepository.save(buildTimeSlot(technician, day, beginTime, timeExecution));
-        log.debug("Create time slot {}", timeSlot);
-        return timeSlot;
-    }
-
-    private boolean thereIsTimeSlotAtDayTime(Technician technician, LocalDate day, LocalTime beginTime) {
-        TimeSlot atDayTimeTS = timeSlotRepository.findByTechnicianAndDayAndBegin(technician, day, beginTime);
-        return atDayTimeTS != null && !atDayTimeTS.isFree();
-    }
-
-    private boolean thereIsOverlap(Technician technician, LocalDate day, LocalTime beginTime, int timeExecution, int overlapAuthorized) {
-        List<TimeSlot> dayTS = timeSlotRepository.findByTechnicianAndDay(technician, day);
-        if (dayTS != null)
-            for (TimeSlot timeSlot : dayTS)
-                if (hasOverlap(timeSlot, beginTime, timeExecution, overlapAuthorized))
+    private boolean thereIsOverlap(TimeSlot ts) {
+        List<TimeSlot> tsOfTheDay = timeSlotRepository.findByTechnicianAndDay(ts.getTechnician(), ts.getDay());
+        if (tsOfTheDay != null)
+            for (TimeSlot timeSlot : tsOfTheDay)
+                if (hasOverlap(timeSlot, ts.getBegin(), ts.getTime(), 0))
                     return true;
 
         return false;
@@ -164,9 +291,8 @@ public class AppointmentCreationService {
                 // Verify if the existing time slot is not in the new time slot
                 return hasOverlap(beginTime, lockTime, existingBeginTime, overlapAuthorized);
             } else {
-                // new time slot same has existing time slot
-                log.error("New time slot same has existing time slot. Begin time new time slot = {}, begin time existing time slot {}", beginTime,
-                          existingBeginTime);
+                // new time slot is equal to existing time slot
+                log.debug("There is overlap because time slot are equals, begin time = {}", beginTime);
                 return true;
             }
         }
@@ -187,11 +313,7 @@ public class AppointmentCreationService {
      * @throws IllegalArgumentException if beforeBeginTime is not before the afterBeginTime
      */
     private boolean hasOverlap(LocalTime beforeBeginTime, int beforeLockTime, LocalTime afterBeginTime, int overlapAuthorized) {
-        if (!beforeBeginTime.isBefore(afterBeginTime))
-            throw new IllegalArgumentException("Argument beforeBeginTime %s is not before afterBeginTime %s".formatted(beforeBeginTime,
-                                                                                                                       afterBeginTime));
-
-        long minuteDiff = ChronoUnit.MINUTES.between(beforeBeginTime, afterBeginTime);
+        long minuteDiff = minuteBetween(beforeBeginTime, afterBeginTime);
         if (minuteDiff < beforeLockTime - overlapAuthorized) {
             log.debug(
                     "Overlap between before TS beginTime {} lockTime {} and after TS beginTime {}", beforeBeginTime, beforeLockTime, afterBeginTime);
@@ -204,7 +326,7 @@ public class AppointmentCreationService {
         return false;
     }
 
-    private TimeSlot buildTimeSlot(Technician technician, LocalDate day, LocalTime beginTime, int timeExecution) {
+    private TimeSlot buildTimeSlotWithoutAppointment(Technician technician, LocalDate day, LocalTime beginTime, int timeExecution) {
         return TimeSlot.builder()
                 .day(day)
                 .begin(beginTime)
@@ -214,34 +336,27 @@ public class AppointmentCreationService {
                 .build();
     }
 
-    private Appointment buildAppointment(Client client, Technician technician, AestheticCare aestheticCare, TimeSlot timeSlot) {
+    private Appointment buildAppointment(Client client, Technician technician, AestheticCare aestheticCare) {
         return Appointment.builder()
                 .client(client)
                 .technician(technician)
                 .aestheticCare(aestheticCare)
-                .timeSlot(timeSlot)
                 .canceled(false)
                 .build();
     }
 
     private void saveAppointment(Appointment appointment) {
         Appointment a = appointmentRepository.save(appointment);
-        log.info("Create appointment {}", a);
+        log.info("Save appointment {}", a);
     }
 
-    private void notifyAppointmentCreate(Client client, Technician technician, TimeSlot timeSlot) {
+    private void notifyAppointmentCreate(Client client, Technician technician, LocalTime beginTime) {
         boolean success = notificationCreationService.createNotification(NOTIFICATION_APPOINTMENT_CREATION_TITLE.formatted(client.simplyIdentifier()),
-                                                                         NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(timeSlot.getBegin(),
+                                                                         NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(beginTime,
                                                                                                                           client.simplyIdentifier(),
                                                                                                                           technician.simplyIdentifier()),
                                                                          BOSS_SECRETARY_LEVEL, false);
         if (!success)
             log.error("Fail to create appointment notification");
-    }
-
-    private static class TimeSlotOverlapException extends RuntimeException {
-        public TimeSlotOverlapException(String message) {
-            super(message);
-        }
     }
 }

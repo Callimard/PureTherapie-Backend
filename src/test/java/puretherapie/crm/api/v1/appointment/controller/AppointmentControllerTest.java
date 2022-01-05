@@ -94,7 +94,7 @@ public class AppointmentControllerTest {
         @DisplayName("Test if with correct authentication with overlap permission enable; returns 200")
         void testWithPermissionAuthentication() throws Exception {
             prepareUserSecurityService(BOSS_ROLE);
-            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any(), anyInt())).willReturn(true);
+            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any(), anyBoolean())).willReturn(true);
 
             mockMvc.perform(httpPostJsonWithAuthorization(API_V1_APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
                     .andExpect(status().isOk());
@@ -116,7 +116,7 @@ public class AppointmentControllerTest {
                                                  .idClient(1)
                                                  .idTechnician(1)
                                                  .idAestheticCare(1)
-                                                 .overlapAuthorized(5)
+                                                 .overlapAuthorized(true)
                                                  .build());
     }
 

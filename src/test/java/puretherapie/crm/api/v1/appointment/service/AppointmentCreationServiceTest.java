@@ -27,11 +27,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static puretherapie.crm.api.v1.appointment.service.AppointmentCreationService.MAX_OVERLAP_AUTHORIZED;
 
 @Slf4j
 @SpringBootTest
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"insert_client_technician_aesthetic_care.sql", "insert_time_slot.sql"})
+@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"insert_client_technician_aesthetic_care.sql",
+                                                                        "insert_time_slot_appointment.sql"})
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = {"delete_appointment.sql", "delete_time_slot.sql",
                                                                        "delete_client_technician_aesthetic_care.sql"})
 @DisplayName("AppointmentCreationService tests")
@@ -157,7 +157,7 @@ public class AppointmentCreationServiceTest {
         void testBetweenTwoFollowingAppointment() {
             boolean success =
                     appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
-                                                                 IN_FOLLOWING_APPOINTMENT, 5);
+                                                                 IN_FOLLOWING_APPOINTMENT, true);
             assertThat(success).isFalse();
         }
 
@@ -166,13 +166,13 @@ public class AppointmentCreationServiceTest {
         void testWithFiveMinutesOverlap() {
             boolean success =
                     appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
-                                                                 FIVE_MIN_BEFORE_OVER_LAP, 5);
+                                                                 FIVE_MIN_BEFORE_OVER_LAP, true);
             assertThat(success).isTrue();
             verifyTimeSlotCreated(FIVE_MIN_BEFORE_OVER_LAP);
 
             success =
                     appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
-                                                                 FIVE_MIN_AFTER_OVER_LAP, 5);
+                                                                 FIVE_MIN_AFTER_OVER_LAP, true);
             assertThat(success).isTrue();
             verifyTimeSlotCreated(FIVE_MIN_AFTER_OVER_LAP);
         }
@@ -182,13 +182,13 @@ public class AppointmentCreationServiceTest {
         void testWithMoreThanMaxOverlapAuthorized() {
             boolean success =
                     appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
-                                                                 TEN_MIN_BEFORE_OVER_LAP, MAX_OVERLAP_AUTHORIZED + 10);
+                                                                 TEN_MIN_BEFORE_OVER_LAP, true);
             assertThat(success).isTrue();
             verifyTimeSlotCreated(TEN_MIN_BEFORE_OVER_LAP);
 
             success =
                     appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
-                                                                 TEN_MIN_AFTER_OVER_LAP, MAX_OVERLAP_AUTHORIZED + 10);
+                                                                 TEN_MIN_AFTER_OVER_LAP, true);
             assertThat(success).isTrue();
             verifyTimeSlotCreated(TEN_MIN_AFTER_OVER_LAP);
         }
@@ -198,7 +198,7 @@ public class AppointmentCreationServiceTest {
         void testWithOverlapNotApply() {
             boolean success =
                     appointmentCreationService.createAppointment(c.getIdPerson(), t.getIdPerson(), ac.getIdAestheticCare(), DAY,
-                                                                 NO_OVERLAP_POSSIBLE, MAX_OVERLAP_AUTHORIZED);
+                                                                 NO_OVERLAP_POSSIBLE, true);
             assertThat(success).isFalse();
         }
 

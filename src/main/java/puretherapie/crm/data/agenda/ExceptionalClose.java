@@ -17,7 +17,7 @@ public class ExceptionalClose {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idExceptionalClose", nullable = false)
-    private Integer id;
+    private Integer idExceptionalClose;
 
     @Column(name = "day", nullable = false)
     private LocalDate day;

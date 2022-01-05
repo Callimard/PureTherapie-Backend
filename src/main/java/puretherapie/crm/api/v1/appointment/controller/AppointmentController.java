@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import puretherapie.crm.api.v1.appointment.AppointmentInformation;
 import puretherapie.crm.api.v1.appointment.service.AppointmentCreationService;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
-import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
-import puretherapie.crm.data.person.technician.Technician;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 
 import java.util.Collection;
@@ -25,7 +23,6 @@ import java.util.Map;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.API_V1_APPOINTMENT_URL;
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
 import static puretherapie.crm.data.person.user.Role.SECRETARY_ROLE;
 import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
@@ -58,14 +55,12 @@ public class AppointmentController {
     public ResponseEntity<Map<String, Object>> takeAnAppointment(@RequestBody AppointmentInformation aInfo,
                                                                  Authentication authentication) {
         boolean success;
-        boolean potentialSurBooking = false;
         if (canHadOverlap(authentication)) {
             log.debug("Authorize to had overlap");
             success = appointmentCreationService.createAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(), aInfo.getIdAestheticCare(),
                                                                    aInfo.getDay(),
                                                                    aInfo.getBeginTime(),
-                                                                   aInfo.getOverlapAuthorized());
-            potentialSurBooking = true;
+                                                                   aInfo.isOverlapAuthorized());
         } else {
             log.debug("Not authorize to had overlap");
             success = appointmentCreationService.createAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(), aInfo.getIdAestheticCare(),
@@ -73,44 +68,18 @@ public class AppointmentController {
                                                                    aInfo.getBeginTime());
         }
 
-        return generateTakeAnAppointmentResponse(aInfo, success, potentialSurBooking);
+        return generateTakeAnAppointmentResponse(aInfo, success);
     }
 
-    private ResponseEntity<Map<String, Object>> generateTakeAnAppointmentResponse(AppointmentInformation aInfo, boolean success,
-                                                                                  boolean potentialSurBooking) {
+    private ResponseEntity<Map<String, Object>> generateTakeAnAppointmentResponse(AppointmentInformation aInfo, boolean success) {
         Map<String, Object> resp = new HashMap<>();
         if (success) {
-            if (surBookingHasBeenDone(aInfo, potentialSurBooking))
-                createSurBookingNotification(aInfo);
-
-            resp.put(SUCCESS_FIELD, "Success to create appointment");
+            resp.put(SUCCESS_FIELD, "Success to create appointment for the day %s at %s".formatted(aInfo.getDay(), aInfo.getBeginTime()));
             return ResponseEntity.ok(resp);
         } else {
-            resp.put(ERROR_FIELD, "Fail to create appointment");
+            resp.put(ERROR_FIELD, "Fail to create appointment for the day %s at %s".formatted(aInfo.getDay(), aInfo.getBeginTime()));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
         }
-    }
-
-    private boolean surBookingHasBeenDone(@RequestBody AppointmentInformation aInfo, boolean potentialSurBooking) {
-        return aInfo.getOverlapAuthorized() > 0 && potentialSurBooking;
-    }
-
-    private void createSurBookingNotification(AppointmentInformation aInfo) {
-        Client c = clientRepository.findByIdPerson(aInfo.getIdClient());
-        Technician t = technicianRepository.findByIdPerson(aInfo.getIdTechnician());
-        if (c != null && t != null) {
-            boolean success = notificationCreationService.createNotification(NOTIFICATION_SUR_BOOKING_TITLE,
-                                                                             NOTIFICATION_SUR_BOOKING_TEXT.formatted(aInfo.getOverlapAuthorized(),
-                                                                                                                     c.simplyIdentifier(),
-                                                                                                                     t.simplyIdentifier(),
-                                                                                                                     aInfo.getDay(),
-                                                                                                                     aInfo.getBeginTime()),
-                                                                             BOSS_SECRETARY_LEVEL,
-                                                                             true);
-            if (!success)
-                log.debug("Fail to create sur booking alert");
-        } else
-            log.debug("Fail to found client or technician to send notification");
     }
 
     private boolean canHadOverlap(Authentication auth) {

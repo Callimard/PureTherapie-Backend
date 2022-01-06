@@ -23,6 +23,7 @@ import java.util.Map;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.API_V1_APPOINTMENT_URL;
+import static puretherapie.crm.api.v1.appointment.service.AppointmentCreationService.APPOINTMENT_CREATION_SUCCESS;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
 import static puretherapie.crm.data.person.user.Role.SECRETARY_ROLE;
 import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
@@ -54,26 +55,27 @@ public class AppointmentController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> takeAnAppointment(@RequestBody AppointmentInformation aInfo,
                                                                  Authentication authentication) {
-        boolean success;
+        Map<String, Object> res;
         if (canHadOverlap(authentication)) {
             log.debug("Authorize to had overlap");
-            success = appointmentCreationService.createAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(), aInfo.getIdAestheticCare(),
-                                                                   aInfo.getDay(),
-                                                                   aInfo.getBeginTime(),
-                                                                   aInfo.isOverlapAuthorized());
+            res = appointmentCreationService.createAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(),
+                                                               aInfo.getIdAestheticCare(),
+                                                               aInfo.getDay(),
+                                                               aInfo.getBeginTime(),
+                                                               aInfo.isOverlapAuthorized());
         } else {
             log.debug("Not authorize to had overlap");
-            success = appointmentCreationService.createAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(), aInfo.getIdAestheticCare(),
-                                                                   aInfo.getDay(),
-                                                                   aInfo.getBeginTime());
+            res = appointmentCreationService.createAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(), aInfo.getIdAestheticCare(),
+                                                               aInfo.getDay(),
+                                                               aInfo.getBeginTime());
         }
 
-        return generateTakeAnAppointmentResponse(aInfo, success);
+        return generateTakeAnAppointmentResponse(aInfo, res);
     }
 
-    private ResponseEntity<Map<String, Object>> generateTakeAnAppointmentResponse(AppointmentInformation aInfo, boolean success) {
+    private ResponseEntity<Map<String, Object>> generateTakeAnAppointmentResponse(AppointmentInformation aInfo, Map<String, Object> res) {
         Map<String, Object> resp = new HashMap<>();
-        if (success) {
+        if (res.containsKey(APPOINTMENT_CREATION_SUCCESS)) {
             resp.put(SUCCESS_FIELD, "Success to create appointment for the day %s at %s".formatted(aInfo.getDay(), aInfo.getBeginTime()));
             return ResponseEntity.ok(resp);
         } else {

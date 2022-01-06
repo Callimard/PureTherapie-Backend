@@ -10,16 +10,16 @@ public interface Opening {
 
     LocalTime closeTime();
 
-    default List<LocalTime> correctTimeSlotTime(TimeSlotAtom tsa) {
-        if (!openingTime().equals(closeTime()) && !openingTime().isBefore(closeTime()))
+    static List<LocalTime> correctTimeSlotTime(Opening opening, int tsaNumberOfMinutes) {
+        if (!opening.openingTime().equals(opening.closeTime()) && !opening.openingTime().isBefore(opening.closeTime()))
             throw new IllegalArgumentException("OpeningTime not before CloseTime");
-
+        
         List<LocalTime> correctTimeSlotTimes = new ArrayList<>();
-        LocalTime timeSlot = openingTime();
+        LocalTime timeSlot = opening.openingTime();
         do {
             correctTimeSlotTimes.add(timeSlot);
-            timeSlot = timeSlot.plusMinutes(tsa.getNumberOfMinutes());
-        } while (!timeSlot.equals(closeTime()));
+            timeSlot = timeSlot.plusMinutes(tsaNumberOfMinutes);
+        } while (!timeSlot.equals(opening.closeTime()));
         correctTimeSlotTimes.add(timeSlot);
 
         return correctTimeSlotTimes;

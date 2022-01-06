@@ -22,11 +22,15 @@ import puretherapie.crm.data.person.user.User;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.API_V1_APPOINTMENT_URL;
+import static puretherapie.crm.api.v1.appointment.service.AppointmentCreationService.APPOINTMENT_CREATION_FAIL;
+import static puretherapie.crm.api.v1.appointment.service.AppointmentCreationService.APPOINTMENT_CREATION_SUCCESS;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
 import static puretherapie.crm.data.person.user.Role.MAMY_ROLE;
 import static util.RequestTool.httpPostJson;
@@ -77,7 +81,7 @@ public class AppointmentControllerTest {
         @Test
         @DisplayName("Test with correct body and success create appointment returns 200")
         void testWithSuccessAppointmentCreation() throws Exception {
-            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(true);
+            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(successAppointmentCreationRes());
 
             mockMvc.perform(httpPostJson(API_V1_APPOINTMENT_URL).content(correctBody())).andExpect(status().isOk());
         }
@@ -85,7 +89,7 @@ public class AppointmentControllerTest {
         @Test
         @DisplayName("Test with correct body and fail create appointment returns 400")
         void testWithFailAppointmentCreation() throws Exception {
-            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(false);
+            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(failAppointmentCreationRes());
 
             mockMvc.perform(httpPostJson(API_V1_APPOINTMENT_URL).content(correctBody())).andExpect(status().isBadRequest());
         }
@@ -94,7 +98,8 @@ public class AppointmentControllerTest {
         @DisplayName("Test if with correct authentication with overlap permission enable; returns 200")
         void testWithPermissionAuthentication() throws Exception {
             prepareUserSecurityService(BOSS_ROLE);
-            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any(), anyBoolean())).willReturn(true);
+            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any(), anyBoolean())).willReturn(
+                    successAppointmentCreationRes());
 
             mockMvc.perform(httpPostJsonWithAuthorization(API_V1_APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
                     .andExpect(status().isOk());
@@ -104,11 +109,19 @@ public class AppointmentControllerTest {
         @DisplayName("Test if with correct authentication without overlap permission enable, returns 200 without overlap")
         void testWithNoPermissionAuthentication() throws Exception {
             prepareUserSecurityService(MAMY_ROLE);
-            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(true);
+            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(successAppointmentCreationRes());
 
             mockMvc.perform(httpPostJsonWithAuthorization(API_V1_APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
                     .andExpect(status().isOk());
         }
+    }
+
+    private Map<String, Object> failAppointmentCreationRes() {
+        return Collections.singletonMap(APPOINTMENT_CREATION_FAIL, null);
+    }
+
+    private Map<String, Object> successAppointmentCreationRes() {
+        return Collections.singletonMap(APPOINTMENT_CREATION_SUCCESS, null);
     }
 
     private String correctBody() throws JsonProcessingException {

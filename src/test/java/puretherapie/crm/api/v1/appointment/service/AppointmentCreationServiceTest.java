@@ -1,7 +1,6 @@
 package puretherapie.crm.api.v1.appointment.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -9,7 +8,6 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.jdbc.Sql;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.agenda.*;
 import puretherapie.crm.data.agenda.repository.*;
@@ -28,46 +26,209 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static puretherapie.crm.api.v1.appointment.service.AppointmentCreationService.*;
 
 @Slf4j
 @SpringBootTest
-@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = {"insert_client_technician_aesthetic_care.sql",
-                                                                        "insert_time_slot_appointment.sql"})
-@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = {"delete_appointment.sql", "delete_time_slot.sql",
-                                                                       "delete_client_technician_aesthetic_care.sql"})
 @DisplayName("AppointmentCreationService tests")
 public class AppointmentCreationServiceTest {
 
-    private static final String CLIENT_EMAIL = "client@email.fr";
-    private static final String TECHNICIAN_EMAIL = "tech@email.fr";
-    private static final String AESTHETIC_CARE_NAME = "AC";
-
-    private static final LocalDate DAY = LocalDate.of(2022, 1, 1);
-    private static final LocalTime NOT_FREE_TIME = LocalTime.of(10, 15);
-    private static final LocalTime BEFORE_OVERLAP = LocalTime.of(12, 15);
-    private static final LocalTime AFTER_OVERLAP = LocalTime.of(11, 45);
-    private static final LocalTime IN_FOLLOWING_APPOINTMENT = LocalTime.of(13, 35);
-    private static final LocalTime FREE_TIME_SLOT = LocalTime.of(14, 20);
-    private static final LocalTime FIVE_MIN_BEFORE_OVER_LAP = LocalTime.of(14, 15);
-    private static final LocalTime FIVE_MIN_AFTER_OVER_LAP = LocalTime.of(11, 25);
-    private static final LocalTime TEN_MIN_BEFORE_OVER_LAP = LocalTime.of(14, 10);
-    private static final LocalTime TEN_MIN_AFTER_OVER_LAP = LocalTime.of(11, 30);
-    private static final LocalTime NO_OVERLAP_POSSIBLE = LocalTime.of(14, 0);
+    private static final LocalDate CORRECT_RANDOM_DATE = LocalDate.of(1996, 9, 3);
+    private static final LocalTime CORRECT_RANDOM_TIME = LocalTime.of(10, 50);
 
     @Autowired
-    private AppointmentCreationService appointmentCreationService;
-
+    private AppointmentCreationService acs;
 
     @Nested
     @DisplayName("CreateAppointment tests")
     class CreateAppointment {
 
+        @Test
+        @DisplayName("Test with null day or null beginTime fail")
+        void testWithNullDayOrNullBeginTime() {
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, null, CORRECT_RANDOM_TIME);
+            verifyFail(res);
+            verifyFailType(res, NULL_DAY_OR_BEGIN_TIME_ERROR);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, CORRECT_RANDOM_DATE, null);
+            verifyFail(res);
+            verifyFailType(res, NULL_DAY_OR_BEGIN_TIME_ERROR);
+        }
+
+        @Test
+        @DisplayName("Test with non correct client id fail")
+        void testWithNonCorrectClientId() {
+            prepareTechnicianRepository();
+            prepareACRepository();
+            Map<String, Object> res = acs.createAppointment(1, TECHNICIAN_ID, AC_ID, CORRECT_RANDOM_DATE, CORRECT_RANDOM_TIME);
+            verifyFail(res);
+            verifyFailType(res, CLIENT_ID_NOT_FOUND_ERROR);
+        }
+
+        @Test
+        @DisplayName("Test with non correct technician id fail")
+        void testWithNonCorrectTechnicianId() {
+            prepareClientRepository();
+            prepareACRepository();
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, 1, AC_ID, CORRECT_RANDOM_DATE, CORRECT_RANDOM_TIME);
+            verifyFail(res);
+            verifyFailType(res, TECHNICIAN_ID_NOT_FOUND_ERROR);
+        }
+
+        @Test
+        @DisplayName("Test with non correct aesthetic care id fail")
+        void testWithNonCorrectAestheticCareId() {
+            prepareClientRepository();
+            prepareTechnicianRepository();
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, 1, CORRECT_RANDOM_DATE, CORRECT_RANDOM_TIME);
+            verifyFail(res);
+            verifyFailType(res, AESTHETIC_CARE_ID_NOT_FOUND_ERROR);
+        }
+
+        @Test
+        @DisplayName("Test with exceptional close fail")
+        void testWithExceptionalClose() {
+            prepareMinimalContext();
+            prepareECRepository();
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, EC_DATE, CORRECT_RANDOM_TIME);
+            verifyFail(res);
+            verifyFailType(res, EXCEPTIONAL_CLOSE_ERROR);
+        }
+
+        @Test
+        @DisplayName("Test with not open day fail")
+        void testWithNotOpenDay() {
+            prepareMinimalContext();
+            prepareGORepository();
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, NOT_OPEN_DAY, CORRECT_RANDOM_TIME);
+            verifyFail(res);
+            verifyFailType(res, NOT_OPEN_ERROR);
+        }
+
+        @Test
+        @DisplayName("Test with not in opening time appointment fail")
+        void testWithNotInOpeningTime() {
+            prepareMinimalContext();
+            prepareGORepository();
+            prepareMondayOpening();
+            prepareTuesdayOpening();
+
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, BEFORE_OPENING_TIME);
+            verifyFail(res);
+            verifyFailType(res, NOT_IN_OPENING_TIME_ERROR);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, AFTER_CLOSE_TIME);
+            verifyFail(res);
+            verifyFailType(res, NOT_IN_OPENING_TIME_ERROR);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, TUESDAY_DATE, BEFORE_OPENING_TIME);
+            verifyFail(res);
+            verifyFailType(res, NOT_IN_OPENING_TIME_ERROR);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, TUESDAY_DATE, AFTER_CLOSE_TIME);
+            verifyFail(res);
+            verifyFailType(res, NOT_IN_OPENING_TIME_ERROR);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, TUESDAY_DATE, CLOSE_TIME.minusMinutes(15));
+            verifyFail(res);
+            verifyFailType(res, NOT_IN_OPENING_TIME_ERROR);
+        }
+
+        @Test
+        @DisplayName("Test with in launch break fail")
+        void testInLaunchBreak() {
+            prepareMinimalContext();
+            prepareGORepository();
+            prepareMondayOpening();
+            prepareTuesdayOpening();
+            prepareLBRepository();
+            prepareLB();
+
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, LAUNCH_BREAK_BEGIN_TIME);
+            verifyFail(res);
+            verifyFailType(res, DURING_LAUNCH_BREAK_ERROR);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, LAUNCH_BREAK_BEGIN_TIME.minusMinutes(15));
+            verifyFail(res);
+            verifyFailType(res, DURING_LAUNCH_BREAK_ERROR);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, LAUNCH_BREAK_BEGIN_TIME.plusMinutes(15));
+            verifyFail(res);
+            verifyFailType(res, DURING_LAUNCH_BREAK_ERROR);
+        }
+
+        @Test
+        @DisplayName("Test with incompatible time slot time fail")
+        void testWithIncompatibleTimeSlotTime() {
+            prepareMinimalContext();
+            prepareGORepository();
+            prepareMondayOpening();
+            prepareTuesdayOpening();
+            prepareLBRepository();
+            prepareLB();
+            prepareTSA();
+
+
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, INCOMPATIBLE_TIME_SLOT_TIME_1);
+            verifyFail(res);
+            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, INCOMPATIBLE_TIME_SLOT_TIME_2);
+            verifyFail(res);
+            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, INCOMPATIBLE_TIME_SLOT_TIME_3);
+            verifyFail(res);
+            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, INCOMPATIBLE_TIME_SLOT_TIME_4);
+            verifyFail(res);
+            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME);
+        }
+
+        @Test
+        @DisplayName("Test with overlap time slot fail")
+        void testWithOverlap() {
+            prepareMinimalContext();
+            prepareGORepository();
+            prepareMondayOpening();
+            prepareTuesdayOpening();
+            prepareLBRepository();
+            prepareLB();
+            prepareTSA();
+            prepareTimeSlotRepository();
+            prepareTimeSlot();
+            prepareAC();
+            prepareMedAC();
+            prepareLongAC();
+
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, AC_OVERLAP_TS1_1);
+            verifyFail(res);
+            verifyFailType(res, OVERLAP_ERROR);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, MED_AC_ID, MONDAY_DATE, MED_AC_OVERLAP_TS1_2);
+            verifyFail(res);
+            verifyFailType(res, OVERLAP_ERROR);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, LONG_AC_ID, MONDAY_DATE, LONG_AC_OVERLAP_TS2_2);
+            verifyFail(res);
+            verifyFailType(res, OVERLAP_ERROR);
+        }
+
+    }
+
+    private void verifyFail(Map<String, Object> res) {
+        assertThat(res).isNotNull().containsKey(APPOINTMENT_CREATION_FAIL);
+    }
+
+    private void verifyFailType(Map<String, Object> res, String expectedKey) {
+        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(APPOINTMENT_CREATION_FAIL);
+        assertThat(errors).isNotNull().containsKey(expectedKey);
     }
 
     // Context.
@@ -91,18 +252,36 @@ public class AppointmentCreationServiceTest {
     @MockBean
     private AestheticCareRepository mockACRepository;
     @Mock
-    private AestheticCare mockAestheticCare;
-    private static final int AESTHETIC_CARE_ID = 2;
-    private static final int AESTHETIC_CARE_TIME_EXECUTION = 40;
+    private AestheticCare mockAC;
+    private static final int AC_ID = 2;
+    private static final int AC_TIME_EXECUTION = 30;
+    @Mock
+    private AestheticCare mockMediumAC;
+    private static final int MED_AC_ID = 1;
+    private static final int MED_AC_TIME_EXECUTION = 45;
+    @Mock
+    private AestheticCare mockLongAC;
+    private static final int LONG_AC_ID = 3;
+    private static final int LONG_AC_TIME_EXECUTION = 90;
 
     @MockBean
     private TimeSlotRepository mockTimeSlotRepository;
     @Mock
     private TimeSlot mockTS1_1;
+    private static final LocalTime TS1_1_BEGIN_TIME = LocalTime.of(8, 0);
     @Mock
     private TimeSlot mockTS1_2;
+    private static final LocalTime TS1_2_BEGIN_TIME = LocalTime.of(8, 30);
     @Mock
     private TimeSlot mockTS2_1;
+    private static final LocalTime TS2_1_BEGIN_TIME = LocalTime.of(12, 0);
+    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_1 = LocalTime.of(10, 5);
+    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_2 = LocalTime.of(10, 15);
+    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_3 = LocalTime.of(10, 3);
+    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_4 = LocalTime.of(10, 29);
+    private static final LocalTime AC_OVERLAP_TS1_1 = TS1_1_BEGIN_TIME;
+    private static final LocalTime MED_AC_OVERLAP_TS1_2 = TS1_1_BEGIN_TIME.minusMinutes(30);
+    private static final LocalTime LONG_AC_OVERLAP_TS2_2 = TS2_1_BEGIN_TIME.minusMinutes(30);
 
     @MockBean
     private AppointmentRepository mockAppointmentRepository;
@@ -123,8 +302,13 @@ public class AppointmentCreationServiceTest {
     private GlobalOpeningTime mockMondayOpening;
     @Mock
     private GlobalOpeningTime mockTuesdayOpening;
-    private static final LocalTime OPENING_TIME = LocalTime.of(8, 0);
+    private static final LocalTime OPENING_TIME = LocalTime.of(7, 0);
     private static final LocalTime CLOSE_TIME = LocalTime.of(21, 0);
+    private static final LocalTime BEFORE_OPENING_TIME = OPENING_TIME.minusMinutes(15);
+    private static final LocalTime AFTER_CLOSE_TIME = CLOSE_TIME.plusMinutes(15);
+    private static final LocalDate MONDAY_DATE = LocalDate.of(2022, 1, 10); // Monday
+    private static final LocalDate TUESDAY_DATE = LocalDate.of(2022, 1, 11); // Tuesday
+    private static final LocalDate NOT_OPEN_DAY = LocalDate.of(2022, 1, 5); // Wednesday
 
     @MockBean
     private ExceptionalCloseRepository mockECRepository;
@@ -142,7 +326,8 @@ public class AppointmentCreationServiceTest {
     private LaunchBreakRepository mockLBRepository;
     @Mock
     private LaunchBreak mockLB;
-    private static final LocalDate LAUNCH_BREAK_DAY = LocalDate.of(2022, 1, 3); // Monday
+    private static final LocalTime LAUNCH_BREAK_BEGIN_TIME = LocalTime.of(14, 0);
+    private static final int LAUNCH_BREAK_DURATION = 60;
 
     @MockBean
     private NotificationCreationService mockNotificationCreationService;
@@ -152,6 +337,8 @@ public class AppointmentCreationServiceTest {
         prepareTechnicianRepository();
         prepareACRepository();
         prepareTSARepository();
+        prepareTSA();
+        prepareGORepository();
     }
 
     private void prepareClientRepository() {
@@ -163,7 +350,9 @@ public class AppointmentCreationServiceTest {
     }
 
     private void prepareACRepository() {
-        given(mockACRepository.findByIdAestheticCare(AESTHETIC_CARE_ID)).willReturn(mockAestheticCare);
+        given(mockACRepository.findByIdAestheticCare(AC_ID)).willReturn(mockAC);
+        given(mockACRepository.findByIdAestheticCare(MED_AC_ID)).willReturn(mockMediumAC);
+        given(mockACRepository.findByIdAestheticCare(LONG_AC_ID)).willReturn(mockLongAC);
     }
 
     private void prepareTSARepository() {
@@ -178,7 +367,7 @@ public class AppointmentCreationServiceTest {
         timeSlots.add(mockTS1_1);
         timeSlots.add(mockTS1_2);
         timeSlots.add(mockTS2_1);
-        given(mockTimeSlotRepository.findByTechnicianAndDay(mockTechnician, any())).willReturn(timeSlots);
+        given(mockTimeSlotRepository.findByTechnicianAndDay(eq(mockTechnician), any())).willReturn(timeSlots);
     }
 
     private void prepareNotificationCreationService() {
@@ -206,7 +395,7 @@ public class AppointmentCreationServiceTest {
     }
 
     private void prepareLBRepository() {
-        given(mockLBRepository.findByTechnicianAndDay(mockTechnician, LAUNCH_BREAK_DAY)).willReturn(mockLB);
+        given(mockLBRepository.findByTechnicianAndDay(eq(mockTechnician), any())).willReturn(mockLB);
     }
 
     private void prepareClient() {
@@ -221,9 +410,19 @@ public class AppointmentCreationServiceTest {
         given(mockTechnician.getLastName()).willReturn(TECHNICIAN_LAST_NAME);
     }
 
-    private void prepareAestheticCare() {
-        given(mockAestheticCare.getIdAestheticCare()).willReturn(AESTHETIC_CARE_ID);
-        given(mockAestheticCare.getTimeExecution()).willReturn(AESTHETIC_CARE_TIME_EXECUTION);
+    private void prepareAC() {
+        given(mockAC.getIdAestheticCare()).willReturn(AC_ID);
+        given(mockAC.getTimeExecution()).willReturn(AC_TIME_EXECUTION);
+    }
+
+    private void prepareMedAC() {
+        given(mockMediumAC.getIdAestheticCare()).willReturn(MED_AC_ID);
+        given(mockMediumAC.getTimeExecution()).willReturn(MED_AC_TIME_EXECUTION);
+    }
+
+    private void prepareLongAC() {
+        given(mockLongAC.getIdAestheticCare()).willReturn(LONG_AC_ID);
+        given(mockLongAC.getTimeExecution()).willReturn(LONG_AC_TIME_EXECUTION);
     }
 
     private void prepareTSA() {
@@ -247,6 +446,22 @@ public class AppointmentCreationServiceTest {
         given(mockTuesdayOpening.openingTime()).willReturn(OPENING_TIME);
         given(mockTuesdayOpening.getCloseTime()).willReturn(CLOSE_TIME);
         given(mockTuesdayOpening.closeTime()).willReturn(CLOSE_TIME);
+    }
+
+    private void prepareTimeSlot() {
+        given(mockTS1_1.getBegin()).willReturn(TS1_1_BEGIN_TIME);
+        given(mockTS1_1.getTime()).willReturn(TSA_NB_MINUTE);
+
+        given(mockTS1_2.getBegin()).willReturn(TS1_2_BEGIN_TIME);
+        given(mockTS1_2.getTime()).willReturn(TSA_NB_MINUTE);
+
+        given(mockTS2_1.getBegin()).willReturn(TS2_1_BEGIN_TIME);
+        given(mockTS2_1.getTime()).willReturn(TSA_NB_MINUTE);
+    }
+
+    private void prepareLB() {
+        given(mockLB.getBeginHour()).willReturn(LAUNCH_BREAK_BEGIN_TIME);
+        given(mockLB.getDuration()).willReturn(LAUNCH_BREAK_DURATION);
     }
 
 }

@@ -33,11 +33,11 @@ public class GlobalOpeningTime implements Opening {
 
     @Override
     public LocalTime openingTime() {
-        return openingTime;
+        return getOpeningTime();
     }
 
     @Override
     public LocalTime closeTime() {
-        return closeTime;
+        return getCloseTime();
     }
 }

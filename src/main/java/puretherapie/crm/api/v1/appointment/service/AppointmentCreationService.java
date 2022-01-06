@@ -40,8 +40,6 @@ public class AppointmentCreationService {
     private static final String NOTIFICATION_APPOINTMENT_CREATION_TITLE = "New appointment for client %s";
     private static final String NOTIFICATION_APPOINTMENT_CREATION_TEXT = "New appointment at %s for the client %s with the technician %s";
 
-    public static final int MAX_OVERLAP_AUTHORIZED = 10;
-
     // Variables.
 
     private final ClientRepository clientRepository;
@@ -79,6 +77,11 @@ public class AppointmentCreationService {
             TimeSlotAtom tsa = searchCorrectTSA(tsaList, day);
             int appointmentDuration = computeAppointmentDuration(aestheticCare, tsa, overlapAuthorized);
 
+            if (hasExceptionalClose(day)) {
+                log.debug("Fail to create appointment, exceptional close for the day {}", day);
+                return false;
+            }
+
             if (instituteIsOpen(openingList)) {
                 if (appointmentInOpeningTime(beginTime, openingList, appointmentDuration)) {
                     if (appointmentNotDuringLaunchBreak(technician, day, beginTime, appointmentDuration)) {
@@ -87,9 +90,10 @@ public class AppointmentCreationService {
                             List<TimeSlot> timeSlots = createTimeSlot(technician, day, beginTime, tsa, nbTimeSlot);
                             if (noOverlapForAll(timeSlots)) {
                                 Appointment appointment = buildAppointment(client, technician, aestheticCare);
-                                saveAppointment(appointment);
+                                appointment = saveAppointment(appointment);
                                 saveAllTimeSlot(timeSlots, appointment);
                                 notifyAppointmentCreate(client, technician, beginTime);
+                                return true;
                             } else {
                                 log.debug("Fail to create appointment, time slot are not free for the begin time {}", beginTime);
                                 return false;
@@ -101,6 +105,7 @@ public class AppointmentCreationService {
                         }
                     } else {
                         log.debug("Fail to create appointment, time {} is during technician launch break", beginTime);
+                        return false;
                     }
                 } else {
                     log.debug("Fail to create appointment, time {} out of opening time", beginTime);
@@ -110,13 +115,15 @@ public class AppointmentCreationService {
                 log.debug("Fail to create appointment, institute is closed at this day {}", day);
                 return false;
             }
-
-            return true;
         } catch (Exception e) {
             log.debug("Fail to create appointment", e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return false;
         }
+    }
+
+    private boolean hasExceptionalClose(LocalDate day) {
+        return ecRepository.findByDay(day) != null;
     }
 
     private void saveAllTimeSlot(List<TimeSlot> timeSlots, Appointment appointment) {
@@ -273,23 +280,23 @@ public class AppointmentCreationService {
         List<TimeSlot> tsOfTheDay = timeSlotRepository.findByTechnicianAndDay(ts.getTechnician(), ts.getDay());
         if (tsOfTheDay != null)
             for (TimeSlot timeSlot : tsOfTheDay)
-                if (hasOverlap(timeSlot, ts.getBegin(), ts.getTime(), 0))
+                if (hasOverlap(timeSlot, ts.getBegin(), ts.getTime()))
                     return true;
 
         return false;
     }
 
-    private boolean hasOverlap(TimeSlot existingTS, LocalTime beginTime, int lockTime, int overlapAuthorized) {
+    private boolean hasOverlap(TimeSlot existingTS, LocalTime beginTime, int lockTime) {
         LocalTime existingBeginTime = existingTS.getBegin();
         int existingLockTime = existingTS.getTime();
 
         if (!existingTS.isFree()) {
             if (existingBeginTime.isBefore(beginTime)) {
                 // Verify if the new time slot is not in the existing time slot
-                return hasOverlap(existingBeginTime, existingLockTime, beginTime, overlapAuthorized);
+                return hasOverlap(existingBeginTime, existingLockTime, beginTime);
             } else if (existingBeginTime.isAfter(beginTime)) {
                 // Verify if the existing time slot is not in the new time slot
-                return hasOverlap(beginTime, lockTime, existingBeginTime, overlapAuthorized);
+                return hasOverlap(beginTime, lockTime, existingBeginTime);
             } else {
                 // new time slot is equal to existing time slot
                 log.debug("There is overlap because time slot are equals, begin time = {}", beginTime);
@@ -303,25 +310,21 @@ public class AppointmentCreationService {
      * ORDER VERY IMPORTANT. The beforeBeginTime must be before the afterBeginTime. In other words, the method {@link LocalTime#isBefore(LocalTime)}
      * call on beforeBeginTime must return true. If it not the case, the throw an {@link IllegalArgumentException}
      *
-     * @param beforeBeginTime   the LocalTime before
-     * @param beforeLockTime    the number of minute lock by the before time slot
-     * @param afterBeginTime    the LocalTime after
-     * @param overlapAuthorized overlap max minute authorized
+     * @param beforeBeginTime the LocalTime before
+     * @param beforeLockTime  the number of minute lock by the before time slot
+     * @param afterBeginTime  the LocalTime after
      *
      * @return true if the after time slot is in the before time slot.
      *
      * @throws IllegalArgumentException if beforeBeginTime is not before the afterBeginTime
      */
-    private boolean hasOverlap(LocalTime beforeBeginTime, int beforeLockTime, LocalTime afterBeginTime, int overlapAuthorized) {
+    private boolean hasOverlap(LocalTime beforeBeginTime, int beforeLockTime, LocalTime afterBeginTime) {
         long minuteDiff = minuteBetween(beforeBeginTime, afterBeginTime);
-        if (minuteDiff < beforeLockTime - overlapAuthorized) {
-            log.debug(
-                    "Overlap between before TS beginTime {} lockTime {} and after TS beginTime {}", beforeBeginTime, beforeLockTime, afterBeginTime);
+        if (minuteDiff < beforeLockTime) {
+            log.debug("Overlap between before TS beginTime {} lockTime {} and after TS beginTime {}", beforeBeginTime, beforeLockTime,
+                      afterBeginTime);
             return true;
         }
-
-        if (minuteDiff < beforeLockTime)
-            log.info("Sur booking done with a overlap of {} minutes", (beforeLockTime - minuteDiff));
 
         return false;
     }
@@ -345,9 +348,10 @@ public class AppointmentCreationService {
                 .build();
     }
 
-    private void saveAppointment(Appointment appointment) {
+    private Appointment saveAppointment(Appointment appointment) {
         Appointment a = appointmentRepository.save(appointment);
         log.info("Save appointment {}", a);
+        return a;
     }
 
     private void notifyAppointmentCreate(Client client, Technician technician, LocalTime beginTime) {

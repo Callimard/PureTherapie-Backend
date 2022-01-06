@@ -93,8 +93,8 @@ public class AppointmentCreationService {
 
             List<Opening> openingList = getOpenings(day);
             TimeSlotAtom tsa = searchCorrectTSA(tsaList, day);
-            int appointmentDuration = computeAppointmentDuration(aestheticCare, tsa.getNumberOfMinutes(), overlapAuthorized);
-            int nbTimeSlot = getNbTimeSlot(aestheticCare, overlapAuthorized, tsa.getNumberOfMinutes());
+            int nbTimeSlot = getNbTimeSlot(aestheticCare, tsa.getNumberOfMinutes(), overlapAuthorized);
+            int appointmentDuration = computeAppointmentDuration(nbTimeSlot, tsa.getNumberOfMinutes());
 
             verifyExceptionalClose(day);
             verifyInstituteIsOpen(openingList);
@@ -228,11 +228,11 @@ public class AppointmentCreationService {
         return chosenTSA;
     }
 
-    private int computeAppointmentDuration(AestheticCare aestheticCare, int tsNumberOfMinutes, boolean authorizedOverlap) {
-        return getNbTimeSlot(aestheticCare, authorizedOverlap, tsNumberOfMinutes) * tsNumberOfMinutes;
+    private int computeAppointmentDuration(int nbTimeSlot, int tsNumberOfMinutes) {
+        return nbTimeSlot * tsNumberOfMinutes;
     }
 
-    private int getNbTimeSlot(AestheticCare aestheticCare, boolean authorizedOverlap, int tsNumberOfMinutes) {
+    private int getNbTimeSlot(AestheticCare aestheticCare, int tsNumberOfMinutes, boolean authorizedOverlap) {
         int acExecutionTime = aestheticCare.getTimeExecution();
         int nbTimeSlot = 1;
         int rest = 0;

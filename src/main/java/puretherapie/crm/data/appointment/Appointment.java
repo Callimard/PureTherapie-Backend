@@ -41,7 +41,7 @@ public class Appointment {
     private ClientArrival clientArrival;
 
     @Column(name = "canceled", nullable = false)
-    private Boolean canceled;
+    private boolean canceled;
 
     @OneToMany(targetEntity = TimeSlot.class, mappedBy = "appointment")
     @ToString.Exclude

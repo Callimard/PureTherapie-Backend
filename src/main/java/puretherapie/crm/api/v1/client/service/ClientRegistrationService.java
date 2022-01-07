@@ -146,7 +146,7 @@ public class ClientRegistrationService {
             return null;
     }
 
-    private static class ClientRegistrationException extends Exception {
+    private static class ClientRegistrationException extends RuntimeException {
 
         private final Map<String, String> errors;
 
@@ -160,7 +160,7 @@ public class ClientRegistrationService {
         }
     }
 
-    private static class ClientDoubloonException extends Exception {
+    private static class ClientDoubloonException extends RuntimeException {
 
         private final transient List<ClientInformation> doubloonList;
 

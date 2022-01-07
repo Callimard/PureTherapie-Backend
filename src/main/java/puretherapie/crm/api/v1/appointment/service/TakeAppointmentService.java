@@ -19,6 +19,7 @@ import puretherapie.crm.data.person.technician.repository.LaunchBreakRepository;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
+import puretherapie.crm.tool.ServiceTool;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -26,12 +27,13 @@ import java.util.*;
 
 import static puretherapie.crm.data.agenda.Opening.correctTimeSlotTime;
 import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
+import static puretherapie.crm.tool.ServiceTool.generateErrors;
 import static puretherapie.crm.tool.TimeTool.minuteBetween;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class AppointmentCreationService {
+public class TakeAppointmentService {
 
     // Constants.
 
@@ -75,13 +77,13 @@ public class AppointmentCreationService {
     // Methods.
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Map<String, Object> createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime) {
-        return createAppointment(idClient, idTechnician, idAestheticCare, day, beginTime, false);
+    public Map<String, Object> takeAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime) {
+        return takeAppointment(idClient, idTechnician, idAestheticCare, day, beginTime, false);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Map<String, Object> createAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime,
-                                                 boolean overlapAuthorized) {
+    public Map<String, Object> takeAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime,
+                                               boolean overlapAuthorized) {
         try {
             verifyDayOrBeginTime(day, beginTime);
 
@@ -397,23 +399,10 @@ public class AppointmentCreationService {
 
     // Exceptions.
 
-    private Map<String, String> generateErrors(String errorName, String errorMessage) {
-        Map<String, String> errors = new HashMap<>();
-        errors.put(errorName, errorMessage);
-        return errors;
-    }
-
-    private static class AppointmentCreationException extends RuntimeException {
-
-        private final Map<String, String> errors;
+    private static class AppointmentCreationException extends ServiceTool.ServiceException {
 
         public AppointmentCreationException(String message, Map<String, String> errors) {
-            super(message);
-            this.errors = errors;
-        }
-
-        public Map<String, String> getErrors() {
-            return errors;
+            super(message, errors);
         }
     }
 }

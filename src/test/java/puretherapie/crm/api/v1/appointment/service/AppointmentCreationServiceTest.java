@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.agenda.*;
 import puretherapie.crm.data.agenda.repository.*;
+import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
@@ -94,7 +95,6 @@ public class AppointmentCreationServiceTest {
         @DisplayName("Test with exceptional close fail")
         void testWithExceptionalClose() {
             prepareMinimalContext();
-            prepareECRepository();
             Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, EC_DATE, CORRECT_RANDOM_TIME);
             verifyFail(res);
             verifyFailType(res, EXCEPTIONAL_CLOSE_ERROR);
@@ -104,7 +104,6 @@ public class AppointmentCreationServiceTest {
         @DisplayName("Test with not open day fail")
         void testWithNotOpenDay() {
             prepareMinimalContext();
-            prepareGORepository();
             Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, NOT_OPEN_DAY, CORRECT_RANDOM_TIME);
             verifyFail(res);
             verifyFailType(res, NOT_OPEN_ERROR);
@@ -114,9 +113,6 @@ public class AppointmentCreationServiceTest {
         @DisplayName("Test with not in opening time appointment fail")
         void testWithNotInOpeningTime() {
             prepareMinimalContext();
-            prepareGORepository();
-            prepareMondayOpening();
-            prepareTuesdayOpening();
 
             Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, BEFORE_OPENING_TIME);
             verifyFail(res);
@@ -143,9 +139,6 @@ public class AppointmentCreationServiceTest {
         @DisplayName("Test with in launch break fail")
         void testInLaunchBreak() {
             prepareMinimalContext();
-            prepareGORepository();
-            prepareMondayOpening();
-            prepareTuesdayOpening();
             prepareLBRepository();
             prepareLB();
 
@@ -166,12 +159,8 @@ public class AppointmentCreationServiceTest {
         @DisplayName("Test with incompatible time slot time fail")
         void testWithIncompatibleTimeSlotTime() {
             prepareMinimalContext();
-            prepareGORepository();
-            prepareMondayOpening();
-            prepareTuesdayOpening();
             prepareLBRepository();
             prepareLB();
-            prepareTSA();
 
 
             Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, INCOMPATIBLE_TIME_SLOT_TIME_1);
@@ -195,12 +184,8 @@ public class AppointmentCreationServiceTest {
         @DisplayName("Test with overlap time slot fail")
         void testWithOverlap() {
             prepareMinimalContext();
-            prepareGORepository();
-            prepareMondayOpening();
-            prepareTuesdayOpening();
             prepareLBRepository();
             prepareLB();
-            prepareTSA();
             prepareTimeSlotRepository();
             prepareTimeSlot();
             prepareAC();
@@ -220,6 +205,95 @@ public class AppointmentCreationServiceTest {
             verifyFailType(res, OVERLAP_ERROR);
         }
 
+        @Test
+        @DisplayName("Test with just begin at the end of an other appointment success")
+        void testWithBeginAtTheEndOfOtherAppointment() {
+            prepareSuccessContext();
+
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
+                                                            TS1_2_BEGIN_TIME.plusMinutes(TSA_NB_MINUTE), false);
+            verifySuccess(res);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, TUESDAY_DATE,
+                                        TS1_2_BEGIN_TIME.plusMinutes(TSA_NB_MINUTE), false);
+            verifySuccess(res);
+        }
+
+        @Test
+        @DisplayName("Test with just end at the begin of other appointment success")
+        void testWithFinishJustAtTheBeginOtherAppointment() {
+            prepareSuccessContext();
+
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
+                                                            TS2_1_BEGIN_TIME.minusMinutes(AC_TIME_EXECUTION), false);
+            verifySuccess(res);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, LONG_AC_ID, MONDAY_DATE,
+                                        TS2_1_BEGIN_TIME.minusMinutes(LONG_AC_TIME_EXECUTION), false);
+            verifySuccess(res);
+        }
+
+        @Test
+        @DisplayName("Test with just begin at the end of launch break success")
+        void testWithJustBeginAtTheEndOfLB() {
+            prepareSuccessContext();
+
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
+                                                            LAUNCH_BREAK_BEGIN_TIME.plusMinutes(LAUNCH_BREAK_DURATION), false);
+            verifySuccess(res);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, TUESDAY_DATE,
+                                        LAUNCH_BREAK_BEGIN_TIME.plusMinutes(LAUNCH_BREAK_DURATION), false);
+            verifySuccess(res);
+        }
+
+        @Test
+        @DisplayName("Test with just end at the begin of a launch break success")
+        void testWithJustEndAtTheBeginOfLB() {
+            prepareSuccessContext();
+
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
+                                                            LAUNCH_BREAK_BEGIN_TIME.minusMinutes(AC_TIME_EXECUTION), false);
+            verifySuccess(res);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, LONG_AC_ID, MONDAY_DATE,
+                                        LAUNCH_BREAK_BEGIN_TIME.minusMinutes(LONG_AC_TIME_EXECUTION), false);
+            verifySuccess(res);
+        }
+
+        @Test
+        @DisplayName("Test with overlap with free time slot success")
+        void testWithOverlapWithFreeTimeSlot() {
+            prepareSuccessContext();
+
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, TS_FREE_BEGIN_TIME, false);
+            verifySuccess(res);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, LONG_AC_ID, MONDAY_DATE,
+                                        TS_FREE_BEGIN_TIME.minusMinutes(LONG_AC_TIME_EXECUTION - TSA_NB_MINUTE), false);
+            verifySuccess(res);
+        }
+
+        @Test
+        @DisplayName("Test with exceptional opening success")
+        void testWithExceptionalOpeningSuccess() {
+            prepareSuccessContext();
+
+            Map<String, Object> res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, EO_DATE, EO_OPENING_TIME, false);
+            verifySuccess(res);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, EO_DATE, EO_CLOSE_TIME.minusMinutes(AC_TIME_EXECUTION), false);
+            verifySuccess(res);
+
+            res = acs.createAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, EO_DATE, EO_CLOSE_TIME.plusMinutes(TSA_NB_MINUTE), false);
+            verifyFail(res);
+            verifyFailType(res, NOT_IN_OPENING_TIME_ERROR);
+        }
+
+    }
+
+    private void verifySuccess(Map<String, Object> res) {
+        assertThat(res).isNotNull().containsKey(APPOINTMENT_CREATION_SUCCESS);
     }
 
     private void verifyFail(Map<String, Object> res) {
@@ -238,16 +312,12 @@ public class AppointmentCreationServiceTest {
     @Mock
     private Client mockClient;
     private static final int CLIENT_ID = 11;
-    private static final String CLIENT_FIRST_NAME = "client";
-    private static final String CLIENT_LAST_NAME = "client";
 
     @MockBean
     private TechnicianRepository mockTechnicianRepository;
     @Mock
     private Technician mockTechnician;
     private static final int TECHNICIAN_ID = 12;
-    private static final String TECHNICIAN_FIRST_NAME = "technician";
-    private static final String TECHNICIAN_LAST_NAME = "technician";
 
     @MockBean
     private AestheticCareRepository mockACRepository;
@@ -265,28 +335,6 @@ public class AppointmentCreationServiceTest {
     private static final int LONG_AC_TIME_EXECUTION = 90;
 
     @MockBean
-    private TimeSlotRepository mockTimeSlotRepository;
-    @Mock
-    private TimeSlot mockTS1_1;
-    private static final LocalTime TS1_1_BEGIN_TIME = LocalTime.of(8, 0);
-    @Mock
-    private TimeSlot mockTS1_2;
-    private static final LocalTime TS1_2_BEGIN_TIME = LocalTime.of(8, 30);
-    @Mock
-    private TimeSlot mockTS2_1;
-    private static final LocalTime TS2_1_BEGIN_TIME = LocalTime.of(12, 0);
-    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_1 = LocalTime.of(10, 5);
-    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_2 = LocalTime.of(10, 15);
-    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_3 = LocalTime.of(10, 3);
-    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_4 = LocalTime.of(10, 29);
-    private static final LocalTime AC_OVERLAP_TS1_1 = TS1_1_BEGIN_TIME;
-    private static final LocalTime MED_AC_OVERLAP_TS1_2 = TS1_1_BEGIN_TIME.minusMinutes(30);
-    private static final LocalTime LONG_AC_OVERLAP_TS2_2 = TS2_1_BEGIN_TIME.minusMinutes(30);
-
-    @MockBean
-    private AppointmentRepository mockAppointmentRepository;
-
-    @MockBean
     private TimeSlotAtomRepository mockTSARepository;
     @Mock
     private TimeSlotAtom mockTSA;
@@ -295,6 +343,33 @@ public class AppointmentCreationServiceTest {
     private static final int TSA_NB_MINUTE = 30;
     private static final LocalDate TSA_EFFECTIVE_DATE = LocalDate.of(2022, 1, 1);
     private static final LocalDate TSA_NON_RELEVANT_EFFECTIVE_DATE = LocalDate.of(2021, 9, 3);
+
+    @MockBean
+    private TimeSlotRepository mockTimeSlotRepository;
+    @Mock
+    private TimeSlot mockTS1_1;
+    private static final LocalTime TS1_1_BEGIN_TIME = LocalTime.of(8, 0);
+    @Mock
+    private TimeSlot mockTS1_2;
+    private static final LocalTime TS1_2_BEGIN_TIME = LocalTime.of(8, TSA_NB_MINUTE);
+    @Mock
+    private TimeSlot mockTS2_1;
+    @Mock
+    private TimeSlot mockTSFree;
+    private static final LocalTime TS_FREE_BEGIN_TIME = LocalTime.of(17, 0);
+    private static final LocalTime TS2_1_BEGIN_TIME = LocalTime.of(12, 0);
+    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_1 = LocalTime.of(10, 5);
+    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_2 = LocalTime.of(10, 15);
+    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_3 = LocalTime.of(10, 3);
+    private static final LocalTime INCOMPATIBLE_TIME_SLOT_TIME_4 = LocalTime.of(10, 29);
+    private static final LocalTime AC_OVERLAP_TS1_1 = TS1_1_BEGIN_TIME;
+    private static final LocalTime MED_AC_OVERLAP_TS1_2 = TS1_1_BEGIN_TIME.minusMinutes(TSA_NB_MINUTE);
+    private static final LocalTime LONG_AC_OVERLAP_TS2_2 = TS2_1_BEGIN_TIME.minusMinutes(TSA_NB_MINUTE);
+
+    @MockBean
+    private AppointmentRepository mockAppointmentRepository;
+    @Mock
+    private Appointment mockAppointment;
 
     @MockBean
     private GlobalOpeningTimeRepository mockGOTRepository;
@@ -321,6 +396,8 @@ public class AppointmentCreationServiceTest {
     @Mock
     private ExceptionalOpening mockEO;
     private static final LocalDate EO_DATE = LocalDate.of(2022, 1, 2); // Sunday
+    private static final LocalTime EO_OPENING_TIME = LocalTime.of(16, 0);
+    private static final LocalTime EO_CLOSE_TIME = LocalTime.of(18, 0);
 
     @MockBean
     private LaunchBreakRepository mockLBRepository;
@@ -338,7 +415,26 @@ public class AppointmentCreationServiceTest {
         prepareACRepository();
         prepareTSARepository();
         prepareTSA();
+        prepareNonRelevantTSA();
         prepareGORepository();
+        prepareMondayOpening();
+        prepareTuesdayOpening();
+        prepareEORepository();
+        prepareEO();
+        prepareECRepository();
+    }
+
+    private void prepareSuccessContext() {
+        prepareMinimalContext();
+        prepareLBRepository();
+        prepareLB();
+        prepareAppointmentRepository();
+        prepareTimeSlotRepository();
+        prepareTimeSlot();
+        prepareAC();
+        prepareMedAC();
+        prepareLongAC();
+        prepareNotificationCreationService();
     }
 
     private void prepareClientRepository() {
@@ -367,6 +463,7 @@ public class AppointmentCreationServiceTest {
         timeSlots.add(mockTS1_1);
         timeSlots.add(mockTS1_2);
         timeSlots.add(mockTS2_1);
+        timeSlots.add(mockTSFree);
         given(mockTimeSlotRepository.findByTechnicianAndDay(eq(mockTechnician), any())).willReturn(timeSlots);
     }
 
@@ -398,16 +495,8 @@ public class AppointmentCreationServiceTest {
         given(mockLBRepository.findByTechnicianAndDay(eq(mockTechnician), any())).willReturn(mockLB);
     }
 
-    private void prepareClient() {
-        given(mockClient.getIdPerson()).willReturn(CLIENT_ID);
-        given(mockClient.getFirstName()).willReturn(CLIENT_FIRST_NAME);
-        given(mockClient.getLastName()).willReturn(CLIENT_LAST_NAME);
-    }
-
-    private void prepareTechnician() {
-        given(mockTechnician.getIdPerson()).willReturn(TECHNICIAN_ID);
-        given(mockTechnician.getFirstName()).willReturn(TECHNICIAN_FIRST_NAME);
-        given(mockTechnician.getLastName()).willReturn(TECHNICIAN_LAST_NAME);
+    private void prepareAppointmentRepository() {
+        given(mockAppointmentRepository.save(any())).willReturn(mockAppointment);
     }
 
     private void prepareAC() {
@@ -448,15 +537,29 @@ public class AppointmentCreationServiceTest {
         given(mockTuesdayOpening.closeTime()).willReturn(CLOSE_TIME);
     }
 
+    private void prepareEO() {
+        given(mockEO.getOpeningTime()).willReturn(EO_OPENING_TIME);
+        given(mockEO.openingTime()).willReturn(EO_OPENING_TIME);
+        given(mockEO.getCloseTime()).willReturn(EO_CLOSE_TIME);
+        given(mockEO.closeTime()).willReturn(EO_CLOSE_TIME);
+    }
+
     private void prepareTimeSlot() {
         given(mockTS1_1.getBegin()).willReturn(TS1_1_BEGIN_TIME);
         given(mockTS1_1.getTime()).willReturn(TSA_NB_MINUTE);
+        given(mockTSFree.isFree()).willReturn(false);
 
         given(mockTS1_2.getBegin()).willReturn(TS1_2_BEGIN_TIME);
         given(mockTS1_2.getTime()).willReturn(TSA_NB_MINUTE);
+        given(mockTSFree.isFree()).willReturn(false);
 
         given(mockTS2_1.getBegin()).willReturn(TS2_1_BEGIN_TIME);
         given(mockTS2_1.getTime()).willReturn(TSA_NB_MINUTE);
+        given(mockTSFree.isFree()).willReturn(false);
+
+        given(mockTSFree.getBegin()).willReturn(TS_FREE_BEGIN_TIME);
+        given(mockTSFree.getTime()).willReturn(TSA_NB_MINUTE);
+        given(mockTSFree.isFree()).willReturn(true);
     }
 
     private void prepareLB() {

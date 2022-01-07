@@ -57,14 +57,14 @@ public class AppointmentController {
                                                                  Authentication authentication) {
         Map<String, Object> res;
         if (canHadOverlap(authentication)) {
-            log.debug("Authorize to had overlap");
+            log.debug("Authorize to had overlap between appointment");
             res = appointmentCreationService.createAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(),
                                                                aInfo.getIdAestheticCare(),
                                                                aInfo.getDay(),
                                                                aInfo.getBeginTime(),
                                                                aInfo.isOverlapAuthorized());
         } else {
-            log.debug("Not authorize to had overlap");
+            log.debug("Not authorize to had overlap between appointment");
             res = appointmentCreationService.createAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(), aInfo.getIdAestheticCare(),
                                                                aInfo.getDay(),
                                                                aInfo.getBeginTime());
@@ -85,7 +85,6 @@ public class AppointmentController {
     }
 
     private boolean canHadOverlap(Authentication auth) {
-        log.debug("Authentication = {}", auth);
         if (auth == null)
             return false;
         else {

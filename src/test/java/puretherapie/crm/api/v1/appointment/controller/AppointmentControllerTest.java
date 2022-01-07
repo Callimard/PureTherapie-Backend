@@ -15,7 +15,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import puretherapie.crm.api.v1.appointment.AppointmentInformation;
-import puretherapie.crm.api.v1.appointment.service.AppointmentCreationService;
+import puretherapie.crm.api.v1.appointment.service.TakeAppointmentService;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.authentication.SecurityUserService;
 import puretherapie.crm.data.person.user.User;
@@ -29,8 +29,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.API_V1_APPOINTMENT_URL;
-import static puretherapie.crm.api.v1.appointment.service.AppointmentCreationService.APPOINTMENT_CREATION_FAIL;
-import static puretherapie.crm.api.v1.appointment.service.AppointmentCreationService.APPOINTMENT_CREATION_SUCCESS;
+import static puretherapie.crm.api.v1.appointment.service.TakeAppointmentService.APPOINTMENT_CREATION_FAIL;
+import static puretherapie.crm.api.v1.appointment.service.TakeAppointmentService.APPOINTMENT_CREATION_SUCCESS;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
 import static puretherapie.crm.data.person.user.Role.MAMY_ROLE;
 import static util.RequestTool.httpPostJson;
@@ -48,7 +48,7 @@ public class AppointmentControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private AppointmentCreationService mockAppointCreatService;
+    private TakeAppointmentService mockAppointCreatService;
 
     @MockBean
     private NotificationCreationService mockNotifCreatService;
@@ -81,7 +81,7 @@ public class AppointmentControllerTest {
         @Test
         @DisplayName("Test with correct body and success create appointment returns 200")
         void testWithSuccessAppointmentCreation() throws Exception {
-            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(successAppointmentCreationRes());
+            given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(successAppointmentCreationRes());
 
             mockMvc.perform(httpPostJson(API_V1_APPOINTMENT_URL).content(correctBody())).andExpect(status().isOk());
         }
@@ -89,7 +89,7 @@ public class AppointmentControllerTest {
         @Test
         @DisplayName("Test with correct body and fail create appointment returns 400")
         void testWithFailAppointmentCreation() throws Exception {
-            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(failAppointmentCreationRes());
+            given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(failAppointmentCreationRes());
 
             mockMvc.perform(httpPostJson(API_V1_APPOINTMENT_URL).content(correctBody())).andExpect(status().isBadRequest());
         }
@@ -98,7 +98,7 @@ public class AppointmentControllerTest {
         @DisplayName("Test if with correct authentication with overlap permission enable; returns 200")
         void testWithPermissionAuthentication() throws Exception {
             prepareUserSecurityService(BOSS_ROLE);
-            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any(), anyBoolean())).willReturn(
+            given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any(), anyBoolean())).willReturn(
                     successAppointmentCreationRes());
 
             mockMvc.perform(httpPostJsonWithAuthorization(API_V1_APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
@@ -109,7 +109,7 @@ public class AppointmentControllerTest {
         @DisplayName("Test if with correct authentication without overlap permission enable, returns 200 without overlap")
         void testWithNoPermissionAuthentication() throws Exception {
             prepareUserSecurityService(MAMY_ROLE);
-            given(mockAppointCreatService.createAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(successAppointmentCreationRes());
+            given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(successAppointmentCreationRes());
 
             mockMvc.perform(httpPostJsonWithAuthorization(API_V1_APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
                     .andExpect(status().isOk());

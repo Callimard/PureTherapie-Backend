@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import puretherapie.crm.api.v1.appointment.AppointmentInformation;
-import puretherapie.crm.api.v1.appointment.service.AppointmentCreationService;
+import puretherapie.crm.api.v1.appointment.service.TakeAppointmentService;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
@@ -23,7 +23,7 @@ import java.util.Map;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.API_V1_APPOINTMENT_URL;
-import static puretherapie.crm.api.v1.appointment.service.AppointmentCreationService.APPOINTMENT_CREATION_SUCCESS;
+import static puretherapie.crm.api.v1.appointment.service.TakeAppointmentService.APPOINTMENT_CREATION_SUCCESS;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
 import static puretherapie.crm.data.person.user.Role.SECRETARY_ROLE;
 import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
@@ -45,7 +45,7 @@ public class AppointmentController {
 
     // Variables.
 
-    private final AppointmentCreationService appointmentCreationService;
+    private final TakeAppointmentService takeAppointmentService;
     private final NotificationCreationService notificationCreationService;
     private final ClientRepository clientRepository;
     private final TechnicianRepository technicianRepository;
@@ -58,16 +58,16 @@ public class AppointmentController {
         Map<String, Object> res;
         if (canHadOverlap(authentication)) {
             log.debug("Authorize to had overlap between appointment");
-            res = appointmentCreationService.createAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(),
-                                                               aInfo.getIdAestheticCare(),
-                                                               aInfo.getDay(),
-                                                               aInfo.getBeginTime(),
-                                                               aInfo.isOverlapAuthorized());
+            res = takeAppointmentService.takeAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(),
+                                                         aInfo.getIdAestheticCare(),
+                                                         aInfo.getDay(),
+                                                         aInfo.getBeginTime(),
+                                                         aInfo.isOverlapAuthorized());
         } else {
             log.debug("Not authorize to had overlap between appointment");
-            res = appointmentCreationService.createAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(), aInfo.getIdAestheticCare(),
-                                                               aInfo.getDay(),
-                                                               aInfo.getBeginTime());
+            res = takeAppointmentService.takeAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(), aInfo.getIdAestheticCare(),
+                                                         aInfo.getDay(),
+                                                         aInfo.getBeginTime());
         }
 
         return generateTakeAnAppointmentResponse(aInfo, res);

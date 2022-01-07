@@ -1,3 +1,0 @@
-DELETE
-FROM puretherapie.NotificationLevel
-WHERE puretherapie.NotificationLevel.notificationLevelName = 'FALSE_NOTIFICATION_LEVEL';

@@ -1,7 +1,9 @@
 package puretherapie.crm.data.person.client;
 
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import puretherapie.crm.api.v1.client.ClientInformation;
+import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.person.Person;
 import puretherapie.crm.data.person.PersonOrigin;
 
@@ -12,6 +14,7 @@ import javax.persistence.Table;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
+@Slf4j
 @Getter
 @Setter
 @ToString(callSuper = true)

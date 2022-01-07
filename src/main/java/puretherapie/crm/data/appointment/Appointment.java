@@ -7,6 +7,7 @@ import puretherapie.crm.data.person.technician.Technician;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Builder
 @Getter
@@ -28,10 +29,6 @@ public class Appointment {
     private AestheticCare aestheticCare;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "idTimeSlot", nullable = false)
-    private TimeSlot timeSlot;
-
-    @ManyToOne(optional = false)
     @JoinColumn(name = "idClient", nullable = false)
     private Client client;
 
@@ -44,5 +41,9 @@ public class Appointment {
     private ClientArrival clientArrival;
 
     @Column(name = "canceled", nullable = false)
-    private Boolean canceled = false;
+    private Boolean canceled;
+
+    @OneToMany(targetEntity = TimeSlot.class, mappedBy = "appointment")
+    @ToString.Exclude
+    private List<TimeSlot> timeSlots;
 }

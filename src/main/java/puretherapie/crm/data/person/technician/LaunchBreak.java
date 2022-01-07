@@ -18,7 +18,7 @@ public class LaunchBreak {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idLaunchBreak", nullable = false)
-    private Integer id;
+    private Integer idLaunchBreak;
 
     @Column(name = "day", nullable = false)
     private LocalDate day;

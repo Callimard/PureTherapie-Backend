@@ -13,18 +13,31 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "GlobalOpeningTime")
-public class GlobalOpeningTime {
+public class GlobalOpeningTime implements Opening {
+
+    // Variables.
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idGlobalOpeningTime", nullable = false)
-    private Integer id;
+    private Integer idGlobalOpeningTime;
 
     @Column(name = "day", nullable = false)
     private Integer day;
 
-    @Column(name = "opentTime", nullable = false)
-    private LocalTime opentTime;
+    @Column(name = "openingTime", nullable = false)
+    private LocalTime openingTime;
 
     @Column(name = "closeTime", nullable = false)
     private LocalTime closeTime;
+
+    @Override
+    public LocalTime openingTime() {
+        return getOpeningTime();
+    }
+
+    @Override
+    public LocalTime closeTime() {
+        return getCloseTime();
+    }
 }

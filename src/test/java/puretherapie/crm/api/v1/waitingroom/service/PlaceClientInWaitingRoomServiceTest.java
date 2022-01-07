@@ -27,8 +27,8 @@ import static org.mockito.BDDMockito.given;
 import static puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService.*;
 
 @SpringBootTest
-@DisplayName("PlaceClientInWaitingRoom tests")
-public class PlaceClientInWaitingRoomTest {
+@DisplayName("PlaceClientInWaitingRoomService tests")
+public class PlaceClientInWaitingRoomServiceTest {
 
     @Autowired
     private PlaceClientInWaitingRoomService pcs;
@@ -58,7 +58,7 @@ public class PlaceClientInWaitingRoomTest {
 
             Map<String, Object> res = pcs.placeClientInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
-            verifyFailType(res, NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT);
+            verifyFailType(res, NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT_ERROR);
         }
 
         @Test
@@ -72,7 +72,7 @@ public class PlaceClientInWaitingRoomTest {
 
             Map<String, Object> res = pcs.placeClientInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
-            verifyFailType(res, APPOINTMENT_CANCELED);
+            verifyFailType(res, APPOINTMENT_CANCELED_ERROR);
         }
 
         @Test
@@ -87,7 +87,7 @@ public class PlaceClientInWaitingRoomTest {
 
             Map<String, Object> res = pcs.placeClientInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
-            verifyFailType(res, TIME_SLOT_INCOHERENCE);
+            verifyFailType(res, TIME_SLOT_INCOHERENCE_ERROR);
         }
 
         @Test
@@ -101,7 +101,7 @@ public class PlaceClientInWaitingRoomTest {
 
             Map<String, Object> res = pcs.placeClientInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
-            verifyFailType(res, APPOINTMENT_NOT_FOR_TODAY);
+            verifyFailType(res, APPOINTMENT_NOT_FOR_TODAY_ERROR);
         }
 
         @Test

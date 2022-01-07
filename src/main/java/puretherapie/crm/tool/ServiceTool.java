@@ -10,7 +10,7 @@ public class ServiceTool {
 
     // Tool methods.
 
-    public static Map<String, String> generateErrors(String errorName, String errorMessage) {
+    public static Map<String, String> generateError(String errorName, String errorMessage) {
         Map<String, String> errors = new HashMap<>();
         errors.put(errorName, errorMessage);
         return errors;

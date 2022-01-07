@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static puretherapie.crm.tool.ServiceTool.generateErrors;
+import static puretherapie.crm.tool.ServiceTool.generateError;
 
 @Slf4j
 @AllArgsConstructor
@@ -37,10 +37,10 @@ public class PlaceClientInWaitingRoomService {
     // ERRORS.
 
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found";
-    public static final String NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT = "non_coherence_between_client_appointment";
-    public static final String APPOINTMENT_CANCELED = "appointment_canceled";
-    public static final String TIME_SLOT_INCOHERENCE = "time_slot_incoherence";
-    public static final String APPOINTMENT_NOT_FOR_TODAY = "appointment_not_for_today";
+    public static final String NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT_ERROR = "non_coherence_between_client_appointment";
+    public static final String APPOINTMENT_CANCELED_ERROR = "appointment_canceled";
+    public static final String TIME_SLOT_INCOHERENCE_ERROR = "time_slot_incoherence";
+    public static final String APPOINTMENT_NOT_FOR_TODAY_ERROR = "appointment_not_for_today";
 
     // Variables.
 
@@ -81,8 +81,8 @@ public class PlaceClientInWaitingRoomService {
     private Client verifyClient(int idClient) {
         Client c = clientRepository.findByIdPerson(idClient);
         if (c == null)
-            throw new PlaceClientInWaitingRoomException("Client not found", generateErrors(CLIENT_NOT_FOUND_ERROR,
-                                                                                           "Client with id %s not found".formatted(idClient)));
+            throw new PlaceClientInWaitingRoomException("Client not found", generateError(CLIENT_NOT_FOUND_ERROR,
+                                                                                          "Client with id %s not found".formatted(idClient)));
         return c;
     }
 
@@ -100,10 +100,10 @@ public class PlaceClientInWaitingRoomService {
             throw new PlaceClientInWaitingRoomException(
                     "Client with id %s is not link to the appointment (appointment.idClient = %s)".formatted(appointment.getClient().getIdPerson(),
                                                                                                              client.getIdPerson()),
-                    generateErrors(NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT, "client not link to the appointment"));
+                    generateError(NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT_ERROR, "client not link to the appointment"));
 
         if (appointment.isCanceled())
-            throw new PlaceClientInWaitingRoomException("Appointment canceled", generateErrors(APPOINTMENT_CANCELED, "Client appointment was " +
+            throw new PlaceClientInWaitingRoomException("Appointment canceled", generateError(APPOINTMENT_CANCELED_ERROR, "Client appointment was " +
                     "canceled"));
     }
 
@@ -114,15 +114,16 @@ public class PlaceClientInWaitingRoomService {
             TimeSlot first = timeSlots.get(0);
             if (!first.getDay().equals(today()))
                 throw new PlaceClientInWaitingRoomException("Appointment is not for today %s but for the day %s".formatted(first.getDay(), today()),
-                                                            generateErrors(APPOINTMENT_NOT_FOR_TODAY, "Appointment not for today"));
+                                                            generateError(APPOINTMENT_NOT_FOR_TODAY_ERROR, "Appointment not for today"));
         }
     }
 
     private void verifyTimeSlot(List<TimeSlot> timeSlots) {
         for (TimeSlot timeSlot : timeSlots) {
             if (timeSlot == null || timeSlot.isFree())
-                throw new PlaceClientInWaitingRoomException("Time slot null or free", generateErrors(TIME_SLOT_INCOHERENCE, "Time slot null or " +
-                        "free"));
+                throw new PlaceClientInWaitingRoomException("Time slot null or free",
+                                                            generateError(TIME_SLOT_INCOHERENCE_ERROR, "Time slot null or " +
+                                                                    "free"));
         }
     }
 

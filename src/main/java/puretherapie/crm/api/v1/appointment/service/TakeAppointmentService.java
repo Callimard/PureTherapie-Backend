@@ -27,7 +27,7 @@ import java.util.*;
 
 import static puretherapie.crm.data.agenda.Opening.correctTimeSlotTime;
 import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
-import static puretherapie.crm.tool.ServiceTool.generateErrors;
+import static puretherapie.crm.tool.ServiceTool.generateError;
 import static puretherapie.crm.tool.TimeTool.minuteBetween;
 
 @Slf4j
@@ -133,7 +133,7 @@ public class TakeAppointmentService {
         if (ecRepository.findByDay(day) != null) {
             log.debug("Exception close detect for the day {}", day);
             throw new AppointmentCreationException("Exceptional close at day %s".formatted(day),
-                                                   generateErrors(EXCEPTIONAL_CLOSE_ERROR, "Exceptional close at %s".formatted(day)));
+                                                   generateError(EXCEPTIONAL_CLOSE_ERROR, "Exceptional close at %s".formatted(day)));
         }
     }
 
@@ -149,7 +149,7 @@ public class TakeAppointmentService {
         for (TimeSlot timeSlot : timeSlots)
             if (thereIsOverlap(timeSlot)) {
                 log.debug("Found overlap for time slot {}", timeSlot);
-                throw new AppointmentCreationException("Find an overlap for one time slot", generateErrors(OVERLAP_ERROR, "Overlap detected"));
+                throw new AppointmentCreationException("Find an overlap for one time slot", generateError(OVERLAP_ERROR, "Overlap detected"));
             }
     }
 
@@ -168,7 +168,7 @@ public class TakeAppointmentService {
         Set<LocalTime> correct = allCorrectTimeSlotTimes(openingList, tsaNumberOfMinutes);
         if (!correct.contains(beginTime)) {
             log.debug("Incompatible time slot time for begin time {}", beginTime);
-            throw new AppointmentCreationException("Incompatible time slot time", generateErrors(INCOMPATIBLE_TIME_SLOT_TIME, "Incompatible time " +
+            throw new AppointmentCreationException("Incompatible time slot time", generateError(INCOMPATIBLE_TIME_SLOT_TIME, "Incompatible time " +
                     "slot time for begin time %s".formatted(beginTime)));
         }
     }
@@ -191,7 +191,7 @@ public class TakeAppointmentService {
             return;
 
         log.debug("In launch break of the technician {}, appointment time = {}", technician.simplyIdentifier(), appointmentBeginTime);
-        throw new AppointmentCreationException("In launch break", generateErrors(DURING_LAUNCH_BREAK_ERROR, "In technician launch break"));
+        throw new AppointmentCreationException("In launch break", generateError(DURING_LAUNCH_BREAK_ERROR, "In technician launch break"));
     }
 
     private boolean notInLaunchBreak(LocalTime appointmentBeginTime, int appointmentDuration, LocalTime launchBreakBegin, int launchBreakDuration) {
@@ -261,7 +261,7 @@ public class TakeAppointmentService {
 
         log.debug("BeginTime {} and appointment duration {} not in opening time", beginTime, appointmentDuration);
         throw new AppointmentCreationException("Not in opening time (beginTime = %s, duration = %s)".formatted(beginTime, appointmentDuration),
-                                               generateErrors(NOT_IN_OPENING_TIME_ERROR, "Not in opening time"));
+                                               generateError(NOT_IN_OPENING_TIME_ERROR, "Not in opening time"));
     }
 
     private boolean inOpeningTime(LocalTime openingTime, LocalTime closeTime, LocalTime timeToVerify, int appointmentDuration) {
@@ -272,7 +272,7 @@ public class TakeAppointmentService {
     private void verifyInstituteIsOpen(List<Opening> openingList) {
         if (openingList == null || openingList.isEmpty()) {
             log.debug("Institute not open for this day");
-            throw new AppointmentCreationException("Not open", generateErrors(NOT_OPEN_ERROR, "Institute not open"));
+            throw new AppointmentCreationException("Not open", generateError(NOT_OPEN_ERROR, "Institute not open"));
         }
     }
 
@@ -280,7 +280,7 @@ public class TakeAppointmentService {
         if (day == null || beginTime == null) {
             log.debug("Day or beginTime is null");
             throw new AppointmentCreationException("Day or BeginTime is null",
-                                                   generateErrors(NULL_DAY_OR_BEGIN_TIME_ERROR, "Null pointer of day or begin " +
+                                                   generateError(NULL_DAY_OR_BEGIN_TIME_ERROR, "Null pointer of day or begin " +
                                                            "time"));
         }
     }
@@ -288,8 +288,8 @@ public class TakeAppointmentService {
     private Client verifyClient(int idClient) {
         Client c = clientRepository.findByIdPerson(idClient);
         if (c == null)
-            throw new AppointmentCreationException("Not find client for idClient %s".formatted(idClient), generateErrors(CLIENT_ID_NOT_FOUND_ERROR,
-                                                                                                                         "Client id not found"));
+            throw new AppointmentCreationException("Not find client for idClient %s".formatted(idClient), generateError(CLIENT_ID_NOT_FOUND_ERROR,
+                                                                                                                        "Client id not found"));
         return c;
     }
 
@@ -297,7 +297,7 @@ public class TakeAppointmentService {
         Technician t = technicianRepository.findByIdPerson(idTechnician);
         if (t == null)
             throw new AppointmentCreationException("Not find technician for idTechnician %s".formatted(idTechnician),
-                                                   generateErrors(TECHNICIAN_ID_NOT_FOUND_ERROR, "Technician id not found"));
+                                                   generateError(TECHNICIAN_ID_NOT_FOUND_ERROR, "Technician id not found"));
         return t;
     }
 
@@ -305,7 +305,7 @@ public class TakeAppointmentService {
         AestheticCare ac = aestheticCareRepository.findByIdAestheticCare(idAestheticCare);
         if (ac == null)
             throw new AppointmentCreationException("Not find aesthetic care for idAestheticCare %s".formatted(idAestheticCare),
-                                                   generateErrors(AESTHETIC_CARE_ID_NOT_FOUND_ERROR, "Aesthetic care id not found"));
+                                                   generateError(AESTHETIC_CARE_ID_NOT_FOUND_ERROR, "Aesthetic care id not found"));
         return ac;
     }
 

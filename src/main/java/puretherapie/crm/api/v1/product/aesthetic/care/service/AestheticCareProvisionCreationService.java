@@ -3,6 +3,8 @@ package puretherapie.crm.api.v1.product.aesthetic.care.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.person.client.Client;
@@ -48,6 +50,7 @@ public class AestheticCareProvisionCreationService {
 
     // Methods.
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<String, Object> createAestheticCareProvision(int idClient, int idTechnician, int idAestheticCare,
                                                             int idAppointment, OffsetDateTime dateTime) {
         try {

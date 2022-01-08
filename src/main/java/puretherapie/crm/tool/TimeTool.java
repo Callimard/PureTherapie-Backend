@@ -1,5 +1,6 @@
 package puretherapie.crm.tool;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
@@ -23,6 +24,10 @@ public class TimeTool {
             throw new IllegalArgumentException("TimeBefore must be before TimeAfter");
 
         return ChronoUnit.MINUTES.between(timeBefore, timeAfter);
+    }
+
+    public static LocalDate today() {
+        return LocalDate.now();
     }
 
 }

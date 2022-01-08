@@ -73,4 +73,8 @@ public class Client extends Person {
                 .idOrigin(getPersonOrigin().getIdPersonOrigin())
                 .build();
     }
+
+    public boolean isAssociateTo(Appointment appointment) {
+        return appointment.getClient().getIdPerson().equals(getIdPerson());
+    }
 }

@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.client.service;
+package puretherapie.crm.api.v1.appointment.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.appointment.service.ClientDelayService;
 import puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientArrival;
@@ -22,7 +21,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.*;
-import static puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService.hasSuccess;
+import static puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService.placeClientInWaitingRoomHasSuccess;
 import static puretherapie.crm.tool.ServiceTool.generateError;
 import static puretherapie.crm.tool.TimeTool.today;
 
@@ -104,7 +103,10 @@ public class ClientArrivalService {
                                                                                                delayFromNow(appointment.getTime()))));
             } else {
                 log.debug("Save client delay ({} minutes)", delayFromNow(appointment.getTime()));
-                clientDelayService.createClientDelay(appointment.getClient(), appointment, (int) delayFromNow(appointment.getTime()));
+                Map<String, Object> res = clientDelayService.createClientDelay(appointment.getClient(), appointment,
+                                                                               (int) delayFromNow(appointment.getTime()));
+                if (!clientDelayCreationHasSuccess(res))
+                    log.debug("Fail to create client delay");
             }
         }
     }
@@ -118,7 +120,7 @@ public class ClientArrivalService {
 
     private void placeClientInWaitingRoom(Client client, Appointment appointment) {
         Map<String, Object> res = placeClientInWaitingRoomService.placeClientInWaitingRoom(client, appointment);
-        if (!hasSuccess(res)) {
+        if (!placeClientInWaitingRoomHasSuccess(res)) {
             log.debug("Fail to place client in waiting room");
             throw new ClientArrivalException("Fail to place the client in waiting room", generateError(WAITING_ROOM_ERROR, "Fail to place client in" +
                     " waiting room"));

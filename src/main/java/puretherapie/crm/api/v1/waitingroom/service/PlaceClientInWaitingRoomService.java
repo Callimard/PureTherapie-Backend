@@ -166,7 +166,7 @@ public class PlaceClientInWaitingRoomService {
             return Collections.singletonMap(CLIENT_PLACE_IN_WAITING_ROOM_FAIL, e.getMessage());
     }
 
-    public static boolean hasSuccess(Map<String, Object> res) {
+    public static boolean placeClientInWaitingRoomHasSuccess(Map<String, Object> res) {
         return res.containsKey(CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS);
     }
 

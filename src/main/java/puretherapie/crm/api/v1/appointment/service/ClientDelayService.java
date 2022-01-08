@@ -18,7 +18,7 @@ import java.time.LocalTime;
 import java.util.Collections;
 import java.util.Map;
 
-import static puretherapie.crm.tool.ServiceTool.generateError;
+import static puretherapie.crm.tool.ServiceTool.*;
 import static puretherapie.crm.tool.TimeTool.minuteBetween;
 
 @Slf4j
@@ -28,7 +28,7 @@ public class ClientDelayService {
 
     // Constants.
 
-    private static final String MAXIMUM_CLIENT_DELAY_FILE = "src/main/resources/data/max_client_delay.data";
+    public static final String MAXIMUM_CLIENT_DELAY_FILE = DATA_DIRECTORY_PATH + "/max_client_delay.data";
 
     public static final int DEFAULT_MAXIMUM_CLIENT_DELAY = 15;
     private static int maximumClientDelay = chargeMaximumClientDelay();
@@ -62,6 +62,10 @@ public class ClientDelayService {
         saveMaximumClientDelay();
     }
 
+    public static void rechargeMaximumClientDelay() {
+        setMaximumClientDelay(chargeMaximumClientDelay());
+    }
+
     private static int chargeMaximumClientDelay() {
         if (Files.exists(Path.of(MAXIMUM_CLIENT_DELAY_FILE))) {
             try (ObjectInputStream reader = new ObjectInputStream(new FileInputStream(MAXIMUM_CLIENT_DELAY_FILE))) {
@@ -75,8 +79,18 @@ public class ClientDelayService {
     }
 
     private static void saveMaximumClientDelay() {
+        try {
+            createDataDirectory();
+        } catch (IOException e) {
+            log.debug("Fail to create data directory", e);
+        }
+
         try (ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(MAXIMUM_CLIENT_DELAY_FILE))) {
+            if (!Files.exists(Path.of(MAXIMUM_CLIENT_DELAY_FILE)))
+                Files.createFile(Path.of(MAXIMUM_CLIENT_DELAY_FILE));
+
             writer.writeInt(maximumClientDelay);
+            writer.flush();
         } catch (IOException e) {
             log.debug("Fail to save maximumClientDelay", e);
         }
@@ -179,6 +193,10 @@ public class ClientDelayService {
         } else {
             return Collections.singletonMap(CLIENT_DELAY_CREATION_FAIL, e.getMessage());
         }
+    }
+
+    public static boolean clientDelayCreationHasSuccess(Map<String, Object> res) {
+        return res.containsKey(CLIENT_DELAY_CREATION_SUCCESS);
     }
 
     // Exceptions.

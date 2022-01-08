@@ -105,7 +105,7 @@ public class TakeAppointmentService {
             verifyIsCompatibleTimeSlotTime(beginTime, openingList, tsa.getNumberOfMinutes());
             List<TimeSlot> allTimeSlots = generateAllTimeSlots(technician, day, beginTime, tsa.getNumberOfMinutes(), nbTimeSlot);
             verifyNoOverlapForAll(allTimeSlots);
-            Appointment appointment = buildAppointment(client, technician, aestheticCare);
+            Appointment appointment = buildAppointment(client, technician, aestheticCare, day, beginTime);
             appointment = saveAppointment(appointment);
             saveAllTimeSlot(allTimeSlots, appointment);
             notifyAppointmentCreate(client, technician, beginTime);
@@ -372,12 +372,14 @@ public class TakeAppointmentService {
                 .build();
     }
 
-    private Appointment buildAppointment(Client client, Technician technician, AestheticCare aestheticCare) {
+    private Appointment buildAppointment(Client client, Technician technician, AestheticCare aestheticCare, LocalDate day, LocalTime time) {
         return Appointment.builder()
                 .client(client)
                 .technician(technician)
                 .aestheticCare(aestheticCare)
                 .canceled(false)
+                .day(day)
+                .time(time)
                 .build();
     }
 

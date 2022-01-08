@@ -17,7 +17,7 @@ public class ClientDelay {
 
     @Id
     @Column(name = "idClientDelay", nullable = false)
-    private Integer id;
+    private Integer idClientDelay;
 
     @Column(name = "delayTime", nullable = false)
     private Integer delayTime;

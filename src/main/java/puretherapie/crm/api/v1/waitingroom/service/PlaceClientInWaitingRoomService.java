@@ -16,13 +16,13 @@ import puretherapie.crm.data.waitingroom.WaitingRoom;
 import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 import puretherapie.crm.tool.ServiceTool;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static puretherapie.crm.tool.ServiceTool.generateError;
+import static puretherapie.crm.tool.TimeTool.today;
 
 @Slf4j
 @AllArgsConstructor
@@ -51,25 +51,29 @@ public class PlaceClientInWaitingRoomService {
 
     // Methods.
 
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public Map<String, Object> placeClientInWaitingRoom(Client client, Appointment appointment) {
+        return placeClientInWaitingRoom(client.getIdPerson(), appointment != null ? appointment.getIdAppointment() : -1);
+    }
+
     /**
      * @param idClient the sur booking client
      *
      * @return the result of the try to place client in waiting room
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<String, Object> placeClientInWaitingRoom(int idClient) {
         return placeClientInWaitingRoom(idClient, -1);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<String, Object> placeClientInWaitingRoom(int idClient, int idAppointment) {
-
         try {
             Client client = verifyClient(idClient);
             Appointment appointment = getAppointment(idAppointment);
             verifyClientAndAppointmentCoherence(client, appointment);
             verifyAppointmentIsForToday(appointment);
-            createWaitingRoom(client, appointment);
+            saveWaitingRoom(client, appointment);
             return generateSuccessRes();
         } catch (Exception e) {
             log.debug("Fail to place client in waiting room", e);
@@ -127,7 +131,7 @@ public class PlaceClientInWaitingRoomService {
         }
     }
 
-    private void createWaitingRoom(Client client, Appointment appointment) {
+    private void saveWaitingRoom(Client client, Appointment appointment) {
         WaitingRoom waitingRoom = buildWaitingRoom(client, appointment);
         waitingRoom = waitingRoomRepository.save(waitingRoom);
         log.debug("Save waiting room {}", waitingRoom);
@@ -162,8 +166,8 @@ public class PlaceClientInWaitingRoomService {
             return Collections.singletonMap(CLIENT_PLACE_IN_WAITING_ROOM_FAIL, e.getMessage());
     }
 
-    private LocalDate today() {
-        return LocalDate.now();
+    public static boolean placeClientInWaitingRoomHasSuccess(Map<String, Object> res) {
+        return res.containsKey(CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS);
     }
 
     // Exceptions.

@@ -19,7 +19,7 @@ public class ClientArrival {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idClientArrival", nullable = false)
-    private Integer id;
+    private Integer idClientArrival;
 
     @Column(name = "arrivalDate", nullable = false)
     private OffsetDateTime arrivalDate;

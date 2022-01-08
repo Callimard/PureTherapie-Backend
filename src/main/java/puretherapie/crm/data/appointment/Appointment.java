@@ -7,6 +7,8 @@ import puretherapie.crm.data.person.technician.Technician;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Builder
@@ -43,7 +45,14 @@ public class Appointment {
     @Column(name = "canceled", nullable = false)
     private boolean canceled;
 
+    @Column(name = "day", nullable = false)
+    private LocalDate day;
+
+    @Column(name = "time", nullable = false)
+    private LocalTime time;
+
     @OneToMany(targetEntity = TimeSlot.class, mappedBy = "appointment")
     @ToString.Exclude
     private List<TimeSlot> timeSlots;
+
 }

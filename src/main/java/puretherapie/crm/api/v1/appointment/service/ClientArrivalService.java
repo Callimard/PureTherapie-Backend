@@ -34,6 +34,7 @@ public class ClientArrivalService {
 
     public static final String CLIENT_ARRIVAL_SUCCESS = "client_arrival_success";
     public static final String CLIENT_ARRIVAL_FAIL = "client_arrival_fail";
+
     public static final String UNKNOWN_ERROR = "unknown_error";
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found_error";
     public static final String CLIENT_TOO_MUCH_LATE_ERROR = "client_too_much_late_error";
@@ -44,8 +45,8 @@ public class ClientArrivalService {
     private final ClientRepository clientRepository;
     private final AppointmentRepository appointmentRepository;
     private final ClientArrivalRepository clientArrivalRepository;
-    private final PlaceClientInWaitingRoomService placeClientInWaitingRoomService;
     private final ClientDelayService clientDelayService;
+    private final PlaceClientInWaitingRoomService placeClientInWaitingRoomService;
 
     // Methods.
 

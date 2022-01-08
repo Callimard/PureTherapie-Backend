@@ -108,7 +108,7 @@ public class ClientDelayService {
     public static boolean isTooMuchLateFromNow(LocalTime appointmentTime) {
         if (isLateFromNow(appointmentTime)) {
             long diff = minuteBetween(LocalTime.now(), appointmentTime);
-            return diff > getMaximumClientDelay();
+            return diff >= getMaximumClientDelay();
         } else
             return false;
     }

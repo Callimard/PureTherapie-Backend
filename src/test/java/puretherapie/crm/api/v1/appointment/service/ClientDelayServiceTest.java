@@ -1,5 +1,6 @@
 package puretherapie.crm.api.v1.appointment.service;
 
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import puretherapie.crm.tool.ServiceTool;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalTime;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,12 +27,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.*;
 
-@SpringBootTest
 @DisplayName("ClientDelayService test")
 public class ClientDelayServiceTest {
-
-    @Autowired
-    private ClientDelayService cds;
 
     @Nested
     @DisplayName("Maximum Client Delay test")
@@ -90,8 +88,84 @@ public class ClientDelayServiceTest {
     }
 
     @Nested
+    @DisplayName("Late methods tests")
+    class LateMethods {
+
+
+        @Nested
+        @DisplayName("IsLateFromNow tests")
+        class IsLateFromNow {
+            @Test
+            @DisplayName("Test returns false if time before now")
+            void testWithTimeBeforeNow() {
+                LocalTime time = LocalTime.now().minusMinutes(2);
+                assertThat(ClientDelayService.isLateFromNow(time)).isFalse();
+            }
+
+            @Test
+            @DisplayName("Test returns true if time is after now")
+            void testWithTimeAfterNow() {
+                LocalTime time = LocalTime.now().plusMinutes(2);
+                assertThat(ClientDelayService.isLateFromNow(time)).isTrue();
+            }
+        }
+
+        @Nested
+        @DisplayName("IsTooMuchLateFromNow tests")
+        class IsTooMuchLateFromNow {
+
+            @Test
+            @DisplayName("Test returns false if time is before now")
+            void testWithTimeBefore() {
+                LocalTime time = LocalTime.now().minusMinutes(2);
+                assertThat(ClientDelayService.isTooMuchLateFromNow(time)).isFalse();
+            }
+
+            @Test
+            @DisplayName("Test returns false if time is after but not too much")
+            void testWithNotTooMuch() {
+                LocalTime time = LocalTime.now().plusMinutes(ClientDelayService.getMaximumClientDelay() - 2);
+                assertThat(ClientDelayService.isTooMuchLateFromNow(time)).isFalse();
+            }
+
+            @Test
+            @DisplayName("Test returns true if time is too much")
+            void testWithTooMuch() {
+                LocalTime time = LocalTime.now().plusMinutes(ClientDelayService.getMaximumClientDelay() + 2);
+                assertThat(ClientDelayService.isTooMuchLateFromNow(time)).isTrue();
+            }
+        }
+
+        @Nested
+        @DisplayName("DelayFromNow tests")
+        class DelayFromNow {
+
+            @Test
+            @DisplayName("Test returns 0 if appointment time is before now (not late)")
+            void testWithBeforeNow() {
+                LocalTime time = LocalTime.now().minusMinutes(2);
+                assertThat(ClientDelayService.delayFromNow(time)).isEqualByComparingTo(0L);
+            }
+
+            @Test
+            @DisplayName("Test returns correct delay with late time")
+            void testWithLateTime() {
+                long delay = 3;
+                LocalTime time = LocalTime.now().plusMinutes(delay);
+                assertThat(ClientDelayService.delayFromNow(time)).isCloseTo(delay, Offset.offset(1L));
+            }
+
+        }
+
+    }
+
+    @Nested
+    @SpringBootTest
     @DisplayName("CreateClientDelay tests")
     class CreateClientDelay {
+
+        @Autowired
+        private ClientDelayService cds;
 
         @Test
         @DisplayName("Test with unknown client fail")
@@ -142,72 +216,70 @@ public class ClientDelayServiceTest {
             verifySuccess(res);
         }
 
+        private void verifySuccess(Map<String, Object> res) {
+            assertThat(res).isNotNull().containsKey(CLIENT_DELAY_CREATION_SUCCESS);
+        }
 
-    }
+        private void verifyFail(Map<String, Object> res) {
+            assertThat(res).isNotNull().containsKey(CLIENT_DELAY_CREATION_FAIL);
+        }
 
-    private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(CLIENT_DELAY_CREATION_SUCCESS);
-    }
+        void verifyFailType(Map<String, Object> res, String expectedKey) {
+            @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(CLIENT_DELAY_CREATION_FAIL);
+            assertThat(errors).isNotNull().containsKey(expectedKey);
+        }
 
-    private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(CLIENT_DELAY_CREATION_FAIL);
-    }
+        // Context.
 
-    void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(CLIENT_DELAY_CREATION_FAIL);
-        assertThat(errors).isNotNull().containsKey(expectedKey);
-    }
+        @MockBean
+        private ClientRepository mockClientRepository;
+        @Mock
+        private Client mockClient;
+        private static final int CLIENT_ID = 96;
 
-    // Context.
+        @MockBean
+        private AppointmentRepository mockAppointmentRepository;
+        @Mock
+        private Appointment mockAppointment;
+        private static final int APPOINTMENT_ID = 20;
 
-    @MockBean
-    private ClientRepository mockClientRepository;
-    @Mock
-    private Client mockClient;
-    private static final int CLIENT_ID = 96;
+        @MockBean
+        private ClientDelayRepository mockCDRepository;
+        @Mock
+        private ClientDelay mockCD;
 
-    @MockBean
-    private AppointmentRepository mockAppointmentRepository;
-    @Mock
-    private Appointment mockAppointment;
-    private static final int APPOINTMENT_ID = 20;
+        private static final int CORRECT_DELAY = 10;
 
-    @MockBean
-    private ClientDelayRepository mockCDRepository;
-    @Mock
-    private ClientDelay mockCD;
+        private void prepareMinimalRepository() {
+            prepareClientRepository();
+            prepareAppointmentRepository();
+        }
 
-    private static final int CORRECT_DELAY = 10;
+        private void prepareSuccess() {
+            prepareMinimalRepository();
+            prepareClientDelayRepository();
+            prepareAssociateClient();
+        }
 
-    private void prepareMinimalRepository() {
-        prepareClientRepository();
-        prepareAppointmentRepository();
-    }
+        private void prepareClientRepository() {
+            given(mockClientRepository.findByIdPerson(CLIENT_ID)).willReturn(mockClient);
+        }
 
-    private void prepareSuccess() {
-        prepareMinimalRepository();
-        prepareClientDelayRepository();
-        prepareAssociateClient();
-    }
+        private void prepareNotAssociateClient() {
+            given(mockClient.isAssociateTo(mockAppointment)).willReturn(false);
+        }
 
-    private void prepareClientRepository() {
-        given(mockClientRepository.findByIdPerson(CLIENT_ID)).willReturn(mockClient);
-    }
+        private void prepareAssociateClient() {
+            given(mockClient.isAssociateTo(mockAppointment)).willReturn(true);
+        }
 
-    private void prepareNotAssociateClient() {
-        given(mockClient.isAssociateTo(mockAppointment)).willReturn(false);
-    }
+        private void prepareAppointmentRepository() {
+            given(mockAppointmentRepository.findByIdAppointment(APPOINTMENT_ID)).willReturn(mockAppointment);
+        }
 
-    private void prepareAssociateClient() {
-        given(mockClient.isAssociateTo(mockAppointment)).willReturn(true);
-    }
-
-    private void prepareAppointmentRepository() {
-        given(mockAppointmentRepository.findByIdAppointment(APPOINTMENT_ID)).willReturn(mockAppointment);
-    }
-
-    private void prepareClientDelayRepository() {
-        given(mockCDRepository.save(any())).willReturn(mockCD);
+        private void prepareClientDelayRepository() {
+            given(mockCDRepository.save(any())).willReturn(mockCD);
+        }
     }
 
 }

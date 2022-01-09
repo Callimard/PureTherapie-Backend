@@ -18,7 +18,7 @@ public class ClientAbsence {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idClientAbsence", nullable = false)
-    private Integer id;
+    private Integer idClientAbsence;
 
     @Column(name = "level", nullable = false)
     private Integer level;

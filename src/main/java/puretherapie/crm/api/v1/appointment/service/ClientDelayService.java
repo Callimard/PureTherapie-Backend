@@ -3,28 +3,26 @@ package puretherapie.crm.api.v1.appointment.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import puretherapie.crm.api.v1.SimpleService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientDelay;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.appointment.repository.ClientDelayRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
-import puretherapie.crm.tool.ServiceTool;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.Map;
 
-import static puretherapie.crm.tool.ServiceTool.*;
 import static puretherapie.crm.tool.TimeTool.minuteBetween;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class ClientDelayService {
+public class ClientDelayService extends SimpleService {
 
     // Constants.
 
@@ -120,6 +118,8 @@ public class ClientDelayService {
             return 0;
     }
 
+    // Service methods.
+
     public Map<String, Object> createClientDelay(Client client, Appointment appointment, int delay) {
         return createClientDelay(client.getIdPerson(), appointment.getIdAppointment(), delay);
     }
@@ -183,25 +183,21 @@ public class ClientDelayService {
                 .build();
     }
 
-    private Map<String, Object> generateSuccessRes() {
-        return Collections.singletonMap(CLIENT_DELAY_CREATION_SUCCESS, "Client arrival success");
+    // SimpleService methods.
+
+    @Override
+    public String getSuccessTag() {
+        return CLIENT_DELAY_CREATION_SUCCESS;
     }
 
-    private Map<String, Object> generateErrorRes(Exception e) {
-        if (e instanceof ClientDelayCreationException ace) {
-            return Collections.singletonMap(CLIENT_DELAY_CREATION_FAIL, ace.getErrors());
-        } else {
-            return Collections.singletonMap(CLIENT_DELAY_CREATION_FAIL, e.getMessage());
-        }
-    }
-
-    public static boolean clientDelayCreationHasSuccess(Map<String, Object> res) {
-        return res.containsKey(CLIENT_DELAY_CREATION_SUCCESS);
+    @Override
+    public String getFailTag() {
+        return CLIENT_DELAY_CREATION_FAIL;
     }
 
     // Exceptions.
 
-    private static class ClientDelayCreationException extends ServiceTool.ServiceException {
+    private static class ClientDelayCreationException extends SimpleService.ServiceException {
         public ClientDelayCreationException(String message, Map<String, String> errors) {
             super(message, errors);
         }

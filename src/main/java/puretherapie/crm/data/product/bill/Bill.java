@@ -19,7 +19,7 @@ public class Bill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idBill", nullable = false)
-    private Integer id;
+    private Integer idBill;
 
     @Column(name = "basePrice", nullable = false)
     private Double basePrice;
@@ -29,10 +29,6 @@ public class Bill {
 
     @Column(name = "creationDate", nullable = false)
     private OffsetDateTime creationDate;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "idPayment", nullable = false)
-    private Payment payment;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idClient", nullable = false)

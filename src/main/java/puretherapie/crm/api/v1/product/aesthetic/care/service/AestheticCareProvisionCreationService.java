@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import puretherapie.crm.api.v1.SimpleService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.person.client.Client;
@@ -15,18 +16,14 @@ import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCareProvision;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareProvisionRepository;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
-import puretherapie.crm.tool.ServiceTool;
 
 import java.time.OffsetDateTime;
-import java.util.Collections;
 import java.util.Map;
-
-import static puretherapie.crm.tool.ServiceTool.generateError;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class AestheticCareProvisionCreationService {
+public class AestheticCareProvisionCreationService extends SimpleService {
 
     // Constants.
 
@@ -50,6 +47,15 @@ public class AestheticCareProvisionCreationService {
 
     // Methods.
 
+    /**
+     * @param idClient        id client
+     * @param idTechnician    id technician
+     * @param idAestheticCare id aesthetic care
+     * @param idAppointment   id appointment (can be a not found appointment)
+     * @param dateTime        date time when the aesthetic care has been provided
+     *
+     * @return map containing result
+     */
     @Transactional(propagation = Propagation.SUPPORTS)
     public Map<String, Object> createAestheticCareProvision(int idClient, int idTechnician, int idAestheticCare,
                                                             int idAppointment, OffsetDateTime dateTime) {
@@ -138,20 +144,21 @@ public class AestheticCareProvisionCreationService {
                 .build();
     }
 
-    private Map<String, Object> generateSuccessRes() {
-        return Collections.singletonMap(AC_PROVISION_CREATION_SUCCESS, "client place in waiting room success");
+    // SimpleService methods.
+
+    @Override
+    public String getSuccessTag() {
+        return AC_PROVISION_CREATION_SUCCESS;
     }
 
-    private Map<String, Object> generateErrorRes(Exception e) {
-        if (e instanceof AestheticCareProvisionCreationService.AestheticCareProvisionCreationException accException)
-            return Collections.singletonMap(AC_PROVISION_CREATION_FAIL, accException.getErrors());
-        else
-            return Collections.singletonMap(AC_PROVISION_CREATION_FAIL, e.getMessage());
+    @Override
+    public String getFailTag() {
+        return AC_PROVISION_CREATION_FAIL;
     }
 
     // Exceptions.
 
-    private static class AestheticCareProvisionCreationException extends ServiceTool.ServiceException {
+    private static class AestheticCareProvisionCreationException extends SimpleService.ServiceException {
         public AestheticCareProvisionCreationException(String message, Map<String, String> errors) {
             super(message, errors);
         }

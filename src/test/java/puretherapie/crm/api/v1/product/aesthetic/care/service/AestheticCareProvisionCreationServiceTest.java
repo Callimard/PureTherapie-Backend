@@ -127,15 +127,15 @@ public class AestheticCareProvisionCreationServiceTest {
     }
 
     private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(AC_PROVISION_CREATION_SUCCESS);
+        assertThat(res).isNotNull().containsKey(acps.getSuccessTag());
     }
 
     private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(AC_PROVISION_CREATION_FAIL);
+        assertThat(res).isNotNull().containsKey(acps.getFailTag());
     }
 
     void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(AC_PROVISION_CREATION_FAIL);
+        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(acps.getFailTag());
         assertThat(errors).isNotNull().containsKey(expectedKey);
     }
 

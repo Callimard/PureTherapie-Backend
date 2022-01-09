@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import puretherapie.crm.api.v1.SimpleService;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.agenda.*;
 import puretherapie.crm.data.agenda.repository.*;
@@ -19,7 +20,6 @@ import puretherapie.crm.data.person.technician.repository.LaunchBreakRepository;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
-import puretherapie.crm.tool.ServiceTool;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -27,13 +27,12 @@ import java.util.*;
 
 import static puretherapie.crm.data.agenda.Opening.correctTimeSlotTime;
 import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
-import static puretherapie.crm.tool.ServiceTool.generateError;
 import static puretherapie.crm.tool.TimeTool.minuteBetween;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class TakeAppointmentService {
+public class TakeAppointmentService extends SimpleService {
 
     // Constants.
 
@@ -48,7 +47,6 @@ public class TakeAppointmentService {
 
     public static final String APPOINTMENT_CREATION_FAIL = "appointment_creation_fail";
 
-    public static final String UNKNOWN_ERROR = "unknown_error";
     public static final String NULL_DAY_OR_BEGIN_TIME_ERROR = "null_day_begin_time";
     public static final String CLIENT_ID_NOT_FOUND_ERROR = "client_id_not_found";
     public static final String TECHNICIAN_ID_NOT_FOUND_ERROR = "technician_id_not_found";
@@ -81,7 +79,7 @@ public class TakeAppointmentService {
         return takeAppointment(idClient, idTechnician, idAestheticCare, day, beginTime, false);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRED)
     public Map<String, Object> takeAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime,
                                                boolean overlapAuthorized) {
         try {
@@ -114,18 +112,6 @@ public class TakeAppointmentService {
             log.debug("Fail to create appointment, error message: {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return generateErrorRes(e);
-        }
-    }
-
-    private Map<String, Object> generateSuccessRes() {
-        return Collections.singletonMap(APPOINTMENT_CREATION_SUCCESS, "Appointment creation success");
-    }
-
-    private Map<String, Object> generateErrorRes(Exception e) {
-        if (e instanceof AppointmentCreationException ace) {
-            return Collections.singletonMap(APPOINTMENT_CREATION_FAIL, ace.getErrors());
-        } else {
-            return Collections.singletonMap(UNKNOWN_ERROR, e.getMessage());
         }
     }
 
@@ -399,10 +385,22 @@ public class TakeAppointmentService {
             log.error("Fail to create appointment notification");
     }
 
+    // SimpleService methods.
+
+    @Override
+    public String getSuccessTag() {
+        return APPOINTMENT_CREATION_SUCCESS;
+    }
+
+    @Override
+    public String getFailTag() {
+        return APPOINTMENT_CREATION_FAIL;
+    }
+
+
     // Exceptions.
 
-    private static class AppointmentCreationException extends ServiceTool.ServiceException {
-
+    private static class AppointmentCreationException extends SimpleService.ServiceException {
         public AppointmentCreationException(String message, Map<String, String> errors) {
             super(message, errors);
         }

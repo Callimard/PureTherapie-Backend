@@ -24,14 +24,14 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService.*;
+import static puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService.*;
 
 @SpringBootTest
 @DisplayName("PlaceClientInWaitingRoomService tests")
-public class PlaceClientInWaitingRoomServiceTest {
+public class PlaceInWaitingRoomServiceTest {
 
     @Autowired
-    private PlaceClientInWaitingRoomService pcs;
+    private PlaceInWaitingRoomService pcs;
 
     // Tests.
 
@@ -43,7 +43,7 @@ public class PlaceClientInWaitingRoomServiceTest {
         @DisplayName("Test with client not found fail")
         void testWithNotFoundClient() {
             prepareClientRepository();
-            Map<String, Object> res = pcs.placeClientInWaitingRoom(-1, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(-1, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
         }
@@ -56,7 +56,7 @@ public class PlaceClientInWaitingRoomServiceTest {
             prepareAppointmentRepository();
             prepareNotAssociatedAppointment();
 
-            Map<String, Object> res = pcs.placeClientInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT_ERROR);
         }
@@ -70,7 +70,7 @@ public class PlaceClientInWaitingRoomServiceTest {
             prepareCoherentAppointment();
             prepareCanceledAppointment();
 
-            Map<String, Object> res = pcs.placeClientInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, APPOINTMENT_CANCELED_ERROR);
         }
@@ -85,7 +85,7 @@ public class PlaceClientInWaitingRoomServiceTest {
             prepareTimeSlotRepository();
             prepareFreeTimeSlot();
 
-            Map<String, Object> res = pcs.placeClientInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, TIME_SLOT_INCOHERENCE_ERROR);
         }
@@ -99,7 +99,7 @@ public class PlaceClientInWaitingRoomServiceTest {
             prepareCoherentAppointment();
             prepareNotForTodayAppointment();
 
-            Map<String, Object> res = pcs.placeClientInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, APPOINTMENT_NOT_FOR_TODAY_ERROR);
         }
@@ -114,7 +114,7 @@ public class PlaceClientInWaitingRoomServiceTest {
             prepareTodayAppointment();
             prepareWRRepository();
 
-            Map<String, Object> res = pcs.placeClientInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifySuccess(res);
         }
 
@@ -124,21 +124,21 @@ public class PlaceClientInWaitingRoomServiceTest {
             prepareClientRepository();
             prepareClient();
 
-            Map<String, Object> res = pcs.placeClientInWaitingRoom(CLIENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID);
             verifySuccess(res);
         }
     }
 
     private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS);
+        assertThat(res).isNotNull().containsKey(pcs.getSuccessTag());
     }
 
     private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(CLIENT_PLACE_IN_WAITING_ROOM_FAIL);
+        assertThat(res).isNotNull().containsKey(pcs.getFailTag());
     }
 
     void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(CLIENT_PLACE_IN_WAITING_ROOM_FAIL);
+        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(pcs.getFailTag());
         assertThat(errors).isNotNull().containsKey(expectedKey);
     }
 

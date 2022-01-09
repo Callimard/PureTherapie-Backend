@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService;
+import puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientArrival;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
@@ -16,16 +16,13 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static puretherapie.crm.api.v1.appointment.service.ClientArrivalService.*;
-import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.CLIENT_DELAY_CREATION_SUCCESS;
-import static puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService.CLIENT_PLACE_IN_WAITING_ROOM_FAIL;
-import static puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService.CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS;
 
 @SpringBootTest
 @DisplayName("ClientArrivalService tests")
@@ -100,15 +97,15 @@ public class ClientArrivalServiceTest {
     }
 
     private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(CLIENT_ARRIVAL_SUCCESS);
+        assertThat(res).isNotNull().containsKey(cas.getSuccessTag());
     }
 
     private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(CLIENT_ARRIVAL_FAIL);
+        assertThat(res).isNotNull().containsKey(cas.getFailTag());
     }
 
     void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(CLIENT_ARRIVAL_FAIL);
+        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(cas.getFailTag());
         assertThat(errors).isNotNull().containsKey(expectedKey);
     }
 
@@ -138,7 +135,7 @@ public class ClientArrivalServiceTest {
     private static final LocalTime APPOINTMENT_TIME_TOO_MUCH_DELAY = LocalTime.now().plusMinutes(ClientDelayService.getMaximumClientDelay() + 2);
 
     @MockBean
-    private PlaceClientInWaitingRoomService mockPCWRService;
+    private PlaceInWaitingRoomService mockPCWRService;
 
     private void prepareClientRepository() {
         given(mockClientRepository.findByIdPerson(CLIENT_ID)).willReturn(mockClient);
@@ -165,17 +162,15 @@ public class ClientArrivalServiceTest {
     }
 
     private void prepareSuccessCreateClientDelay() {
-        given(mockCDService.createClientDelay(any(), any(), anyInt())).willReturn(Collections.singletonMap(CLIENT_DELAY_CREATION_SUCCESS, null));
+        given(mockCDService.hasSuccess(any())).willReturn(true);
     }
 
     private void prepareSuccessPlaceInWaitingRoom() {
-        given(mockPCWRService.placeClientInWaitingRoom(eq(mockClient), any())).willReturn(
-                Collections.singletonMap(CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS, null));
+        given(mockPCWRService.hasSuccess(any())).willReturn(true);
     }
 
     private void prepareFailPlaceInWaitingRoom() {
-        given(mockPCWRService.placeClientInWaitingRoom(eq(mockClient), any())).willReturn(
-                Collections.singletonMap(CLIENT_PLACE_IN_WAITING_ROOM_FAIL, null));
+        given(mockPCWRService.hasSuccess(any())).willReturn(false);
     }
 
 }

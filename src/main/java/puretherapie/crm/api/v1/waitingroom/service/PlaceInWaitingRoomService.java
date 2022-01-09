@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import puretherapie.crm.api.v1.SimpleService;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
 import puretherapie.crm.data.appointment.Appointment;
@@ -14,25 +15,22 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.waitingroom.WaitingRoom;
 import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
-import puretherapie.crm.tool.ServiceTool;
 
 import java.time.OffsetDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static puretherapie.crm.tool.ServiceTool.generateError;
 import static puretherapie.crm.tool.TimeTool.today;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class PlaceClientInWaitingRoomService {
+public class PlaceInWaitingRoomService extends SimpleService {
 
     // Constants.
 
-    public static final String CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS = "client_place_in_waiting_room_success";
-    public static final String CLIENT_PLACE_IN_WAITING_ROOM_FAIL = "client_place_in_waiting_room_fail";
+    public static final String CLIENT_PLACE_IN_WR_SUCCESS = "client_place_in_waiting_room_success";
+    public static final String CLIENT_PLACE_IN_WR_FAIL = "client_place_in_waiting_room_fail";
 
     // ERRORS.
 
@@ -52,22 +50,32 @@ public class PlaceClientInWaitingRoomService {
     // Methods.
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> placeClientInWaitingRoom(Client client, Appointment appointment) {
-        return placeClientInWaitingRoom(client.getIdPerson(), appointment != null ? appointment.getIdAppointment() : -1);
+    public Map<String, Object> placeClient(Client client, Appointment appointment) {
+        return placeClient(client.getIdPerson(), appointment != null ? appointment.getIdAppointment() : -1);
     }
 
     /**
+     * Client with no appointment
+     *
      * @param idClient the sur booking client
      *
      * @return the result of the try to place client in waiting room
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> placeClientInWaitingRoom(int idClient) {
-        return placeClientInWaitingRoom(idClient, -1);
+    public Map<String, Object> placeClient(int idClient) {
+        return placeClient(idClient, -1);
     }
 
+    /**
+     * Try to add client in the waiting room. If the id appointment exists, the appointment must be for today and must be not canceled.
+     *
+     * @param idClient      id client
+     * @param idAppointment id appointment (can be a not found appointment)
+     *
+     * @return the result of the try to place client in waiting room
+     */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> placeClientInWaitingRoom(int idClient, int idAppointment) {
+    public Map<String, Object> placeClient(int idClient, int idAppointment) {
         try {
             Client client = verifyClient(idClient);
             Appointment appointment = getAppointment(idAppointment);
@@ -155,24 +163,21 @@ public class PlaceClientInWaitingRoomService {
             return null;
     }
 
-    private Map<String, Object> generateSuccessRes() {
-        return Collections.singletonMap(CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS, "client place in waiting room success");
+    // SimpleService methods.
+
+    @Override
+    public String getSuccessTag() {
+        return CLIENT_PLACE_IN_WR_SUCCESS;
     }
 
-    private Map<String, Object> generateErrorRes(Exception e) {
-        if (e instanceof PlaceClientInWaitingRoomException pcwrException)
-            return Collections.singletonMap(CLIENT_PLACE_IN_WAITING_ROOM_FAIL, pcwrException.getErrors());
-        else
-            return Collections.singletonMap(CLIENT_PLACE_IN_WAITING_ROOM_FAIL, e.getMessage());
-    }
-
-    public static boolean placeClientInWaitingRoomHasSuccess(Map<String, Object> res) {
-        return res.containsKey(CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS);
+    @Override
+    public String getFailTag() {
+        return CLIENT_PLACE_IN_WR_FAIL;
     }
 
     // Exceptions.
 
-    private static class PlaceClientInWaitingRoomException extends ServiceTool.ServiceException {
+    private static class PlaceClientInWaitingRoomException extends SimpleService.ServiceException {
         public PlaceClientInWaitingRoomException(String message, Map<String, String> errors) {
             super(message, errors);
         }

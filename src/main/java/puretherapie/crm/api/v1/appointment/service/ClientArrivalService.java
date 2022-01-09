@@ -6,36 +6,32 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService;
+import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientArrival;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.appointment.repository.ClientArrivalRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
-import puretherapie.crm.tool.ServiceTool;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.Collections;
 import java.util.Map;
 
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.*;
-import static puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService.placeClientInWaitingRoomHasSuccess;
-import static puretherapie.crm.tool.ServiceTool.generateError;
 import static puretherapie.crm.tool.TimeTool.today;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class ClientArrivalService {
+public class ClientArrivalService extends SimpleService {
 
     // Constants.
 
     public static final String CLIENT_ARRIVAL_SUCCESS = "client_arrival_success";
     public static final String CLIENT_ARRIVAL_FAIL = "client_arrival_fail";
 
-    public static final String UNKNOWN_ERROR = "unknown_error";
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found_error";
     public static final String CLIENT_TOO_MUCH_LATE_ERROR = "client_too_much_late_error";
     public static final String WAITING_ROOM_ERROR = "waiting_room_error";
@@ -46,7 +42,7 @@ public class ClientArrivalService {
     private final AppointmentRepository appointmentRepository;
     private final ClientArrivalRepository clientArrivalRepository;
     private final ClientDelayService clientDelayService;
-    private final PlaceClientInWaitingRoomService placeClientInWaitingRoomService;
+    private final PlaceInWaitingRoomService placeInWaitingRoomService;
 
     // Methods.
 
@@ -106,7 +102,7 @@ public class ClientArrivalService {
                 log.debug("Save client delay ({} minutes)", delayFromNow(appointment.getTime()));
                 Map<String, Object> res = clientDelayService.createClientDelay(appointment.getClient(), appointment,
                                                                                (int) delayFromNow(appointment.getTime()));
-                if (!clientDelayCreationHasSuccess(res))
+                if (!clientDelayService.hasSuccess(res))
                     log.debug("Fail to create client delay");
             }
         }
@@ -120,29 +116,29 @@ public class ClientArrivalService {
     }
 
     private void placeClientInWaitingRoom(Client client, Appointment appointment) {
-        Map<String, Object> res = placeClientInWaitingRoomService.placeClientInWaitingRoom(client, appointment);
-        if (!placeClientInWaitingRoomHasSuccess(res)) {
+        Map<String, Object> res = placeInWaitingRoomService.placeClient(client, appointment);
+        if (!placeInWaitingRoomService.hasSuccess(res)) {
             log.debug("Fail to place client in waiting room");
             throw new ClientArrivalException("Fail to place the client in waiting room", generateError(WAITING_ROOM_ERROR, "Fail to place client in" +
                     " waiting room"));
         }
     }
 
-    private Map<String, Object> generateSuccessRes() {
-        return Collections.singletonMap(CLIENT_ARRIVAL_SUCCESS, "Client arrival success");
+    // SimpleService methods.
+
+    @Override
+    public String getSuccessTag() {
+        return CLIENT_ARRIVAL_SUCCESS;
     }
 
-    private Map<String, Object> generateErrorRes(Exception e) {
-        if (e instanceof ClientArrivalException ace) {
-            return Collections.singletonMap(CLIENT_ARRIVAL_FAIL, ace.getErrors());
-        } else {
-            return Collections.singletonMap(UNKNOWN_ERROR, e.getMessage());
-        }
+    @Override
+    public String getFailTag() {
+        return CLIENT_ARRIVAL_FAIL;
     }
 
     // Exception.
 
-    private static class ClientArrivalException extends ServiceTool.ServiceException {
+    private static class ClientArrivalException extends SimpleService.ServiceException {
 
         public ClientArrivalException(String message, Map<String, String> errors) {
             super(message, errors);

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import puretherapie.crm.api.v1.SimpleService;
 import puretherapie.crm.data.notification.Notification;
 import puretherapie.crm.data.notification.NotificationLevel;
 import puretherapie.crm.data.notification.NotificationView;

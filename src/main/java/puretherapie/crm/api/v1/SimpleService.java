@@ -1,19 +1,34 @@
-package puretherapie.crm.tool;
+package puretherapie.crm.api.v1;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ServiceTool {
-
-    private ServiceTool() {
-    }
+public abstract class SimpleService {
 
     // Constants.
 
     public static final String DATA_DIRECTORY_PATH = "src/main/resources/data";
+
+    // Methods.
+
+    public abstract String getSuccessTag();
+
+    public abstract String getFailTag();
+
+    protected Map<String, Object> generateSuccessRes() {
+        return Collections.singletonMap(getSuccessTag(), "client place in waiting room success");
+    }
+
+    protected Map<String, Object> generateErrorRes(Exception e) {
+        if (e instanceof ServiceException serviceException)
+            return Collections.singletonMap(getFailTag(), serviceException.getErrors());
+        else
+            return Collections.singletonMap(getFailTag(), e.getMessage());
+    }
 
     // Tool methods.
 
@@ -27,7 +42,7 @@ public class ServiceTool {
         Files.createDirectories(Path.of(DATA_DIRECTORY_PATH));
     }
 
-    // Exceptions class.
+    // Exceptions.
 
     public static class ServiceException extends RuntimeException {
 
@@ -42,4 +57,5 @@ public class ServiceTool {
             return errors;
         }
     }
+
 }

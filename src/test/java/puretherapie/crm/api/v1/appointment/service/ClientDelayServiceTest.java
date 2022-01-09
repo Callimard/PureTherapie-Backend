@@ -8,13 +8,13 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import puretherapie.crm.api.v1.SimpleService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientDelay;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.appointment.repository.ClientDelayRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
-import puretherapie.crm.tool.ServiceTool;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -72,7 +72,7 @@ public class ClientDelayServiceTest {
         }
 
         private static void writeMaximumClientDelay(int maximumClientDelay) throws IOException {
-            ServiceTool.createDataDirectory();
+            SimpleService.createDataDirectory();
             try (ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(ClientDelayService.MAXIMUM_CLIENT_DELAY_FILE))) {
                 writer.writeInt(maximumClientDelay);
                 writer.flush();
@@ -217,15 +217,15 @@ public class ClientDelayServiceTest {
         }
 
         private void verifySuccess(Map<String, Object> res) {
-            assertThat(res).isNotNull().containsKey(CLIENT_DELAY_CREATION_SUCCESS);
+            assertThat(res).isNotNull().containsKey(cds.getSuccessTag());
         }
 
         private void verifyFail(Map<String, Object> res) {
-            assertThat(res).isNotNull().containsKey(CLIENT_DELAY_CREATION_FAIL);
+            assertThat(res).isNotNull().containsKey(cds.getFailTag());
         }
 
         void verifyFailType(Map<String, Object> res, String expectedKey) {
-            @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(CLIENT_DELAY_CREATION_FAIL);
+            @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(cds.getFailTag());
             assertThat(errors).isNotNull().containsKey(expectedKey);
         }
 

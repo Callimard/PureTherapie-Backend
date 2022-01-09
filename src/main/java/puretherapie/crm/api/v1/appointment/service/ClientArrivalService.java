@@ -6,29 +6,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService;
+import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientArrival;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.appointment.repository.ClientArrivalRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
-import puretherapie.crm.tool.ServiceTool;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.Collections;
 import java.util.Map;
 
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.*;
-import static puretherapie.crm.api.v1.waitingroom.service.PlaceClientInWaitingRoomService.placeClientInWaitingRoomHasSuccess;
-import static puretherapie.crm.tool.ServiceTool.generateError;
+import static puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService.placeClientInWaitingRoomHasSuccess;
 import static puretherapie.crm.tool.TimeTool.today;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class ClientArrivalService {
+public class ClientArrivalService extends SimpleService {
 
     // Constants.
 
@@ -46,7 +44,7 @@ public class ClientArrivalService {
     private final AppointmentRepository appointmentRepository;
     private final ClientArrivalRepository clientArrivalRepository;
     private final ClientDelayService clientDelayService;
-    private final PlaceClientInWaitingRoomService placeClientInWaitingRoomService;
+    private final PlaceInWaitingRoomService placeInWaitingRoomService;
 
     // Methods.
 
@@ -120,7 +118,7 @@ public class ClientArrivalService {
     }
 
     private void placeClientInWaitingRoom(Client client, Appointment appointment) {
-        Map<String, Object> res = placeClientInWaitingRoomService.placeClientInWaitingRoom(client, appointment);
+        Map<String, Object> res = placeInWaitingRoomService.placeInWaitingRoom(client, appointment);
         if (!placeClientInWaitingRoomHasSuccess(res)) {
             log.debug("Fail to place client in waiting room");
             throw new ClientArrivalException("Fail to place the client in waiting room", generateError(WAITING_ROOM_ERROR, "Fail to place client in" +
@@ -128,21 +126,21 @@ public class ClientArrivalService {
         }
     }
 
-    private Map<String, Object> generateSuccessRes() {
-        return Collections.singletonMap(CLIENT_ARRIVAL_SUCCESS, "Client arrival success");
+    // SimpleService methods.
+
+    @Override
+    public String getSuccessTag() {
+        return CLIENT_DELAY_CREATION_SUCCESS;
     }
 
-    private Map<String, Object> generateErrorRes(Exception e) {
-        if (e instanceof ClientArrivalException ace) {
-            return Collections.singletonMap(CLIENT_ARRIVAL_FAIL, ace.getErrors());
-        } else {
-            return Collections.singletonMap(UNKNOWN_ERROR, e.getMessage());
-        }
+    @Override
+    public String getFailTag() {
+        return CLIENT_DELAY_CREATION_FAIL;
     }
 
     // Exception.
 
-    private static class ClientArrivalException extends ServiceTool.ServiceException {
+    private static class ClientArrivalException extends SimpleService.ServiceException {
 
         public ClientArrivalException(String message, Map<String, String> errors) {
             super(message, errors);

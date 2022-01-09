@@ -13,6 +13,10 @@ public abstract class SimpleService {
 
     public static final String DATA_DIRECTORY_PATH = "src/main/resources/data";
 
+    // Errors.
+
+    public static final String UNKNOWN_ERROR = "unknown_errror";
+
     // Methods.
 
     public abstract String getSuccessTag();
@@ -27,7 +31,7 @@ public abstract class SimpleService {
         if (e instanceof ServiceException serviceException)
             return Collections.singletonMap(getFailTag(), serviceException.getErrors());
         else
-            return Collections.singletonMap(getFailTag(), e.getMessage());
+            return Collections.singletonMap(getFailTag(), Collections.singletonMap(UNKNOWN_ERROR, e.getMessage()));
     }
 
     public boolean hasSuccess(Map<String, Object> res) {

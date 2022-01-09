@@ -16,4 +16,6 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlot, Integer> {
 
     List<TimeSlot> findByAppointmentOrderByBeginAsc(Appointment appointment);
 
+    List<TimeSlot> findByAppointment(Appointment appointment);
+
 }

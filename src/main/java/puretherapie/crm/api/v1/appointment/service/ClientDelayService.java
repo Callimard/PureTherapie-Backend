@@ -118,6 +118,8 @@ public class ClientDelayService extends SimpleService {
             return 0;
     }
 
+    // Service methods.
+
     public Map<String, Object> createClientDelay(Client client, Appointment appointment, int delay) {
         return createClientDelay(client.getIdPerson(), appointment.getIdAppointment(), delay);
     }
@@ -179,10 +181,6 @@ public class ClientDelayService extends SimpleService {
                 .appointment(appointment)
                 .delayTime(delay)
                 .build();
-    }
-
-    public static boolean clientDelayCreationHasSuccess(Map<String, Object> res) {
-        return res.containsKey(CLIENT_DELAY_CREATION_SUCCESS);
     }
 
     // SimpleService methods.

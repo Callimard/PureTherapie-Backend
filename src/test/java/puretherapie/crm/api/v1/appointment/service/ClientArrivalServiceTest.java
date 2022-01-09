@@ -16,16 +16,13 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static puretherapie.crm.api.v1.appointment.service.ClientArrivalService.*;
-import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.CLIENT_DELAY_CREATION_SUCCESS;
-import static puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService.CLIENT_PLACE_IN_WAITING_ROOM_FAIL;
-import static puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService.CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS;
 
 @SpringBootTest
 @DisplayName("ClientArrivalService tests")
@@ -165,17 +162,15 @@ public class ClientArrivalServiceTest {
     }
 
     private void prepareSuccessCreateClientDelay() {
-        given(mockCDService.createClientDelay(any(), any(), anyInt())).willReturn(Collections.singletonMap(CLIENT_DELAY_CREATION_SUCCESS, null));
+        given(mockCDService.hasSuccess(any())).willReturn(true);
     }
 
     private void prepareSuccessPlaceInWaitingRoom() {
-        given(mockPCWRService.placeInWaitingRoom(eq(mockClient), any())).willReturn(
-                Collections.singletonMap(CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS, null));
+        given(mockPCWRService.hasSuccess(any())).willReturn(true);
     }
 
     private void prepareFailPlaceInWaitingRoom() {
-        given(mockPCWRService.placeInWaitingRoom(eq(mockClient), any())).willReturn(
-                Collections.singletonMap(CLIENT_PLACE_IN_WAITING_ROOM_FAIL, null));
+        given(mockPCWRService.hasSuccess(any())).willReturn(false);
     }
 
 }

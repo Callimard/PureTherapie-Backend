@@ -20,7 +20,6 @@ import java.time.OffsetDateTime;
 import java.util.Map;
 
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.*;
-import static puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService.placeClientInWaitingRoomHasSuccess;
 import static puretherapie.crm.tool.TimeTool.today;
 
 @Slf4j
@@ -33,7 +32,6 @@ public class ClientArrivalService extends SimpleService {
     public static final String CLIENT_ARRIVAL_SUCCESS = "client_arrival_success";
     public static final String CLIENT_ARRIVAL_FAIL = "client_arrival_fail";
 
-    public static final String UNKNOWN_ERROR = "unknown_error";
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found_error";
     public static final String CLIENT_TOO_MUCH_LATE_ERROR = "client_too_much_late_error";
     public static final String WAITING_ROOM_ERROR = "waiting_room_error";
@@ -104,7 +102,7 @@ public class ClientArrivalService extends SimpleService {
                 log.debug("Save client delay ({} minutes)", delayFromNow(appointment.getTime()));
                 Map<String, Object> res = clientDelayService.createClientDelay(appointment.getClient(), appointment,
                                                                                (int) delayFromNow(appointment.getTime()));
-                if (!clientDelayCreationHasSuccess(res))
+                if (!clientDelayService.hasSuccess(res))
                     log.debug("Fail to create client delay");
             }
         }
@@ -118,8 +116,8 @@ public class ClientArrivalService extends SimpleService {
     }
 
     private void placeClientInWaitingRoom(Client client, Appointment appointment) {
-        Map<String, Object> res = placeInWaitingRoomService.placeInWaitingRoom(client, appointment);
-        if (!placeClientInWaitingRoomHasSuccess(res)) {
+        Map<String, Object> res = placeInWaitingRoomService.placeClient(client, appointment);
+        if (!placeInWaitingRoomService.hasSuccess(res)) {
             log.debug("Fail to place client in waiting room");
             throw new ClientArrivalException("Fail to place the client in waiting room", generateError(WAITING_ROOM_ERROR, "Fail to place client in" +
                     " waiting room"));
@@ -130,12 +128,12 @@ public class ClientArrivalService extends SimpleService {
 
     @Override
     public String getSuccessTag() {
-        return CLIENT_DELAY_CREATION_SUCCESS;
+        return CLIENT_ARRIVAL_SUCCESS;
     }
 
     @Override
     public String getFailTag() {
-        return CLIENT_DELAY_CREATION_FAIL;
+        return CLIENT_ARRIVAL_FAIL;
     }
 
     // Exception.

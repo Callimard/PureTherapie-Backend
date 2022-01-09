@@ -29,8 +29,8 @@ public class PlaceInWaitingRoomService extends SimpleService {
 
     // Constants.
 
-    public static final String CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS = "client_place_in_waiting_room_success";
-    public static final String CLIENT_PLACE_IN_WAITING_ROOM_FAIL = "client_place_in_waiting_room_fail";
+    public static final String CLIENT_PLACE_IN_WR_SUCCESS = "client_place_in_waiting_room_success";
+    public static final String CLIENT_PLACE_IN_WR_FAIL = "client_place_in_waiting_room_fail";
 
     // ERRORS.
 
@@ -50,8 +50,8 @@ public class PlaceInWaitingRoomService extends SimpleService {
     // Methods.
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> placeInWaitingRoom(Client client, Appointment appointment) {
-        return placeInWaitingRoom(client.getIdPerson(), appointment != null ? appointment.getIdAppointment() : -1);
+    public Map<String, Object> placeClient(Client client, Appointment appointment) {
+        return placeClient(client.getIdPerson(), appointment != null ? appointment.getIdAppointment() : -1);
     }
 
     /**
@@ -62,18 +62,20 @@ public class PlaceInWaitingRoomService extends SimpleService {
      * @return the result of the try to place client in waiting room
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> placeInWaitingRoom(int idClient) {
-        return placeInWaitingRoom(idClient, -1);
+    public Map<String, Object> placeClient(int idClient) {
+        return placeClient(idClient, -1);
     }
 
     /**
+     * Try to add client in the waiting room. If the id appointment exists, the appointment must be for today and must be not canceled.
+     *
      * @param idClient      id client
      * @param idAppointment id appointment (can be a not found appointment)
      *
      * @return the result of the try to place client in waiting room
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> placeInWaitingRoom(int idClient, int idAppointment) {
+    public Map<String, Object> placeClient(int idClient, int idAppointment) {
         try {
             Client client = verifyClient(idClient);
             Appointment appointment = getAppointment(idAppointment);
@@ -161,20 +163,16 @@ public class PlaceInWaitingRoomService extends SimpleService {
             return null;
     }
 
-    public static boolean placeClientInWaitingRoomHasSuccess(Map<String, Object> res) {
-        return res.containsKey(CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS);
-    }
-
     // SimpleService methods.
 
     @Override
     public String getSuccessTag() {
-        return CLIENT_PLACE_IN_WAITING_ROOM_SUCCESS;
+        return CLIENT_PLACE_IN_WR_SUCCESS;
     }
 
     @Override
     public String getFailTag() {
-        return CLIENT_PLACE_IN_WAITING_ROOM_FAIL;
+        return CLIENT_PLACE_IN_WR_FAIL;
     }
 
     // Exceptions.

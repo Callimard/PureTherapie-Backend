@@ -43,7 +43,7 @@ public class PlaceInWaitingRoomServiceTest {
         @DisplayName("Test with client not found fail")
         void testWithNotFoundClient() {
             prepareClientRepository();
-            Map<String, Object> res = pcs.placeInWaitingRoom(-1, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(-1, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
         }
@@ -56,7 +56,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareAppointmentRepository();
             prepareNotAssociatedAppointment();
 
-            Map<String, Object> res = pcs.placeInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT_ERROR);
         }
@@ -70,7 +70,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareCoherentAppointment();
             prepareCanceledAppointment();
 
-            Map<String, Object> res = pcs.placeInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, APPOINTMENT_CANCELED_ERROR);
         }
@@ -85,7 +85,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareTimeSlotRepository();
             prepareFreeTimeSlot();
 
-            Map<String, Object> res = pcs.placeInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, TIME_SLOT_INCOHERENCE_ERROR);
         }
@@ -99,7 +99,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareCoherentAppointment();
             prepareNotForTodayAppointment();
 
-            Map<String, Object> res = pcs.placeInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, APPOINTMENT_NOT_FOR_TODAY_ERROR);
         }
@@ -114,7 +114,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareTodayAppointment();
             prepareWRRepository();
 
-            Map<String, Object> res = pcs.placeInWaitingRoom(CLIENT_ID, APPOINTMENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifySuccess(res);
         }
 
@@ -124,7 +124,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareClientRepository();
             prepareClient();
 
-            Map<String, Object> res = pcs.placeInWaitingRoom(CLIENT_ID);
+            Map<String, Object> res = pcs.placeClient(CLIENT_ID);
             verifySuccess(res);
         }
     }

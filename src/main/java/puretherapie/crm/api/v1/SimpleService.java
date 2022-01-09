@@ -20,7 +20,7 @@ public abstract class SimpleService {
     public abstract String getFailTag();
 
     protected Map<String, Object> generateSuccessRes() {
-        return Collections.singletonMap(getSuccessTag(), "client place in waiting room success");
+        return Collections.singletonMap(getSuccessTag(), "Service success");
     }
 
     protected Map<String, Object> generateErrorRes(Exception e) {
@@ -28,6 +28,10 @@ public abstract class SimpleService {
             return Collections.singletonMap(getFailTag(), serviceException.getErrors());
         else
             return Collections.singletonMap(getFailTag(), e.getMessage());
+    }
+
+    public boolean hasSuccess(Map<String, Object> res) {
+        return res.containsKey(getSuccessTag());
     }
 
     // Tool methods.

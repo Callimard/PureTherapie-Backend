@@ -19,7 +19,7 @@ public class AestheticCarePackage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idAestheticCarePackage", nullable = false)
-    private Integer id;
+    private Integer idAestheticCarePackage;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idAestheticCare", nullable = false)
@@ -35,5 +35,5 @@ public class AestheticCarePackage {
     @JoinTable(name = "AssociationBundleAestheticCarePackage", joinColumns = @JoinColumn(name = "idAestheticCarePackage"), inverseJoinColumns = @JoinColumn(name
             = "idBundle"))
     @ToString.Exclude
-    private List<Bundle> bundleList;
+    private List<Bundle> bundles;
 }

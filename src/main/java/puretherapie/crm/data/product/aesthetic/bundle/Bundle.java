@@ -31,5 +31,5 @@ public class Bundle {
     @JoinTable(name = "AssociationBundleAestheticCarePackage", joinColumns = @JoinColumn(name = "idBundle"), inverseJoinColumns = @JoinColumn(name
             = "idAestheticCarePackage"))
     @ToString.Exclude
-    private List<AestheticCarePackage> aestheticCarePackageList;
+    private List<AestheticCarePackage> aestheticCarePackages;
 }

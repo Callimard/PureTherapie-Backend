@@ -6,4 +6,7 @@ import puretherapie.crm.data.product.aesthetic.bundle.Stock;
 
 @Repository
 public interface StockRepository extends JpaRepository<Stock, Integer> {
+
+    Stock findByIdStock(int idStock);
+
 }

@@ -19,7 +19,7 @@ public class BundlePurchase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idBundlePurchase", nullable = false)
-    private Integer id;
+    private Integer idBundlePurchase;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idClient", nullable = false)

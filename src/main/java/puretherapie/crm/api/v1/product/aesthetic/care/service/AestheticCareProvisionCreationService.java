@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import puretherapie.crm.api.v1.SimpleService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
@@ -70,6 +71,7 @@ public class AestheticCareProvisionCreationService extends SimpleService {
             return generateSuccessRes();
         } catch (Exception e) {
             log.debug("Fail to create aesthetic care provision", e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return generateErrorRes(e);
         }
     }

@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.product.aeshtetic.bundle.service;
+package puretherapie.crm.api.v1.product.aesthetic.bundle.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

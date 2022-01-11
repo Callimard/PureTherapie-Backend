@@ -30,4 +30,20 @@ public class Stock {
     @ManyToOne(optional = false)
     @JoinColumn(name = "idBundlePurchase", nullable = false)
     private BundlePurchase bundlePurchase;
+
+    /**
+     * Reduce the quantity of remaining quantity
+     *
+     * @param reduceQuantity the quantity to reduce
+     *
+     * @throws IllegalArgumentException if reduce quantity is negative, if stock is already 0 or if the reduction make a negative stock
+     */
+    public void reduce(int reduceQuantity) {
+        if (reduceQuantity <= 0 || getRemainingQuantity() == 0 || (getRemainingQuantity() - reduceQuantity) < 0)
+            throw new IllegalArgumentException(
+                    "Wrong reduce quantity -> rq = %s, stock = %s, stock - rq = %s".formatted(reduceQuantity, getRemainingQuantity(),
+                                                                                              getRemainingQuantity() - reduceQuantity));
+        else
+            setRemainingQuantity(getRemainingQuantity() - reduceQuantity);
+    }
 }

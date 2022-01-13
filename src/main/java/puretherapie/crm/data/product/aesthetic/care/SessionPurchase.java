@@ -18,10 +18,10 @@ public class SessionPurchase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idSessionPurchase", nullable = false)
-    private Integer id;
+    private Integer idSessionPurchase;
 
     @Column(name = "used", nullable = false)
-    private Integer used;
+    private boolean used;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idAestheticCare", nullable = false)

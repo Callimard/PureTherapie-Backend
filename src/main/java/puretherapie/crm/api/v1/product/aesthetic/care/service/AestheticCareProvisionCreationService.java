@@ -70,7 +70,7 @@ public class AestheticCareProvisionCreationService extends SimpleService {
             saveACProvision(client, technician, aestheticCare, appointment, dateTime);
             return generateSuccessRes();
         } catch (Exception e) {
-            log.debug("Fail to create aesthetic care provision", e);
+            log.debug("Fail to create aesthetic care provision, error message {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return generateErrorRes(e);
         }

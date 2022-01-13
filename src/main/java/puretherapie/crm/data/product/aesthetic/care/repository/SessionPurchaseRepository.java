@@ -6,4 +6,7 @@ import puretherapie.crm.data.product.aesthetic.care.SessionPurchase;
 
 @Repository
 public interface SessionPurchaseRepository extends JpaRepository<SessionPurchase, Integer> {
+
+    SessionPurchase findByIdSessionPurchase(int idSessionPurchase);
+
 }

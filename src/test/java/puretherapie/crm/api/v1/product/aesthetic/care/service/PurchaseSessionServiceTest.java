@@ -22,13 +22,13 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static puretherapie.crm.api.v1.product.aesthetic.care.service.SessionPurchaseService.*;
+import static puretherapie.crm.api.v1.product.aesthetic.care.service.PurchaseSessionService.*;
 
 @SpringBootTest
-public class SessionPurchaseServiceTest {
+public class PurchaseSessionServiceTest {
 
     @Autowired
-    private SessionPurchaseService sps;
+    private PurchaseSessionService pss;
 
     @BeforeEach
     void setUp() {
@@ -37,12 +37,12 @@ public class SessionPurchaseServiceTest {
 
     @Nested
     @DisplayName("Session purchase tests")
-    class SessionPurchase {
+    class PurchaseSession {
 
         @Test
         @DisplayName("Test with not found client fail")
         void testWithNotFoundClient() {
-            Map<String, Object> res = sps.purchaseSession(-1, AC_ID, -1, PAYMENT_TYPE_ID);
+            Map<String, Object> res = pss.purchaseSession(-1, AC_ID, -1, PAYMENT_TYPE_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
         }
@@ -50,7 +50,7 @@ public class SessionPurchaseServiceTest {
         @Test
         @DisplayName("Test with not found AC fail")
         void testWithNotFoundAC() {
-            Map<String, Object> res = sps.purchaseSession(CLIENT_ID, -1, -1, PAYMENT_TYPE_ID);
+            Map<String, Object> res = pss.purchaseSession(CLIENT_ID, -1, -1, PAYMENT_TYPE_ID);
             verifyFail(res);
             verifyFailType(res, AESTHETIC_CARE_NOT_FOUND_ERROR);
         }
@@ -58,7 +58,7 @@ public class SessionPurchaseServiceTest {
         @Test
         @DisplayName("Test with not found payment type fail")
         void testWithNotFoundPaymentType() {
-            Map<String, Object> res = sps.purchaseSession(CLIENT_ID, AC_ID, -1, -1);
+            Map<String, Object> res = pss.purchaseSession(CLIENT_ID, AC_ID, -1, -1);
             verifyFail(res);
             verifyFailType(res, PAYMENT_TYPE_NOT_FOUND);
         }
@@ -66,29 +66,29 @@ public class SessionPurchaseServiceTest {
         @Test
         @DisplayName("Test with all correct success")
         void testWithAllCorrect() {
-            Map<String, Object> res = sps.purchaseSession(CLIENT_ID, AC_ID, 2.0, PAYMENT_TYPE_ID);
+            Map<String, Object> res = pss.purchaseSession(CLIENT_ID, AC_ID, 2.0, PAYMENT_TYPE_ID);
             verifySuccess(res);
         }
 
         @Test
         @DisplayName("Test with negative custom price success")
         void testWithNegativeCustomPriceSuccess() {
-            Map<String, Object> res = sps.purchaseSession(CLIENT_ID, AC_ID, -1, PAYMENT_TYPE_ID);
+            Map<String, Object> res = pss.purchaseSession(CLIENT_ID, AC_ID, -1, PAYMENT_TYPE_ID);
             verifySuccess(res);
         }
 
     }
 
     private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(sps.getSuccessTag());
+        assertThat(res).isNotNull().containsKey(pss.getSuccessTag());
     }
 
     private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(sps.getFailTag());
+        assertThat(res).isNotNull().containsKey(pss.getFailTag());
     }
 
     void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(sps.getFailTag());
+        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(pss.getFailTag());
         assertThat(errors).isNotNull().containsKey(expectedKey);
     }
 

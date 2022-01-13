@@ -24,7 +24,7 @@ import java.util.Map;
 @Slf4j
 @AllArgsConstructor
 @Service
-public class SessionPurchaseService extends SimpleService {
+public class PurchaseSessionService extends SimpleService {
 
     // Constants.
 
@@ -64,21 +64,21 @@ public class SessionPurchaseService extends SimpleService {
     private Client verifyClient(int idClient) {
         Client client = clientRepository.findByIdPerson(idClient);
         if (client == null)
-            throw new SessionPurchaseException("Client not found", generateError(CLIENT_NOT_FOUND_ERROR, "Client id not found"));
+            throw new PurchaseSessionException("Client not found", generateError(CLIENT_NOT_FOUND_ERROR, "Client id not found"));
         return client;
     }
 
     private AestheticCare verifyAestheticCare(int idAestheticCare) {
         AestheticCare ac = aestheticCareRepository.findByIdAestheticCare(idAestheticCare);
         if (ac == null)
-            throw new SessionPurchaseException("Aesthetic care not found", generateError(AESTHETIC_CARE_NOT_FOUND_ERROR, "AC not found"));
+            throw new PurchaseSessionException("Aesthetic care not found", generateError(AESTHETIC_CARE_NOT_FOUND_ERROR, "AC not found"));
         return ac;
     }
 
     private PaymentType verifyPaymentType(int idPaymentType) {
         PaymentType paymentType = paymentTypeRepository.findByIdPaymentType(idPaymentType);
         if (paymentType == null)
-            throw new SessionPurchaseException("PaymentType not found", generateError(PAYMENT_TYPE_NOT_FOUND, "PaymentType not found"));
+            throw new PurchaseSessionException("PaymentType not found", generateError(PAYMENT_TYPE_NOT_FOUND, "PaymentType not found"));
         return paymentType;
     }
 
@@ -128,8 +128,8 @@ public class SessionPurchaseService extends SimpleService {
 
     // Exceptions.
 
-    private static class SessionPurchaseException extends SimpleService.ServiceException {
-        public SessionPurchaseException(String message, Map<String, String> errors) {
+    private static class PurchaseSessionException extends SimpleService.ServiceException {
+        public PurchaseSessionException(String message, Map<String, String> errors) {
             super(message, errors);
         }
     }

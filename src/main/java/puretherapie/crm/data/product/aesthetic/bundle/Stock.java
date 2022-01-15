@@ -32,6 +32,13 @@ public class Stock {
     private BundlePurchase bundlePurchase;
 
     /**
+     * @return true if remaining quantity >= 1.
+     */
+    public boolean hasRemainingQuantity() {
+        return remainingQuantity >= 1;
+    }
+
+    /**
      * Reduce the quantity of remaining quantity
      *
      * @param reduceQuantity the quantity to reduce

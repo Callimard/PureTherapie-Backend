@@ -1,5 +1,6 @@
 package puretherapie.crm.api.v1.appointment.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -7,18 +8,28 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import puretherapie.crm.api.v1.product.aesthetic.bundle.service.ReduceStockService;
+import puretherapie.crm.api.v1.product.aesthetic.care.service.UseSessionService;
 import puretherapie.crm.api.v1.waitingroom.service.RemoveFromWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.technician.Technician;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
+import puretherapie.crm.data.product.aesthetic.bundle.BundlePurchase;
+import puretherapie.crm.data.product.aesthetic.bundle.Stock;
+import puretherapie.crm.data.product.aesthetic.bundle.repository.BundlePurchaseRepository;
+import puretherapie.crm.data.product.aesthetic.bundle.repository.StockRepository;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
+import puretherapie.crm.data.product.aesthetic.care.SessionPurchase;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareProvisionRepository;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
+import puretherapie.crm.data.product.aesthetic.care.repository.SessionPurchaseRepository;
 import puretherapie.crm.data.waitingroom.WaitingRoom;
 import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +40,17 @@ import static puretherapie.crm.api.v1.appointment.service.TerminateClientService
 @SpringBootTest
 @DisplayName("TerminateClientService tests")
 public class TerminateClientServiceTest {
+
+    @BeforeEach
+    void setUp() {
+        prepareSPRepository();
+        prepareBPRepository();
+        prepareStockRepository();
+        prepareUseSessionService();
+        prepareReduceStockServiceSuccess();
+        prepareAppointmentAC();
+        prepareStock();
+    }
 
     @Autowired
     private TerminateClientService tcs;
@@ -245,6 +267,27 @@ public class TerminateClientServiceTest {
     @MockBean
     private AestheticCareProvisionRepository mockACPRepository;
 
+    @MockBean
+    private SessionPurchaseRepository mockSPRepository;
+    @Mock
+    private SessionPurchase mockSP;
+
+    @MockBean
+    private UseSessionService mockUSService;
+
+    @MockBean
+    private BundlePurchaseRepository mockBPRepository;
+    @Mock
+    private BundlePurchase mockBP;
+
+    @MockBean
+    private StockRepository mockStockRepository;
+    @Mock
+    private Stock mockStock;
+
+    @MockBean
+    private ReduceStockService mockReduceStockService;
+
     private void prepareClientRepository() {
         given(mockClientRepository.findByIdPerson(CLIENT_ID)).willReturn(mockClient);
     }
@@ -292,6 +335,38 @@ public class TerminateClientServiceTest {
 
     private void prepareFailRemoveWR() {
         given(mockRWRService.hasSuccess(any())).willReturn(false);
+    }
+
+    private void prepareAppointmentAC() {
+        given(mockAppointment.getAestheticCare()).willReturn(mockAC);
+    }
+
+    private void prepareSPRepository() {
+        List<SessionPurchase> list = new ArrayList<>();
+        list.add(mockSP);
+        given(mockSPRepository.findByClientAndAestheticCare(mockClient, mockAC)).willReturn(list);
+    }
+
+    private void prepareBPRepository() {
+        List<BundlePurchase> list = new ArrayList<>();
+        list.add(mockBP);
+        given(mockBPRepository.findByClient(mockClient)).willReturn(list);
+    }
+
+    private void prepareStockRepository() {
+        given(mockStockRepository.findByBundlePurchaseAndAestheticCare(mockBP, mockAC)).willReturn(mockStock);
+    }
+
+    private void prepareStock() {
+        given(mockStock.hasRemainingQuantity()).willReturn(true);
+    }
+
+    private void prepareUseSessionService() {
+        given(mockUSService.hasSuccess(any())).willReturn(true);
+    }
+
+    private void prepareReduceStockServiceSuccess() {
+        given(mockReduceStockService.hasSuccess(any())).willReturn(true);
     }
 
 }

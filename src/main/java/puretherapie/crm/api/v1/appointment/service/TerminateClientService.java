@@ -7,20 +7,29 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.product.aesthetic.bundle.service.ReduceStockService;
+import puretherapie.crm.api.v1.product.aesthetic.care.service.UseSessionService;
 import puretherapie.crm.api.v1.waitingroom.service.RemoveFromWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.technician.Technician;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
+import puretherapie.crm.data.product.aesthetic.bundle.BundlePurchase;
+import puretherapie.crm.data.product.aesthetic.bundle.Stock;
+import puretherapie.crm.data.product.aesthetic.bundle.repository.BundlePurchaseRepository;
+import puretherapie.crm.data.product.aesthetic.bundle.repository.StockRepository;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCareProvision;
+import puretherapie.crm.data.product.aesthetic.care.SessionPurchase;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareProvisionRepository;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
+import puretherapie.crm.data.product.aesthetic.care.repository.SessionPurchaseRepository;
 import puretherapie.crm.data.waitingroom.WaitingRoom;
 import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -40,6 +49,7 @@ public class TerminateClientService extends SimpleService {
     public static final String CLIENT_WITHOUT_APPOINTMENT_ERROR = "client_without_appointment_error";
     public static final String CLIENT_APPOINTMENT_CANCELED_ERROR = "client_appointment_canceled_error";
     public static final String FAIL_TO_REMOVE_CLIENT_WR_ERROR = "fail_remove_client_from_wr_error";
+    public static final String NOT_STOCK_ERROR = "no_stock_error";
 
     // Variables.
 
@@ -49,6 +59,11 @@ public class TerminateClientService extends SimpleService {
     private final WaitingRoomRepository waitingRoomRepository;
     private final RemoveFromWaitingRoomService removeFromWaitingRoomService;
     private final AestheticCareProvisionRepository aestheticCareProvisionRepository;
+    private final SessionPurchaseRepository sessionPurchaseRepository;
+    private final UseSessionService useSessionService;
+    private final BundlePurchaseRepository bundlePurchaseRepository;
+    private final StockRepository stockRepository;
+    private final ReduceStockService reduceStockService;
 
     // Methods.
 
@@ -59,7 +74,7 @@ public class TerminateClientService extends SimpleService {
      *
      * @return the res of the try of terminate the client
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRED)
     public Map<String, Object> terminateWithAppointment(int idClient) {
         try {
             Client client = verifyClient(idClient);
@@ -68,6 +83,7 @@ public class TerminateClientService extends SimpleService {
             verifyAppointment(appointment);
             removeFromWaitingRoom(waitingRoom);
             saveAestheticCareProvision(client, appointment, appointment.getTechnician(), appointment.getAestheticCare());
+            updateClientACStock(client, appointment.getAestheticCare());
             return generateSuccessRes();
         } catch (Exception e) {
             log.debug("Fail to terminate the client with appointment, error message: {}", e.getMessage());
@@ -76,7 +92,7 @@ public class TerminateClientService extends SimpleService {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRED)
     public Map<String, Object> terminateWithoutAppointment(int idClient, int idTechnician, int idAestheticCare) {
         try {
             Client client = verifyClient(idClient);
@@ -85,6 +101,7 @@ public class TerminateClientService extends SimpleService {
             WaitingRoom waitingRoom = verifyIsInWaitingRoom(client);
             removeFromWaitingRoom(waitingRoom);
             saveAestheticCareProvision(client, null, technician, aestheticCare);
+            updateClientACStock(client, aestheticCare);
             return generateSuccessRes();
         } catch (Exception e) {
             log.debug("Fail to terminate the client without appointment, error message: {}", e.getMessage());
@@ -155,6 +172,59 @@ public class TerminateClientService extends SimpleService {
                 .appointment(appointment)
                 .date(OffsetDateTime.now())
                 .build();
+    }
+
+    private void updateClientACStock(Client client, AestheticCare aestheticCare) {
+        if (!tryToUseSessionPurchase(client, aestheticCare) && !tryToReduceBundlePurchaseStock(client, aestheticCare))
+            throw new TerminateClientException("Client have not stock for the aesthetic care", generateError(NOT_STOCK_ERROR, "Client has not " +
+                    "stock"));
+    }
+
+    private boolean tryToUseSessionPurchase(Client client, AestheticCare aestheticCare) {
+        List<SessionPurchase> clientSessionPurchases = sessionPurchaseRepository.findByClientAndAestheticCare(client, aestheticCare);
+
+        if (clientSessionPurchases != null && !clientSessionPurchases.isEmpty())
+            for (SessionPurchase sessionPurchase : clientSessionPurchases) {
+                if (!sessionPurchase.isUsed()) {
+                    log.info("Found session purchase not used for the client {} and the aesthetic care {}", client.simplyIdentifier(), aestheticCare);
+                    Map<String, Object> reduceRes = useSessionService.useSession(sessionPurchase.getIdSessionPurchase());
+                    if (!useSessionService.hasSuccess(reduceRes)) {
+                        log.error("Fail to reduce stock of session purchase {}", sessionPurchase);
+                        continue;
+                    }
+
+                    return true;
+                }
+            }
+        else
+            log.info("Not found session purchase for the client {} and the aesthetic care {}", client.simplyIdentifier(), aestheticCare);
+
+        return false;
+    }
+
+    private boolean tryToReduceBundlePurchaseStock(Client client, AestheticCare aestheticCare) {
+        List<BundlePurchase> clientBundlePurchases = bundlePurchaseRepository.findByClient(client);
+
+        if (clientBundlePurchases != null && !clientBundlePurchases.isEmpty()) {
+            for (BundlePurchase bundlePurchase : clientBundlePurchases) {
+                Stock stock = stockRepository.findByBundlePurchaseAndAestheticCare(bundlePurchase, aestheticCare);
+                if (stock != null && stock.hasRemainingQuantity()) {
+                    log.info("Found bundle purchase with remaining stock for the client {} and the aesthetic care {}", client.simplyIdentifier(),
+                             aestheticCare);
+                    Map<String, Object> reduceStock = reduceStockService.reduceStock(stock.getIdStock(), 1);
+                    if (!reduceStockService.hasSuccess(reduceStock)) {
+                        log.error("Fail to reduce stock of bundle purchase {}", bundlePurchase);
+                        continue;
+                    }
+
+                    return true;
+                }
+            }
+            log.info("Not found bundle with stock for the client {} and the aesthetic care {}", client.simplyIdentifier(), aestheticCare);
+        } else
+            log.info("Not found bundle purchase for the client {}", client);
+
+        return false;
     }
 
     // SimpleService methods.

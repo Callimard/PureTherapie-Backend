@@ -6,11 +6,37 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("Stock tests")
 public class StockTest {
+
+    @Nested
+    @DisplayName("Has Remaining Quantity tests")
+    class HasRemainingQuantity {
+
+        @Test
+        @DisplayName("Test with 0 remaining stock returns false")
+        void testWithZeroRemainingStock() {
+            Stock s = buildStock(0);
+
+            boolean hasRemainingQuantity = s.hasRemainingQuantity();
+            assertThat(hasRemainingQuantity).isFalse();
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {1, 2, 3, 456, 9871, 67432, 564, 6454, 654, 6})
+        @DisplayName("Test with remaining stock >= 1 returns true")
+        void testWithGreaterOrEqualToOneRemainingStock(int remainingStock) {
+            Stock s = buildStock(remainingStock);
+
+            boolean hasRemainingQuantity = s.hasRemainingQuantity();
+            assertThat(hasRemainingQuantity).isTrue();
+        }
+
+    }
 
     @Nested
     @DisplayName("Reduce tests")
@@ -65,8 +91,8 @@ public class StockTest {
         }
     }
 
-    private Stock buildStock(int i) {
-        return Stock.builder().remainingQuantity(i).build();
+    private Stock buildStock(int remainingQuantity) {
+        return Stock.builder().remainingQuantity(remainingQuantity).build();
     }
 
 }

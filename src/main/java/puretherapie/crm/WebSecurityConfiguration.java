@@ -27,7 +27,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         configureSession(http);
         configureHttpBasic(http);
         configureLoginLogout(http);
-        configureExceptionHandling(http);
     }
 
     private void configureCsrf(HttpSecurity http) throws Exception {
@@ -39,7 +38,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     private void configureHttpBasic(HttpSecurity http) throws Exception {
-        http.httpBasic();
+        http.httpBasic().authenticationEntryPoint(new CustomAuthenticationEntryPoint());
     }
 
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
@@ -56,10 +55,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private void configureLoginLogout(HttpSecurity http) throws Exception {
         http.formLogin().disable()
                 .logout().disable();
-    }
-
-    private void configureExceptionHandling(HttpSecurity http) throws Exception {
-        http.exceptionHandling().authenticationEntryPoint(new CustomAuthenticationEntryPoint());
     }
 
     @Bean

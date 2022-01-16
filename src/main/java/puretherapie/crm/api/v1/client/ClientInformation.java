@@ -21,6 +21,7 @@ import static puretherapie.crm.tool.PhoneTool.formatPhone;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 @AllArgsConstructor
 public class ClientInformation {
 

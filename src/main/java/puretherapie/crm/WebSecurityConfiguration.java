@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 
+import static puretherapie.crm.WebConfiguration.IMAGES_URL;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.API_V1_APPOINTMENT_URL;
 import static puretherapie.crm.api.v1.client.controller.ClientController.API_V1_CLIENT_URL;
 import static puretherapie.crm.api.v1.user.controller.UserController.*;
@@ -21,17 +22,11 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        configureCors(http);
         configureCsrf(http);
         configureAuthorizeRequests(http);
         configureSession(http);
         configureHttpBasic(http);
         configureLoginLogout(http);
-        configureExceptionHandling(http);
-    }
-
-    private void configureCors(HttpSecurity http) throws Exception {
-        http.cors().disable();
     }
 
     private void configureCsrf(HttpSecurity http) throws Exception {
@@ -43,7 +38,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     private void configureHttpBasic(HttpSecurity http) throws Exception {
-        http.httpBasic();
+        http.httpBasic().authenticationEntryPoint(new CustomAuthenticationEntryPoint());
     }
 
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
@@ -53,16 +48,13 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGIN).authenticated()
                 .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGOUT).authenticated()
                 .antMatchers(HttpMethod.POST, API_V1_APPOINTMENT_URL).permitAll()
+                .antMatchers(HttpMethod.GET, IMAGES_URL).permitAll()
                 .anyRequest().authenticated();
     }
 
     private void configureLoginLogout(HttpSecurity http) throws Exception {
         http.formLogin().disable()
                 .logout().disable();
-    }
-
-    private void configureExceptionHandling(HttpSecurity http) throws Exception {
-        http.exceptionHandling().authenticationEntryPoint(new CustomAuthenticationEntryPoint());
     }
 
     @Bean

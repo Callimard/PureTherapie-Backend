@@ -22,7 +22,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        /*configureCors(http);*/
         configureCsrf(http);
         configureAuthorizeRequests(http);
         configureSession(http);
@@ -30,10 +29,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         configureLoginLogout(http);
         configureExceptionHandling(http);
     }
-
-    /*private void configureCors(HttpSecurity http) throws Exception {
-        http.cors().configurationSource(request -> corsConfiguration());
-    }*/
 
     private void configureCsrf(HttpSecurity http) throws Exception {
         http.csrf().disable();
@@ -71,39 +66,5 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    /*@Bean
-    public CorsConfiguration corsConfiguration() {
-        CorsConfiguration c = new CorsConfiguration();
-        c.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
-        c.setAllowCredentials(true);
-        c.setExposedHeaders(Collections.singletonList("*"));
-
-        c.addAllowedMethod(HttpMethod.GET);
-        c.addAllowedMethod(HttpMethod.POST);
-        c.addAllowedMethod(HttpMethod.PUT);
-        c.addAllowedMethod(HttpMethod.HEAD);
-        c.addAllowedMethod(HttpMethod.DELETE);
-        c.addAllowedMethod(HttpMethod.OPTIONS);
-        c.addAllowedMethod(HttpMethod.PATCH);
-        c.addAllowedMethod(HttpMethod.TRACE);
-        c.setMaxAge(3600L);
-
-        return c;
-    }*/
-
-    /*@Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:4200")
-                        .allowCredentials(true)
-                        .allowedHeaders("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH", "TRACE");
-            }
-        };
-    }*/
 
 }

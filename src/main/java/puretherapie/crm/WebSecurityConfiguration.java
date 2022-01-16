@@ -9,7 +9,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 
 import static puretherapie.crm.WebConfiguration.IMAGES_URL;
@@ -23,7 +24,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        configureCors(http);
+        /*configureCors(http);*/
         configureCsrf(http);
         configureAuthorizeRequests(http);
         configureSession(http);
@@ -32,9 +33,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         configureExceptionHandling(http);
     }
 
-    private void configureCors(HttpSecurity http) throws Exception {
-        http.cors().configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues());
-    }
+    /*private void configureCors(HttpSecurity http) throws Exception {
+        http.cors().configurationSource(request -> corsConfiguration());
+    }*/
 
     private void configureCsrf(HttpSecurity http) throws Exception {
         http.csrf().disable();
@@ -52,6 +53,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST, API_V1_CLIENT_URL).permitAll()
+                .antMatchers(HttpMethod.OPTIONS, API_V1_USER_URL + USER_LOGIN).permitAll()
+                .antMatchers(HttpMethod.OPTIONS, API_V1_USER_URL + USER_LOGOUT).permitAll()
                 .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGIN).authenticated()
                 .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGOUT).authenticated()
                 .antMatchers(HttpMethod.POST, API_V1_APPOINTMENT_URL).permitAll()
@@ -71,6 +74,40 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /*@Bean
+    public CorsConfiguration corsConfiguration() {
+        CorsConfiguration c = new CorsConfiguration();
+        c.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+        c.setAllowCredentials(true);
+        c.setExposedHeaders(Collections.singletonList("*"));
+
+        c.addAllowedMethod(HttpMethod.GET);
+        c.addAllowedMethod(HttpMethod.POST);
+        c.addAllowedMethod(HttpMethod.PUT);
+        c.addAllowedMethod(HttpMethod.HEAD);
+        c.addAllowedMethod(HttpMethod.DELETE);
+        c.addAllowedMethod(HttpMethod.OPTIONS);
+        c.addAllowedMethod(HttpMethod.PATCH);
+        c.addAllowedMethod(HttpMethod.TRACE);
+        c.setMaxAge(3600L);
+
+        return c;
+    }*/
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:4200")
+                        .allowCredentials(true)
+                        .allowedHeaders("*")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH", "TRACE");
+            }
+        };
     }
 
 }

@@ -4,9 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.user.service.UserLoginService;
 
 import javax.servlet.http.HttpSession;
@@ -15,6 +13,8 @@ import static puretherapie.crm.api.v1.user.controller.UserController.API_V1_USER
 
 @Slf4j
 @AllArgsConstructor
+@CrossOrigin(allowCredentials = "true", allowedHeaders = "*", origins = "http://localhost:4200", methods = {RequestMethod.GET, RequestMethod.POST,
+                                                                                                            RequestMethod.OPTIONS})
 @RestController
 @RequestMapping(API_V1_USER_URL)
 public class UserController {

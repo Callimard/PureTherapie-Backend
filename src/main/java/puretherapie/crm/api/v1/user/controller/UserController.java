@@ -13,8 +13,7 @@ import static puretherapie.crm.api.v1.user.controller.UserController.API_V1_USER
 
 @Slf4j
 @AllArgsConstructor
-@CrossOrigin(allowCredentials = "true", allowedHeaders = "*", origins = "http://localhost:4200", methods = {RequestMethod.GET, RequestMethod.POST,
-                                                                                                            RequestMethod.OPTIONS})
+@CrossOrigin(allowCredentials = "true", allowedHeaders = "*", origins = "http://localhost:4200", methods = {RequestMethod.POST})
 @RestController
 @RequestMapping(API_V1_USER_URL)
 public class UserController {

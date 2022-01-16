@@ -9,8 +9,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 
 import static puretherapie.crm.WebConfiguration.IMAGES_URL;
@@ -53,8 +51,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST, API_V1_CLIENT_URL).permitAll()
-                .antMatchers(HttpMethod.OPTIONS, API_V1_USER_URL + USER_LOGIN).permitAll()
-                .antMatchers(HttpMethod.OPTIONS, API_V1_USER_URL + USER_LOGOUT).permitAll()
                 .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGIN).authenticated()
                 .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGOUT).authenticated()
                 .antMatchers(HttpMethod.POST, API_V1_APPOINTMENT_URL).permitAll()
@@ -96,7 +92,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return c;
     }*/
 
-    @Bean
+    /*@Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
@@ -108,6 +104,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH", "TRACE");
             }
         };
-    }
+    }*/
 
 }

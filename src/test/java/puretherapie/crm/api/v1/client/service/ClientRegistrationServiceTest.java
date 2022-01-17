@@ -24,11 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.CLIENT_DOUBLOON_FIELD;
-import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.ID_CLIENT_FIELD;
+import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.*;
 import static puretherapie.crm.data.person.Person.*;
-import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
-import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
 
 @SpringBootTest
 @DisplayName("ClientRegistrationService tests")
@@ -71,9 +68,9 @@ class ClientRegistrationServiceTest {
         ClientDTO emptyInfo = ClientDTO.builder().build();
         Map<String, Object> response = clientRegistrationService.clientRegistration(emptyInfo, true);
 
-        verifyFailResponse(response, ERROR_FIELD);
+        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
 
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) response.get(ERROR_FIELD);
+        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) response.get(CLIENT_REGISTRATION_FAIL);
         assertThat(errors).isNotNull()
                 .containsKey(FIRST_NAME_FIELD)
                 .containsKey(LAST_NAME_FIELD)
@@ -177,9 +174,9 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
 
         Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, ERROR_FIELD);
+        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
 
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) response.get(ERROR_FIELD);
+        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) response.get(CLIENT_REGISTRATION_FAIL);
         assertThat(errors).isNotNull().containsKey(FIRST_NAME_FIELD);
     }
 
@@ -193,7 +190,7 @@ class ClientRegistrationServiceTest {
         prepareEmailAlreadyUsed();
 
         Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, ERROR_FIELD);
+        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
     }
 
     @Test
@@ -206,7 +203,7 @@ class ClientRegistrationServiceTest {
         preparePhoneAlreadyUsed();
 
         Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, ERROR_FIELD);
+        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
     }
 
     @Test
@@ -219,7 +216,7 @@ class ClientRegistrationServiceTest {
         prepareUndefinedViolatedConstraint();
 
         Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, ERROR_FIELD);
+        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
     }
 
     @Test
@@ -232,7 +229,7 @@ class ClientRegistrationServiceTest {
         prepareOtherCauseThanConstraintViolation();
 
         Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, ERROR_FIELD);
+        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
     }
 
     private void verifyFailResponse(Map<String, Object> response, String errorField) {
@@ -240,7 +237,7 @@ class ClientRegistrationServiceTest {
     }
 
     private void verifySuccessResponse(Map<String, Object> response) {
-        assertThat(response).isNotNull().containsKey(SUCCESS_FIELD).containsKey(ID_CLIENT_FIELD);
+        assertThat(response).isNotNull().containsKey(CLIENT_REGISTRATION_SUCCESS).containsKey(ID_CLIENT_FIELD);
     }
 
     private void prepareClientRepoForSuccess() {

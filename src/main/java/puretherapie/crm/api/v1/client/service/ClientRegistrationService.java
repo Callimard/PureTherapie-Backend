@@ -28,21 +28,12 @@ import static puretherapie.crm.data.person.client.Client.*;
 @Slf4j
 @AllArgsConstructor
 @Service
-public class ClientRegistrationService extends SimpleService {
+public class ClientRegistrationService {
 
     // Constants.
 
-    public static final String CLIENT_REGISTRATION_SUCCESS = "client_registration_success";
-    public static final String CLIENT_REGISTRATION_FAIL = "client_registration_fail";
-    public static final String CLIENT_DOUBLOON_FIELD = "doubloons";
-
     private static final String NOTIFICATION_CLIENT_REGISTRATION_TITLE = "Registration of the client %s";
     private static final String NOTIFICATION_CLIENT_REGISTRATION_TEXT = "The client %s has been register";
-
-    private static final String CONSTRAINT_VIOLATION_ERROR = "constraint_violation_error";
-    private static final String DATA_INTEGRITY_ERROR = "data_integrity_error";
-
-    public static final String ID_CLIENT_FIELD = "idClient";
 
     // Variables.
 
@@ -127,16 +118,6 @@ public class ClientRegistrationService extends SimpleService {
     }
 
     // SimpleService methods.
-
-    @Override
-    public String getSuccessTag() {
-        return CLIENT_REGISTRATION_SUCCESS;
-    }
-
-    @Override
-    public String getFailTag() {
-        return CLIENT_REGISTRATION_FAIL;
-    }
 
     private static class ClientFieldException extends RuntimeException {
 

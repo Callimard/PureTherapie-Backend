@@ -14,13 +14,10 @@ import puretherapie.crm.data.person.repository.PersonOriginRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_URL;
-import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.CLIENT_DOUBLOON_FIELD;
-import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.CLIENT_REGISTRATION_FAIL;
 
 @Slf4j
 @AllArgsConstructor
@@ -47,7 +44,7 @@ public class ClientController {
     @PostMapping
     public ResponseEntity<ClientRegistrationResponseDTO> clientRegistration(@RequestParam(value = PARAM_DOUBLOON_VERIFICATION, required = false,
             defaultValue = "true") boolean doubloonVerification, @RequestBody ClientDTO clientDTO,
-                                                                  Authentication authentication) {
+                                                                            Authentication authentication) {
 
         doubloonVerification = verifyPermissionForDoubloonVerification(doubloonVerification, authentication);
 

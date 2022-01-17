@@ -14,6 +14,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 
 import static puretherapie.crm.WebConfiguration.IMAGES_URL;
+import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.API_V1_APPOINTMENT_URL;
 import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_URL;
 import static puretherapie.crm.api.v1.client.controller.ClientController.PERSON_ORIGINS_URL;
 import static puretherapie.crm.api.v1.user.controller.UserController.*;
@@ -44,7 +45,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers(API_V1_USER_URL + USER_LOGIN, API_V1_USER_URL + USER_LOGOUT, CLIENT_URL);
+                .ignoringAntMatchers(API_V1_USER_URL + USER_LOGIN, API_V1_USER_URL + USER_LOGOUT, CLIENT_URL, API_V1_APPOINTMENT_URL);
     }
 
     private void configureSession(HttpSecurity http) throws Exception {
@@ -60,6 +61,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers(HttpMethod.POST, CLIENT_URL).permitAll()
+                .antMatchers(HttpMethod.POST, API_V1_APPOINTMENT_URL).permitAll()
                 .antMatchers(HttpMethod.GET, PERSON_ORIGINS_URL).permitAll()
                 .antMatchers(HttpMethod.GET, IMAGES_URL).permitAll()
                 .anyRequest().authenticated();

@@ -53,7 +53,6 @@ public class AppointmentController {
 
     // Methods.
 
-    @PreAuthorize("permitAll()")
     @PostMapping
     public ResponseEntity<Map<String, Object>> takeAnAppointment(@RequestBody AppointmentInformation aInfo,
                                                                  Authentication authentication) {

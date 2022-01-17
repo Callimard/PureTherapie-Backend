@@ -11,6 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationFailDTO;
+import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationResponseDTO;
 import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
@@ -18,14 +20,13 @@ import puretherapie.crm.data.person.repository.PersonOriginRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.*;
-import static puretherapie.crm.data.person.Person.*;
+import static puretherapie.crm.data.person.Person.UNIQUE_EMAIL_CONSTRAINTS;
+import static puretherapie.crm.data.person.Person.UNIQUE_PHONE_CONSTRAINTS;
 
 @SpringBootTest
 @DisplayName("ClientRegistrationService tests")
@@ -66,15 +67,14 @@ class ClientRegistrationServiceTest {
     @DisplayName("Test if clientRegistration fail all null fields client information")
     void testClientRegistration() {
         ClientDTO emptyInfo = ClientDTO.builder().build();
-        Map<String, Object> response = clientRegistrationService.clientRegistration(emptyInfo, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(emptyInfo, true);
 
-        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
+        verifyFailResponse(response);
 
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) response.get(CLIENT_REGISTRATION_FAIL);
-        assertThat(errors).isNotNull()
-                .containsKey(FIRST_NAME_FIELD)
-                .containsKey(LAST_NAME_FIELD)
-                .containsKey(EMAIL_FIELD);
+        ClientRegistrationFailDTO fail = (ClientRegistrationFailDTO) response;
+        assertThat(fail.getFirstName()).isNotNull();
+        assertThat(fail.getLastName()).isNotNull();
+        assertThat(fail.getEmail()).isNotNull();
     }
 
     @Test
@@ -87,7 +87,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -101,7 +101,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -115,7 +115,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -129,9 +129,9 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
 
-        verifyFailResponse(response, CLIENT_DOUBLOON_FIELD);
+        verifyFailResponse(response);
     }
 
     @Test
@@ -144,7 +144,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, false);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, false);
         verifySuccessResponse(response);
     }
 
@@ -159,7 +159,7 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -173,11 +173,11 @@ class ClientRegistrationServiceTest {
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response);
 
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) response.get(CLIENT_REGISTRATION_FAIL);
-        assertThat(errors).isNotNull().containsKey(FIRST_NAME_FIELD);
+        ClientRegistrationFailDTO fail = (ClientRegistrationFailDTO) response;
+        assertThat(fail.getFirstName()).isNotNull();
     }
 
     @Test
@@ -189,8 +189,8 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         prepareEmailAlreadyUsed();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response);
     }
 
     @Test
@@ -202,8 +202,8 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         preparePhoneAlreadyUsed();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response);
     }
 
     @Test
@@ -215,8 +215,8 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         prepareUndefinedViolatedConstraint();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response);
     }
 
     @Test
@@ -228,16 +228,18 @@ class ClientRegistrationServiceTest {
         prepareNoDoubloonsFind();
         prepareOtherCauseThanConstraintViolation();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, CLIENT_REGISTRATION_FAIL);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response);
     }
 
-    private void verifyFailResponse(Map<String, Object> response, String errorField) {
-        assertThat(response).isNotNull().containsKey(errorField);
+    private void verifyFailResponse(ClientRegistrationResponseDTO response) {
+        assertThat(response).isNotNull();
+        assertThat(response.isFailedResponse()).isTrue();
     }
 
-    private void verifySuccessResponse(Map<String, Object> response) {
-        assertThat(response).isNotNull().containsKey(CLIENT_REGISTRATION_SUCCESS).containsKey(ID_CLIENT_FIELD);
+    private void verifySuccessResponse(ClientRegistrationResponseDTO response) {
+        assertThat(response).isNotNull();
+        assertThat(response.isFailedResponse()).isFalse();
     }
 
     private void prepareClientRepoForSuccess() {

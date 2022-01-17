@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationResponseDTO;
 import puretherapie.crm.api.v1.client.service.ClientRegistrationService;
 import puretherapie.crm.api.v1.user.controller.dto.PersonOriginDTO;
 import puretherapie.crm.data.person.PersonOrigin;
@@ -44,17 +45,17 @@ public class ClientController {
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "false")
     @PostMapping
-    public ResponseEntity<Map<String, Object>> clientRegistration(@RequestParam(value = PARAM_DOUBLOON_VERIFICATION, required = false,
+    public ResponseEntity<ClientRegistrationResponseDTO> clientRegistration(@RequestParam(value = PARAM_DOUBLOON_VERIFICATION, required = false,
             defaultValue = "true") boolean doubloonVerification, @RequestBody ClientDTO clientDTO,
                                                                   Authentication authentication) {
 
         doubloonVerification = verifyPermissionForDoubloonVerification(doubloonVerification, authentication);
 
-        Map<String, Object> res = clientRegistrationService.clientRegistration(clientDTO, doubloonVerification);
-        if (res.containsKey(CLIENT_REGISTRATION_FAIL) || res.containsKey(CLIENT_DOUBLOON_FIELD))
-            return ResponseEntity.badRequest().body(res);
+        ClientRegistrationResponseDTO responseDTO = clientRegistrationService.clientRegistration(clientDTO, doubloonVerification);
+        if (responseDTO.isFailedResponse())
+            return ResponseEntity.badRequest().body(responseDTO);
         else
-            return ResponseEntity.ok(res);
+            return ResponseEntity.ok(responseDTO);
     }
 
     private boolean verifyPermissionForDoubloonVerification(boolean doubloonVerification, Authentication authentication) {

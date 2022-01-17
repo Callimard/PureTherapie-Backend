@@ -13,10 +13,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationSuccessDTO;
 import puretherapie.crm.api.v1.client.service.ClientRegistrationService;
 import puretherapie.crm.authentication.SecurityUserService;
-
-import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -24,7 +23,6 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_URL;
 import static puretherapie.crm.api.v1.client.controller.ClientController.PARAM_DOUBLOON_VERIFICATION;
-import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
 import static util.RequestTool.basicAuthorization;
 import static util.RequestTool.httpPostJson;
 
@@ -97,8 +95,7 @@ public class ClientControllerTest {
     }
 
     private void prepareRegistrationSuccess() {
-        given(mockClientRegistration.clientRegistration(any(), anyBoolean())).willReturn(
-                Collections.singletonMap(SUCCESS_FIELD, "Client registration success"));
+        given(mockClientRegistration.clientRegistration(any(), anyBoolean())).willReturn(ClientRegistrationSuccessDTO.builder().build());
     }
 
     private void prepareUsernameFind() {

@@ -7,32 +7,40 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import puretherapie.crm.api.v1.SimpleService;
 import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationFailDTO;
+import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationResponseDTO;
+import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationSuccessDTO;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
 import static puretherapie.crm.data.person.Person.*;
+import static puretherapie.crm.data.person.client.Client.*;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class ClientRegistrationService {
+public class ClientRegistrationService extends SimpleService {
 
     // Constants.
 
     public static final String CLIENT_REGISTRATION_SUCCESS = "client_registration_success";
     public static final String CLIENT_REGISTRATION_FAIL = "client_registration_fail";
-    public static final String CLIENT_DOUBLOON_FIELD = "client_doubloon";
+    public static final String CLIENT_DOUBLOON_FIELD = "doubloons";
 
     private static final String NOTIFICATION_CLIENT_REGISTRATION_TITLE = "Registration of the client %s";
     private static final String NOTIFICATION_CLIENT_REGISTRATION_TEXT = "The client %s has been register";
 
-    private static final String DATA_VIOLATION_ERROR = "data_violation_error";
+    private static final String CONSTRAINT_VIOLATION_ERROR = "constraint_violation_error";
+    private static final String DATA_INTEGRITY_ERROR = "data_integrity_error";
 
     public static final String ID_CLIENT_FIELD = "idClient";
 
@@ -45,17 +53,19 @@ public class ClientRegistrationService {
     // Methods.
 
     @Transactional(propagation = Propagation.NEVER)
-    public Map<String, Object> clientRegistration(ClientDTO clientDTO, boolean doubloonVerification) {
+    public ClientRegistrationResponseDTO clientRegistration(ClientDTO clientDTO, boolean doubloonVerification) {
         try {
             Client client = buildClient(clientDTO);
             verifyDoubloon(client, doubloonVerification);
             client = saveClient(client);
             notifyClientRegistration(client);
             return generateSuccessResponse(client);
-        } catch (ClientRegistrationException e) {
-            return Collections.singletonMap(CLIENT_REGISTRATION_FAIL, e.getErrors());
+        } catch (ClientFieldException e) {
+            return e.buildFailResponse();
         } catch (ClientDoubloonException e) {
-            return Collections.singletonMap(CLIENT_DOUBLOON_FIELD, e.getDoubloonList());
+            return ClientRegistrationFailDTO.builder().doubloons(e.getDoubloonList()).build();
+        } catch (DataIntegrityViolationException e) {
+            return generateDataIntegrityFailResponse(e);
         }
     }
 
@@ -69,20 +79,16 @@ public class ClientRegistrationService {
             log.error("Notification creation for client registration failed.");
     }
 
-    private Map<String, Object> generateSuccessResponse(Client c) {
-        Map<String, Object> res = new HashMap<>();
-        res.put(CLIENT_REGISTRATION_SUCCESS, "Client registration success");
-        res.put(ID_CLIENT_FIELD, c.getIdPerson());
-
-        return res;
+    private ClientRegistrationSuccessDTO generateSuccessResponse(Client c) {
+        return ClientRegistrationSuccessDTO.builder().idClient(c.getIdPerson()).build();
     }
 
-    private Client buildClient(ClientDTO clientDTO) throws ClientRegistrationException {
+    private Client buildClient(ClientDTO clientDTO) throws ClientFieldException {
         try {
             return createClient(clientDTO);
         } catch (ClientDTO.ClientInformationVerificationException e) {
-            log.debug("Exception during client information verification. Error = {}", e.getErrors());
-            throw new ClientRegistrationException(e.getErrors());
+            log.info("Exception during client information verification. Error = {}", e.getErrors());
+            throw new ClientFieldException(e.getErrors());
         }
     }
 
@@ -99,16 +105,10 @@ public class ClientRegistrationService {
         }
     }
 
-    private Client saveClient(Client c) throws ClientRegistrationException {
-        try {
-            Client saved = clientRepository.save(c);
-            log.info("Client registration success. The new client {}", saved);
-            return saved;
-        } catch (DataIntegrityViolationException e) {
-            Map<String, String> errors = new HashMap<>();
-            treatDataIntegrityViolation(errors, e);
-            throw new ClientRegistrationException(errors);
-        }
+    private Client saveClient(Client c) throws ClientFieldException {
+        Client saved = clientRepository.save(c);
+        log.info("Client registration success. The new client {}", saved);
+        return saved;
     }
 
     private Client createClient(ClientDTO clientDTO) throws ClientDTO.ClientInformationVerificationException {
@@ -116,50 +116,47 @@ public class ClientRegistrationService {
         return clientDTO.buildClient(personOriginRepository);
     }
 
-    private void treatDataIntegrityViolation(Map<String, String> errors, DataIntegrityViolationException e) {
-        if (e.getCause() instanceof ConstraintViolationException constraintViolation)
-            treatConstraintViolationCause(errors, constraintViolation);
-        else
-            treatUndefineViolationCause(errors, e);
-    }
-
-    private void treatConstraintViolationCause(Map<String, String> errors, ConstraintViolationException constraintViolation) {
-        log.debug("Detect constraint violation.");
-        String fieldViolated = extractNotUniqueField(constraintViolation);
-        if (fieldViolated != null) {
-            log.debug("Unique constraint violation of the field {}", fieldViolated);
-            errors.put(fieldViolated, "Already client with this " + fieldViolated);
+    private ClientRegistrationFailDTO generateDataIntegrityFailResponse(DataIntegrityViolationException e) {
+        if (e.getCause() instanceof ConstraintViolationException constraintViolation) {
+            log.info("Client registration with constraint violation => constraint {}", constraintViolation.getConstraintName());
+            return ClientRegistrationFailDTO.builder().constraintViolation(constraintViolation.getConstraintName()).build();
         } else {
-            log.error("ConstraintViolation with not found violated field, constraint name = {}", constraintViolation.getConstraintName());
-            errors.put(DATA_VIOLATION_ERROR, "ConstraintViolation");
+            log.info("Client registration with data integrity error => {}", e.getMessage());
+            return ClientRegistrationFailDTO.builder().dataIntegrity(e.getMessage()).build();
         }
     }
 
-    private void treatUndefineViolationCause(Map<String, String> errors, DataIntegrityViolationException e) {
-        log.debug("Detect DataIntegrityViolationException", e);
-        errors.put(DATA_VIOLATION_ERROR, e.getMessage());
+    // SimpleService methods.
+
+    @Override
+    public String getSuccessTag() {
+        return CLIENT_REGISTRATION_SUCCESS;
     }
 
-    private String extractNotUniqueField(ConstraintViolationException constraintViolation) {
-        if (constraintViolation.getConstraintName().equals(UNIQUE_PHONE_CONSTRAINTS)) {
-            return PHONE_FIELD;
-        } else if (constraintViolation.getConstraintName().equals(UNIQUE_EMAIL_CONSTRAINTS)) {
-            return EMAIL_FIELD;
-        } else
-            return null;
+    @Override
+    public String getFailTag() {
+        return CLIENT_REGISTRATION_FAIL;
     }
 
-    private static class ClientRegistrationException extends RuntimeException {
+    private static class ClientFieldException extends RuntimeException {
 
         private final Map<String, String> errors;
 
-        public ClientRegistrationException(Map<String, String> errors) {
+        public ClientFieldException(Map<String, String> errors) {
             super();
             this.errors = errors;
         }
 
-        public Map<String, String> getErrors() {
-            return errors;
+        public ClientRegistrationFailDTO buildFailResponse() {
+            return ClientRegistrationFailDTO.builder()
+                    .firstName(errors.get(FIRST_NAME_FIELD))
+                    .lastName(errors.get(LAST_NAME_FIELD))
+                    .email(errors.get(EMAIL_FIELD))
+                    .phone(errors.get(PHONE_FIELD))
+                    .photo(errors.get(PHOTO_FIELD))
+                    .comment(errors.get(COMMENT_FIELD))
+                    .technicalComment(errors.get(TECHNICAL_COMMENT_FIELD))
+                    .build();
         }
     }
 

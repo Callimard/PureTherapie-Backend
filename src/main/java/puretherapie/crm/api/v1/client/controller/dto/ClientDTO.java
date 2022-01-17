@@ -46,7 +46,7 @@ public class ClientDTO {
         verifyTechnicalComment(error);
         verifyFirstName(error);
         verifyLastName(error);
-        verifyMail(error);
+        verifyEMail(error);
         verifyPhoneNumber(error);
 
         if (!error.isEmpty())
@@ -87,7 +87,7 @@ public class ClientDTO {
             error.put(LAST_NAME_FIELD, "Client last name wrong format");
     }
 
-    private void verifyMail(Map<String, String> error) {
+    private void verifyEMail(Map<String, String> error) {
         if (email == null)
             error.put(EMAIL_FIELD, "Client mail must not be empty");
         else if (email.isBlank() || email.length() > MAIL_MAX_LENGTH || !isValidMail(email))

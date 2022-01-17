@@ -7,7 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import puretherapie.crm.api.v1.client.ClientInformation;
+import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
@@ -15,11 +15,8 @@ import puretherapie.crm.data.person.repository.PersonOriginRepository;
 
 import java.util.*;
 
-import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_DOUBLOON_FIELD;
 import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
 import static puretherapie.crm.data.person.Person.*;
-import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
-import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
 
 @Slf4j
 @AllArgsConstructor
@@ -28,8 +25,14 @@ public class ClientRegistrationService {
 
     // Constants.
 
+    public static final String CLIENT_REGISTRATION_SUCCESS = "client_registration_success";
+    public static final String CLIENT_REGISTRATION_FAIL = "client_registration_fail";
+    public static final String CLIENT_DOUBLOON_FIELD = "client_doubloon";
+
     private static final String NOTIFICATION_CLIENT_REGISTRATION_TITLE = "Registration of the client %s";
     private static final String NOTIFICATION_CLIENT_REGISTRATION_TEXT = "The client %s has been register";
+
+    private static final String DATA_VIOLATION_ERROR = "data_violation_error";
 
     public static final String ID_CLIENT_FIELD = "idClient";
 
@@ -42,15 +45,15 @@ public class ClientRegistrationService {
     // Methods.
 
     @Transactional(propagation = Propagation.NEVER)
-    public Map<String, Object> clientRegistration(ClientInformation clientInformation, boolean doubloonVerification) {
+    public Map<String, Object> clientRegistration(ClientDTO clientDTO, boolean doubloonVerification) {
         try {
-            Client client = buildClient(clientInformation);
+            Client client = buildClient(clientDTO);
             verifyDoubloon(client, doubloonVerification);
             client = saveClient(client);
             notifyClientRegistration(client);
             return generateSuccessResponse(client);
         } catch (ClientRegistrationException e) {
-            return Collections.singletonMap(ERROR_FIELD, e.getErrors());
+            return Collections.singletonMap(CLIENT_REGISTRATION_FAIL, e.getErrors());
         } catch (ClientDoubloonException e) {
             return Collections.singletonMap(CLIENT_DOUBLOON_FIELD, e.getDoubloonList());
         }
@@ -68,16 +71,16 @@ public class ClientRegistrationService {
 
     private Map<String, Object> generateSuccessResponse(Client c) {
         Map<String, Object> res = new HashMap<>();
-        res.put(SUCCESS_FIELD, "Client registration success");
+        res.put(CLIENT_REGISTRATION_SUCCESS, "Client registration success");
         res.put(ID_CLIENT_FIELD, c.getIdPerson());
 
         return res;
     }
 
-    private Client buildClient(ClientInformation clientInformation) throws ClientRegistrationException {
+    private Client buildClient(ClientDTO clientDTO) throws ClientRegistrationException {
         try {
-            return createClient(clientInformation);
-        } catch (ClientInformation.ClientInformationVerificationException e) {
+            return createClient(clientDTO);
+        } catch (ClientDTO.ClientInformationVerificationException e) {
             log.debug("Exception during client information verification. Error = {}", e.getErrors());
             throw new ClientRegistrationException(e.getErrors());
         }
@@ -87,7 +90,7 @@ public class ClientRegistrationService {
         if (verify) {
             List<Client> clients = clientRepository.findByFirstNameAndLastName(c.getFirstName(), c.getLastName());
             if (clients != null && !clients.isEmpty()) {
-                List<ClientInformation> doubloons = new ArrayList<>();
+                List<ClientDTO> doubloons = new ArrayList<>();
                 for (Client doubloon : clients) {
                     doubloons.add(doubloon.getClientInformation());
                 }
@@ -108,9 +111,9 @@ public class ClientRegistrationService {
         }
     }
 
-    private Client createClient(ClientInformation clientInformation) throws ClientInformation.ClientInformationVerificationException {
-        clientInformation.verify();
-        return clientInformation.buildClient(personOriginRepository);
+    private Client createClient(ClientDTO clientDTO) throws ClientDTO.ClientInformationVerificationException {
+        clientDTO.verify();
+        return clientDTO.buildClient(personOriginRepository);
     }
 
     private void treatDataIntegrityViolation(Map<String, String> errors, DataIntegrityViolationException e) {
@@ -128,13 +131,13 @@ public class ClientRegistrationService {
             errors.put(fieldViolated, "Already client with this " + fieldViolated);
         } else {
             log.error("ConstraintViolation with not found violated field, constraint name = {}", constraintViolation.getConstraintName());
-            errors.put(ERROR_FIELD, "ConstraintViolation");
+            errors.put(DATA_VIOLATION_ERROR, "ConstraintViolation");
         }
     }
 
     private void treatUndefineViolationCause(Map<String, String> errors, DataIntegrityViolationException e) {
         log.debug("Detect DataIntegrityViolationException", e);
-        errors.put(ERROR_FIELD, e.getMessage());
+        errors.put(DATA_VIOLATION_ERROR, e.getMessage());
     }
 
     private String extractNotUniqueField(ConstraintViolationException constraintViolation) {
@@ -162,14 +165,14 @@ public class ClientRegistrationService {
 
     private static class ClientDoubloonException extends RuntimeException {
 
-        private final transient List<ClientInformation> doubloonList;
+        private final transient List<ClientDTO> doubloonList;
 
-        public ClientDoubloonException(List<ClientInformation> doubloonList) {
+        public ClientDoubloonException(List<ClientDTO> doubloonList) {
             super();
             this.doubloonList = doubloonList;
         }
 
-        public List<ClientInformation> getDoubloonList() {
+        public List<ClientDTO> getDoubloonList() {
             return doubloonList;
         }
     }

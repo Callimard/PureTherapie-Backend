@@ -1,6 +1,7 @@
 package puretherapie.crm.data.person;
 
 import lombok.*;
+import puretherapie.crm.api.v1.user.controller.dto.PersonOriginDTO;
 
 import javax.persistence.*;
 
@@ -27,4 +28,10 @@ public class PersonOrigin {
 
     @Column(name = "type", nullable = false)
     private String type;
+
+    // Methods.
+
+    public PersonOriginDTO buildDTO() {
+        return PersonOriginDTO.builder().idPersonOrigin(idPersonOrigin).type(type).build();
+    }
 }

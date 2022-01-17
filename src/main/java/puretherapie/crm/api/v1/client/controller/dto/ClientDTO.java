@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.client;
+package puretherapie.crm.api.v1.client.controller.dto;
 
 import lombok.*;
 import puretherapie.crm.data.person.PersonOrigin;
@@ -23,7 +23,7 @@ import static puretherapie.crm.tool.PhoneTool.formatPhone;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClientInformation {
+public class ClientDTO {
 
     // Variables.
 
@@ -36,7 +36,7 @@ public class ClientInformation {
     private boolean gender;
     private LocalDate birthday;
     private String phone;
-    private int idOrigin;
+    private int idPersonOrigin;
 
     public void verify() throws ClientInformationVerificationException {
         Map<String, String> error = new HashMap<>();
@@ -137,7 +137,7 @@ public class ClientInformation {
 
     private PersonOrigin getPersonOrigin(PersonOriginRepository personOriginRepository) {
         PersonOrigin personOrigin;
-        return (personOrigin = personOriginRepository.findByIdPersonOrigin(getIdOrigin())) == null ? noneOrigin(personOriginRepository) :
+        return (personOrigin = personOriginRepository.findByIdPersonOrigin(getIdPersonOrigin())) == null ? noneOrigin(personOriginRepository) :
                 personOrigin;
     }
 

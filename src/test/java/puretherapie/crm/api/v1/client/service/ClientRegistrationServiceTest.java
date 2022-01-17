@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
-import puretherapie.crm.api.v1.client.ClientInformation;
+import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
 import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_DOUBLOON_FIELD;
+import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.CLIENT_DOUBLOON_FIELD;
 import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.ID_CLIENT_FIELD;
 import static puretherapie.crm.data.person.Person.*;
 import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
@@ -68,7 +68,7 @@ class ClientRegistrationServiceTest {
     @Test
     @DisplayName("Test if clientRegistration fail all null fields client information")
     void testClientRegistration() {
-        ClientInformation emptyInfo = ClientInformation.builder().build();
+        ClientDTO emptyInfo = ClientDTO.builder().build();
         Map<String, Object> response = clientRegistrationService.clientRegistration(emptyInfo, true);
 
         verifyFailResponse(response, ERROR_FIELD);
@@ -85,7 +85,7 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithOnlyRequiredFields() {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
@@ -99,7 +99,7 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithNoPhoneClient() {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoWithNoPhone();
+        ClientDTO c = createClientInfoWithNoPhone();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
@@ -113,7 +113,7 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithNoPhotoClient() {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoWithNoPhoto();
+        ClientDTO c = createClientInfoWithNoPhoto();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
@@ -127,7 +127,7 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithDoubloonsButWithDoubloonsVerification() {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareDoubloonsFind();
@@ -142,7 +142,7 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithDoubloonsButNoDoubloonsVerification() {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareDoubloonsFind();
@@ -157,7 +157,7 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithCorrectFormat(String correctFirstName) {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoWithFirstName(correctFirstName);
+        ClientDTO c = createClientInfoWithFirstName(correctFirstName);
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
@@ -171,7 +171,7 @@ class ClientRegistrationServiceTest {
                             "toooooooooooooooooooooooooooooooooooooooooooooooooooolong"})
     @DisplayName("Test if clientRegistration fail with not corrected firstName format")
     void testClientRegistrationWithWrongFirstName(String wrongFirstName) {
-        ClientInformation c = createClientInfoWithFirstName(wrongFirstName);
+        ClientDTO c = createClientInfoWithFirstName(wrongFirstName);
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
@@ -186,7 +186,7 @@ class ClientRegistrationServiceTest {
     @Test
     @DisplayName("Test if clientRegistration fail with already used email")
     void testClientRegistrationWithAlreadyUsedEmail() {
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
@@ -199,7 +199,7 @@ class ClientRegistrationServiceTest {
     @Test
     @DisplayName("Test if clientRegistration fail with already used phone")
     void testClientRegistrationWithAlreadyUsedPhone() {
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
@@ -212,7 +212,7 @@ class ClientRegistrationServiceTest {
     @Test
     @DisplayName("Test if clientRegistration fail with undefined constraints violation")
     void testClientRegistrationWithUndefineViolationConstraint() {
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
@@ -225,7 +225,7 @@ class ClientRegistrationServiceTest {
     @Test
     @DisplayName("Test if clientRegistration fail with other cause than constraint violation")
     void testClientRegistrationWithOtherCauseThanConstraintViolation() {
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
@@ -285,34 +285,34 @@ class ClientRegistrationServiceTest {
         given(mockClientRepo.findByFirstNameAndLastName(anyString(), anyString())).willReturn(doubloons);
     }
 
-    private ClientInformation createClientInfoMinimalRequirement() {
-        return ClientInformation.builder()
+    private ClientDTO createClientInfoMinimalRequirement() {
+        return ClientDTO.builder()
                 .firstName("Guillaume")
                 .lastName("RAKOTOMALALA")
                 .email(DEFAULT_CORRECT_EMAIL)
                 .build();
     }
 
-    private ClientInformation createClientInfoWithNoPhone() {
-        ClientInformation info = createClientInfoMinimalRequirement();
+    private ClientDTO createClientInfoWithNoPhone() {
+        ClientDTO info = createClientInfoMinimalRequirement();
         info.setPhone(null);
         return info;
     }
 
-    private ClientInformation createClientInfoWithNoPhoto() {
-        ClientInformation info = createClientInfoMinimalRequirement();
+    private ClientDTO createClientInfoWithNoPhoto() {
+        ClientDTO info = createClientInfoMinimalRequirement();
         info.setPhone(null);
         return info;
     }
 
-    private ClientInformation createClientInfoWithPhone() {
-        ClientInformation info = createClientInfoMinimalRequirement();
+    private ClientDTO createClientInfoWithPhone() {
+        ClientDTO info = createClientInfoMinimalRequirement();
         info.setPhone(DEFAULT_CORRECT_PHONE);
         return info;
     }
 
-    private ClientInformation createClientInfoWithFirstName(String firstName) {
-        ClientInformation info = createClientInfoMinimalRequirement();
+    private ClientDTO createClientInfoWithFirstName(String firstName) {
+        ClientDTO info = createClientInfoMinimalRequirement();
         info.setFirstName(firstName);
         return info;
     }

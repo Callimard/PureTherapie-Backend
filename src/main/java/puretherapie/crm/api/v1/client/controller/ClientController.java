@@ -18,6 +18,7 @@ import java.util.Map;
 import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_URL;
+import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.CLIENT_DOUBLOON_FIELD;
 import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.CLIENT_REGISTRATION_FAIL;
 
 @Slf4j
@@ -50,7 +51,7 @@ public class ClientController {
         doubloonVerification = verifyPermissionForDoubloonVerification(doubloonVerification, authentication);
 
         Map<String, Object> res = clientRegistrationService.clientRegistration(clientDTO, doubloonVerification);
-        if (res.containsKey(CLIENT_REGISTRATION_FAIL))
+        if (res.containsKey(CLIENT_REGISTRATION_FAIL) || res.containsKey(CLIENT_DOUBLOON_FIELD))
             return ResponseEntity.badRequest().body(res);
         else
             return ResponseEntity.ok(res);

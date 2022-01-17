@@ -44,7 +44,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers(API_V1_USER_URL + USER_LOGIN, API_V1_USER_URL + USER_LOGOUT);
+                .ignoringAntMatchers(API_V1_USER_URL + USER_LOGIN, API_V1_USER_URL + USER_LOGOUT, CLIENT_URL);
     }
 
     private void configureSession(HttpSecurity http) throws Exception {

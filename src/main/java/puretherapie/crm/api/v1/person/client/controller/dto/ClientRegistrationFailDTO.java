@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.client.controller.dto;
+package puretherapie.crm.api.v1.person.client.controller.dto;
 
 import lombok.*;
 

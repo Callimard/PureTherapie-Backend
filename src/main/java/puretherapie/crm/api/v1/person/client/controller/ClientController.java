@@ -1,13 +1,13 @@
-package puretherapie.crm.api.v1.client.controller;
+package puretherapie.crm.api.v1.person.client.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
-import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationResponseDTO;
-import puretherapie.crm.api.v1.client.service.ClientRegistrationService;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationResponseDTO;
+import puretherapie.crm.api.v1.person.client.service.ClientRegistrationService;
 import puretherapie.crm.api.v1.user.controller.dto.PersonOriginDTO;
 import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
@@ -17,7 +17,7 @@ import java.util.List;
 
 import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
-import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_URL;
+import static puretherapie.crm.api.v1.person.client.controller.ClientController.CLIENT_URL;
 
 @Slf4j
 @AllArgsConstructor
@@ -28,7 +28,7 @@ public class ClientController {
     // Constants.
 
     public static final String CLIENT_URL = API_V1_URL + "/clients";
-    public static final String PERSON_ORIGINS = "/personOrigins";
+    public static final String PERSON_ORIGINS = "/person_origins";
     public static final String PERSON_ORIGINS_URL = CLIENT_URL + PERSON_ORIGINS;
 
     public static final String PARAM_DOUBLOON_VERIFICATION = "doubloonVerification";

@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.appointment;
+package puretherapie.crm.api.v1.appointment.controller.dto;
 
 import lombok.*;
 
@@ -11,7 +11,7 @@ import java.time.LocalTime;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class AppointmentInformation {
+public class TakeAppointmentDTO {
 
     private int idClient;
     private int idTechnician;

@@ -1,6 +1,7 @@
 package puretherapie.crm.data.person.technician;
 
 import lombok.*;
+import puretherapie.crm.api.v1.person.technician.dto.TechnicianDTO;
 import puretherapie.crm.data.person.Person;
 import puretherapie.crm.data.person.PersonOrigin;
 
@@ -33,5 +34,20 @@ public class Technician extends Person {
         super(idPerson, firstName, lastName, mail, gender, birthday, phone, creationDate, personOrigin);
         this.speciality = speciality;
         this.isActive = isActive;
+    }
+
+    public TechnicianDTO transform() {
+        return TechnicianDTO.builder()
+                .idPerson(getIdPerson())
+                .firstName(getFirstName())
+                .lastName(getLastName())
+                .email(getEmail())
+                .gender(isGender())
+                .birthday(getBirthday())
+                .phone(getPhone())
+                .idPersonOrigin(getPersonOrigin().getIdPersonOrigin())
+                .speciality(speciality)
+                .isActive(isActive)
+                .build();
     }
 }

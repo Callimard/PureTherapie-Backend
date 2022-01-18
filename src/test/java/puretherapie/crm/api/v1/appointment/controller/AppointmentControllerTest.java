@@ -14,7 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
-import puretherapie.crm.api.v1.appointment.AppointmentInformation;
+import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentDTO;
 import puretherapie.crm.api.v1.appointment.service.TakeAppointmentService;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.authentication.SecurityUserService;
@@ -28,7 +28,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.API_V1_APPOINTMENT_URL;
+import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENT_URL;
 import static puretherapie.crm.api.v1.appointment.service.TakeAppointmentService.APPOINTMENT_CREATION_FAIL;
 import static puretherapie.crm.api.v1.appointment.service.TakeAppointmentService.APPOINTMENT_CREATION_SUCCESS;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
@@ -75,7 +75,7 @@ public class AppointmentControllerTest {
         @Test
         @DisplayName("Test if takeAnAppoint returns 500 with no request body")
         void testWithNoRequestBody() throws Exception {
-            mockMvc.perform(httpPostJson(API_V1_APPOINTMENT_URL)).andExpect(status().isInternalServerError());
+            mockMvc.perform(httpPostJson(APPOINTMENT_URL)).andExpect(status().isInternalServerError());
         }
 
         @Test
@@ -83,7 +83,7 @@ public class AppointmentControllerTest {
         void testWithSuccessAppointmentCreation() throws Exception {
             given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(successAppointmentCreationRes());
 
-            mockMvc.perform(httpPostJson(API_V1_APPOINTMENT_URL).content(correctBody())).andExpect(status().isOk());
+            mockMvc.perform(httpPostJson(APPOINTMENT_URL).content(correctBody())).andExpect(status().isOk());
         }
 
         @Test
@@ -91,7 +91,7 @@ public class AppointmentControllerTest {
         void testWithFailAppointmentCreation() throws Exception {
             given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(failAppointmentCreationRes());
 
-            mockMvc.perform(httpPostJson(API_V1_APPOINTMENT_URL).content(correctBody())).andExpect(status().isBadRequest());
+            mockMvc.perform(httpPostJson(APPOINTMENT_URL).content(correctBody())).andExpect(status().isBadRequest());
         }
 
         @Test
@@ -101,7 +101,7 @@ public class AppointmentControllerTest {
             given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any(), anyBoolean())).willReturn(
                     successAppointmentCreationRes());
 
-            mockMvc.perform(httpPostJsonWithAuthorization(API_V1_APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
+            mockMvc.perform(httpPostJsonWithAuthorization(APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
                     .andExpect(status().isOk());
         }
 
@@ -111,7 +111,7 @@ public class AppointmentControllerTest {
             prepareUserSecurityService(MAMY_ROLE);
             given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(successAppointmentCreationRes());
 
-            mockMvc.perform(httpPostJsonWithAuthorization(API_V1_APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
+            mockMvc.perform(httpPostJsonWithAuthorization(APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
                     .andExpect(status().isOk());
         }
     }
@@ -125,7 +125,7 @@ public class AppointmentControllerTest {
     }
 
     private String correctBody() throws JsonProcessingException {
-        return MAPPER.writeValueAsString(AppointmentInformation.builder()
+        return MAPPER.writeValueAsString(TakeAppointmentDTO.builder()
                                                  .idClient(1)
                                                  .idTechnician(1)
                                                  .idAestheticCare(1)

@@ -4,6 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import puretherapie.crm.data.person.technician.Technician;
 
+import java.util.List;
+
+@SuppressWarnings("SpringDataMethodInconsistencyInspection")
 @Repository
 public interface TechnicianRepository extends JpaRepository<Technician, Integer> {
 
@@ -11,4 +14,7 @@ public interface TechnicianRepository extends JpaRepository<Technician, Integer>
 
     Technician findByEmail(String email);
 
+    List<Technician> findAll();
+
+    List<Technician> findByIsActive(boolean isActive);
 }

@@ -1,9 +1,10 @@
-package puretherapie.crm.api.v1.client.controller.dto;
+package puretherapie.crm.api.v1.person.client.controller.dto;
 
 import lombok.*;
+import puretherapie.crm.api.v1.person.dto.PersonDTO;
 import puretherapie.crm.data.person.PersonOrigin;
-import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import puretherapie.crm.data.person.client.Client;
+import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import puretherapie.crm.tool.PhoneTool;
 
 import java.time.LocalDate;
@@ -17,26 +18,28 @@ import static puretherapie.crm.tool.MailTool.isValidMail;
 import static puretherapie.crm.tool.PhoneTool.formatPhone;
 
 
-@Builder
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClientDTO {
+public class ClientDTO extends PersonDTO {
 
     // Variables.
 
     private String photo;
     private String comment;
     private String technicalComment;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private boolean gender;
-    private LocalDate birthday;
-    private String phone;
-    private int idPersonOrigin;
+
+    @Builder
+    public ClientDTO(int idPerson, String firstName, String lastName, String email, boolean gender, LocalDate birthday, String phone,
+                     int idPersonOrigin,
+                     String photo, String comment, String technicalComment) {
+        super(idPerson, firstName, lastName, email, gender, birthday, phone, idPersonOrigin);
+        this.photo = photo;
+        this.comment = comment;
+        this.technicalComment = technicalComment;
+    }
 
     public void verify() throws ClientInformationVerificationException {
         Map<String, String> error = new HashMap<>();

@@ -14,6 +14,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 
 import static puretherapie.crm.WebConfiguration.IMAGES_URL;
+import static puretherapie.crm.api.v1.agenda.controller.AgendaController.TECHNICIAN_FREE_TIME_SLOTS_URL;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENT_URL;
 import static puretherapie.crm.api.v1.person.client.controller.ClientController.CLIENT_URL;
 import static puretherapie.crm.api.v1.person.client.controller.ClientController.PERSON_ORIGINS_URL;
@@ -67,6 +68,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, APPOINTMENT_URL).permitAll()
                 .antMatchers(HttpMethod.GET, TECHNICIANS_URL).permitAll()
                 .antMatchers(HttpMethod.GET, AESTHETIC_CARE_URL).permitAll()
+                .antMatchers(HttpMethod.GET, TECHNICIAN_FREE_TIME_SLOTS_URL).permitAll()
                 .antMatchers(HttpMethod.GET, IMAGES_URL).permitAll()
                 .anyRequest().authenticated();
     }

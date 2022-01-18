@@ -28,6 +28,7 @@ public class ClientController {
     // Constants.
 
     public static final String CLIENT_URL = API_V1_URL + "/clients";
+    
     public static final String PERSON_ORIGINS = "/person_origins";
     public static final String PERSON_ORIGINS_URL = CLIENT_URL + PERSON_ORIGINS;
 

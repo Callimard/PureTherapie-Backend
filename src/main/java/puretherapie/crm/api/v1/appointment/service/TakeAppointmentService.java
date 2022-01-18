@@ -7,9 +7,13 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.agenda.service.OpeningService;
+import puretherapie.crm.api.v1.agenda.service.TimeSlotAtomService;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
-import puretherapie.crm.data.agenda.*;
-import puretherapie.crm.data.agenda.repository.*;
+import puretherapie.crm.data.agenda.Opening;
+import puretherapie.crm.data.agenda.TimeSlot;
+import puretherapie.crm.data.agenda.TimeSlotAtom;
+import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.person.client.Client;
@@ -65,12 +69,10 @@ public class TakeAppointmentService extends SimpleService {
     private final AestheticCareRepository aestheticCareRepository;
     private final AppointmentRepository appointmentRepository;
     private final TimeSlotRepository timeSlotRepository;
-    private final TimeSlotAtomRepository tsaRepository;
-    private final ExceptionalOpeningRepository eoRepository;
-    private final ExceptionalCloseRepository ecRepository;
-    private final GlobalOpeningTimeRepository gotRepository;
     private final LaunchBreakRepository lbRepository;
     private final NotificationCreationService notificationCreationService;
+    private final TimeSlotAtomService tsaService;
+    private final OpeningService openingService;
 
     // Methods.
 
@@ -89,10 +91,8 @@ public class TakeAppointmentService extends SimpleService {
             Technician technician = verifyTechnician(idTechnician);
             AestheticCare aestheticCare = verifyAestheticCare(idAestheticCare);
 
-            List<TimeSlotAtom> tsaList = tsaRepository.findAllByOrderByEffectiveDate();
-
-            List<Opening> openingList = getOpenings(day);
-            TimeSlotAtom tsa = searchCorrectTSA(tsaList, day);
+            List<Opening> openingList = openingService.getOpenings(day);
+            TimeSlotAtom tsa = tsaService.searchCorrectTSA(day);
             int nbTimeSlot = getNbTimeSlot(aestheticCare, tsa.getNumberOfMinutes(), overlapAuthorized);
             int appointmentDuration = computeAppointmentDuration(nbTimeSlot, tsa.getNumberOfMinutes());
 
@@ -116,7 +116,7 @@ public class TakeAppointmentService extends SimpleService {
     }
 
     private void verifyExceptionalClose(LocalDate day) {
-        if (ecRepository.findByDay(day) != null) {
+        if (openingService.hasExceptionClose(day)) {
             log.debug("Exception close detect for the day {}", day);
             throw new AppointmentCreationException("Exceptional close at day %s".formatted(day),
                                                    generateError(EXCEPTIONAL_CLOSE_ERROR, "Exceptional close at %s".formatted(day)));
@@ -183,37 +183,6 @@ public class TakeAppointmentService extends SimpleService {
     private boolean notInLaunchBreak(LocalTime appointmentBeginTime, int appointmentDuration, LocalTime launchBreakBegin, int launchBreakDuration) {
         return (appointmentBeginTime.isBefore(launchBreakBegin) && minuteBetween(appointmentBeginTime, launchBreakBegin) >= appointmentDuration) ||
                 (launchBreakBegin.isBefore(appointmentBeginTime) && minuteBetween(launchBreakBegin, appointmentBeginTime) >= launchBreakDuration);
-    }
-
-    private List<Opening> getOpenings(LocalDate day) {
-        List<ExceptionalOpening> eoList = eoRepository.findByDay(day);
-        List<GlobalOpeningTime> gotList = gotRepository.findByDay(day.getDayOfWeek().getValue());
-
-        List<Opening> openingList = new ArrayList<>();
-        openingList.addAll(eoList);
-        openingList.addAll(gotList);
-        return openingList;
-    }
-
-    private TimeSlotAtom searchCorrectTSA(List<TimeSlotAtom> tsaList, LocalDate day) {
-        verifyTSAList(tsaList);
-        return searchCorrectTSA(tsaList, day, tsaList.get(0));
-    }
-
-    private void verifyTSAList(List<TimeSlotAtom> tsaList) {
-        if (tsaList == null || tsaList.isEmpty())
-            throw new IllegalArgumentException("TimeSlotAtom list is null");
-    }
-
-    private TimeSlotAtom searchCorrectTSA(List<TimeSlotAtom> tsaList, LocalDate day, TimeSlotAtom chosenTSA) {
-        if (!chosenTSA.getEffectiveDate().isBefore(day))
-            for (int i = 1; i < tsaList.size(); i++) {
-                TimeSlotAtom current = tsaList.get(i);
-                if (current.getEffectiveDate().isBefore(day))
-                    return current;
-            }
-
-        return chosenTSA;
     }
 
     private int computeAppointmentDuration(int nbTimeSlot, int tsNumberOfMinutes) {

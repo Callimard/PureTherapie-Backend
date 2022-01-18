@@ -40,7 +40,7 @@ public class ClientController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "false")
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PostMapping
     public ResponseEntity<ClientRegistrationResponseDTO> clientRegistration(@RequestParam(value = PARAM_DOUBLOON_VERIFICATION, required = false,
             defaultValue = "true") boolean doubloonVerification, @RequestBody ClientDTO clientDTO,
@@ -57,7 +57,7 @@ public class ClientController {
 
     private boolean verifyPermissionForDoubloonVerification(boolean doubloonVerification, Authentication authentication) {
         if ((authentication == null || !authentication.isAuthenticated()) && !doubloonVerification) {
-            log.info("Cannot not make the doubloon verification if no authenticated");
+            log.info("Cannot avoid doubloon verification if no authenticated");
             doubloonVerification = true;
         }
         return doubloonVerification;

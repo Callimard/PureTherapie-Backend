@@ -3,6 +3,7 @@ package puretherapie.crm;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -14,12 +15,22 @@ import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 
 import static puretherapie.crm.WebConfiguration.IMAGES_URL;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.API_V1_APPOINTMENT_URL;
-import static puretherapie.crm.api.v1.client.controller.ClientController.API_V1_CLIENT_URL;
+import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_URL;
+import static puretherapie.crm.api.v1.client.controller.ClientController.PERSON_ORIGINS_URL;
 import static puretherapie.crm.api.v1.user.controller.UserController.*;
 
 @Configuration
+@EnableGlobalMethodSecurity(
+        prePostEnabled = true,
+        securedEnabled = true)
 @EnableWebSecurity
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+    // Constants.
+
+    public static final String FRONT_END_ORIGIN = "http://localhost:4200";
+
+    // Methods.
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -33,8 +44,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private void configureCsrf(HttpSecurity http) throws Exception {
         http
                 .csrf()
-                .csrfTokenRepository(new CookieCsrfTokenRepository())
-                .ignoringAntMatchers(API_V1_USER_URL + USER_LOGIN, API_V1_USER_URL + USER_LOGOUT);
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .ignoringAntMatchers(API_V1_USER_URL + USER_LOGIN, API_V1_USER_URL + USER_LOGOUT, CLIENT_URL, API_V1_APPOINTMENT_URL);
     }
 
     private void configureSession(HttpSecurity http) throws Exception {
@@ -48,11 +59,10 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST, API_V1_CLIENT_URL).permitAll()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGIN).authenticated()
-                .antMatchers(HttpMethod.POST, API_V1_USER_URL + USER_LOGOUT).authenticated()
+                .antMatchers(HttpMethod.POST, CLIENT_URL).permitAll()
                 .antMatchers(HttpMethod.POST, API_V1_APPOINTMENT_URL).permitAll()
+                .antMatchers(HttpMethod.GET, PERSON_ORIGINS_URL).permitAll()
                 .antMatchers(HttpMethod.GET, IMAGES_URL).permitAll()
                 .anyRequest().authenticated();
     }

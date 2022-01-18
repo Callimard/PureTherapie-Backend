@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
-import puretherapie.crm.api.v1.client.ClientInformation;
+import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationFailDTO;
+import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationResponseDTO;
 import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
@@ -18,17 +20,13 @@ import puretherapie.crm.data.person.repository.PersonOriginRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_DOUBLOON_FIELD;
-import static puretherapie.crm.api.v1.client.service.ClientRegistrationService.ID_CLIENT_FIELD;
-import static puretherapie.crm.data.person.Person.*;
-import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
-import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
+import static puretherapie.crm.data.person.Person.UNIQUE_EMAIL_CONSTRAINTS;
+import static puretherapie.crm.data.person.Person.UNIQUE_PHONE_CONSTRAINTS;
 
 @SpringBootTest
 @DisplayName("ClientRegistrationService tests")
@@ -68,16 +66,15 @@ class ClientRegistrationServiceTest {
     @Test
     @DisplayName("Test if clientRegistration fail all null fields client information")
     void testClientRegistration() {
-        ClientInformation emptyInfo = ClientInformation.builder().build();
-        Map<String, Object> response = clientRegistrationService.clientRegistration(emptyInfo, true);
+        ClientDTO emptyInfo = ClientDTO.builder().build();
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(emptyInfo, true);
 
-        verifyFailResponse(response, ERROR_FIELD);
+        verifyFailResponse(response);
 
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) response.get(ERROR_FIELD);
-        assertThat(errors).isNotNull()
-                .containsKey(FIRST_NAME_FIELD)
-                .containsKey(LAST_NAME_FIELD)
-                .containsKey(EMAIL_FIELD);
+        ClientRegistrationFailDTO fail = (ClientRegistrationFailDTO) response;
+        assertThat(fail.getFirstName()).isNotNull();
+        assertThat(fail.getLastName()).isNotNull();
+        assertThat(fail.getEmail()).isNotNull();
     }
 
     @Test
@@ -85,12 +82,12 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithOnlyRequiredFields() {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -99,12 +96,12 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithNoPhoneClient() {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoWithNoPhone();
+        ClientDTO c = createClientInfoWithNoPhone();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -113,12 +110,12 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithNoPhotoClient() {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoWithNoPhoto();
+        ClientDTO c = createClientInfoWithNoPhoto();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -127,14 +124,14 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithDoubloonsButWithDoubloonsVerification() {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
 
-        verifyFailResponse(response, CLIENT_DOUBLOON_FIELD);
+        verifyFailResponse(response);
     }
 
     @Test
@@ -142,12 +139,12 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithDoubloonsButNoDoubloonsVerification() {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, false);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, false);
         verifySuccessResponse(response);
     }
 
@@ -157,12 +154,12 @@ class ClientRegistrationServiceTest {
     void testClientRegistrationWithCorrectFormat(String correctFirstName) {
         prepareClientRepoForSuccess();
 
-        ClientInformation c = createClientInfoWithFirstName(correctFirstName);
+        ClientDTO c = createClientInfoWithFirstName(correctFirstName);
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
         verifySuccessResponse(response);
     }
 
@@ -171,76 +168,78 @@ class ClientRegistrationServiceTest {
                             "toooooooooooooooooooooooooooooooooooooooooooooooooooolong"})
     @DisplayName("Test if clientRegistration fail with not corrected firstName format")
     void testClientRegistrationWithWrongFirstName(String wrongFirstName) {
-        ClientInformation c = createClientInfoWithFirstName(wrongFirstName);
+        ClientDTO c = createClientInfoWithFirstName(wrongFirstName);
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, ERROR_FIELD);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response);
 
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) response.get(ERROR_FIELD);
-        assertThat(errors).isNotNull().containsKey(FIRST_NAME_FIELD);
+        ClientRegistrationFailDTO fail = (ClientRegistrationFailDTO) response;
+        assertThat(fail.getFirstName()).isNotNull();
     }
 
     @Test
     @DisplayName("Test if clientRegistration fail with already used email")
     void testClientRegistrationWithAlreadyUsedEmail() {
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
         prepareEmailAlreadyUsed();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, ERROR_FIELD);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response);
     }
 
     @Test
     @DisplayName("Test if clientRegistration fail with already used phone")
     void testClientRegistrationWithAlreadyUsedPhone() {
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
         preparePhoneAlreadyUsed();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, ERROR_FIELD);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response);
     }
 
     @Test
     @DisplayName("Test if clientRegistration fail with undefined constraints violation")
     void testClientRegistrationWithUndefineViolationConstraint() {
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
         prepareUndefinedViolatedConstraint();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, ERROR_FIELD);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response);
     }
 
     @Test
     @DisplayName("Test if clientRegistration fail with other cause than constraint violation")
     void testClientRegistrationWithOtherCauseThanConstraintViolation() {
-        ClientInformation c = createClientInfoMinimalRequirement();
+        ClientDTO c = createClientInfoMinimalRequirement();
 
         prepareGetNonPersonOrigin();
         prepareNoDoubloonsFind();
         prepareOtherCauseThanConstraintViolation();
 
-        Map<String, Object> response = clientRegistrationService.clientRegistration(c, true);
-        verifyFailResponse(response, ERROR_FIELD);
+        ClientRegistrationResponseDTO response = clientRegistrationService.clientRegistration(c, true);
+        verifyFailResponse(response);
     }
 
-    private void verifyFailResponse(Map<String, Object> response, String errorField) {
-        assertThat(response).isNotNull().containsKey(errorField);
+    private void verifyFailResponse(ClientRegistrationResponseDTO response) {
+        assertThat(response).isNotNull();
+        assertThat(response.isFailedResponse()).isTrue();
     }
 
-    private void verifySuccessResponse(Map<String, Object> response) {
-        assertThat(response).isNotNull().containsKey(SUCCESS_FIELD).containsKey(ID_CLIENT_FIELD);
+    private void verifySuccessResponse(ClientRegistrationResponseDTO response) {
+        assertThat(response).isNotNull();
+        assertThat(response.isFailedResponse()).isFalse();
     }
 
     private void prepareClientRepoForSuccess() {
@@ -285,34 +284,34 @@ class ClientRegistrationServiceTest {
         given(mockClientRepo.findByFirstNameAndLastName(anyString(), anyString())).willReturn(doubloons);
     }
 
-    private ClientInformation createClientInfoMinimalRequirement() {
-        return ClientInformation.builder()
+    private ClientDTO createClientInfoMinimalRequirement() {
+        return ClientDTO.builder()
                 .firstName("Guillaume")
                 .lastName("RAKOTOMALALA")
                 .email(DEFAULT_CORRECT_EMAIL)
                 .build();
     }
 
-    private ClientInformation createClientInfoWithNoPhone() {
-        ClientInformation info = createClientInfoMinimalRequirement();
+    private ClientDTO createClientInfoWithNoPhone() {
+        ClientDTO info = createClientInfoMinimalRequirement();
         info.setPhone(null);
         return info;
     }
 
-    private ClientInformation createClientInfoWithNoPhoto() {
-        ClientInformation info = createClientInfoMinimalRequirement();
+    private ClientDTO createClientInfoWithNoPhoto() {
+        ClientDTO info = createClientInfoMinimalRequirement();
         info.setPhone(null);
         return info;
     }
 
-    private ClientInformation createClientInfoWithPhone() {
-        ClientInformation info = createClientInfoMinimalRequirement();
+    private ClientDTO createClientInfoWithPhone() {
+        ClientDTO info = createClientInfoMinimalRequirement();
         info.setPhone(DEFAULT_CORRECT_PHONE);
         return info;
     }
 
-    private ClientInformation createClientInfoWithFirstName(String firstName) {
-        ClientInformation info = createClientInfoMinimalRequirement();
+    private ClientDTO createClientInfoWithFirstName(String firstName) {
+        ClientDTO info = createClientInfoMinimalRequirement();
         info.setFirstName(firstName);
         return info;
     }

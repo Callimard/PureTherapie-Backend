@@ -10,22 +10,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
-import puretherapie.crm.api.v1.client.ClientInformation;
+import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationSuccessDTO;
 import puretherapie.crm.api.v1.client.service.ClientRegistrationService;
 import puretherapie.crm.authentication.SecurityUserService;
-
-import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static puretherapie.crm.api.v1.client.controller.ClientController.API_V1_CLIENT_URL;
+import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_URL;
 import static puretherapie.crm.api.v1.client.controller.ClientController.PARAM_DOUBLOON_VERIFICATION;
-import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
 import static util.RequestTool.basicAuthorization;
 import static util.RequestTool.httpPostJson;
 
@@ -62,7 +59,7 @@ public class ClientControllerTest {
         @Test
         @DisplayName("Test client registration with empty body send an 500 http response")
         void testClientRegistrationWithEmptyBody() throws Exception {
-            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).param(PARAM_DOUBLOON_VERIFICATION, "true"))
+            mockMvc.perform(httpPostJson(CLIENT_URL).param(PARAM_DOUBLOON_VERIFICATION, "true"))
                     .andExpect(status().isInternalServerError());
         }
 
@@ -70,7 +67,7 @@ public class ClientControllerTest {
         @DisplayName("Test client registration without request param but with correct body (no already existing client) send an 200 http response")
         void testClientRegistrationWithoutRequestParamAndNoClientDoubloon() throws Exception {
             prepareRegistrationSuccess();
-            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).content(bodyCorrectClientInfo())).andExpect(status().isOk());
+            mockMvc.perform(httpPostJson(CLIENT_URL).content(bodyCorrectClientInfo())).andExpect(status().isOk());
         }
 
         @Test
@@ -79,8 +76,8 @@ public class ClientControllerTest {
             prepareRegistrationSuccess();
             prepareUsernameFind();
 
-            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization(USERNAME,
-                                                                                                                                        PASSWORD)))
+            mockMvc.perform(httpPostJson(CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization(USERNAME,
+                                                                                                                                 PASSWORD)))
                     .andExpect(status().isOk());
         }
 
@@ -90,16 +87,15 @@ public class ClientControllerTest {
             prepareRegistrationSuccess();
             prepareUsernameNotFound();
 
-            mockMvc.perform(httpPostJson(API_V1_CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization(USERNAME,
-                                                                                                                                        PASSWORD)))
+            mockMvc.perform(httpPostJson(CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization(USERNAME,
+                                                                                                                                 PASSWORD)))
                     .andExpect(status().isUnauthorized());
         }
 
     }
 
     private void prepareRegistrationSuccess() {
-        given(mockClientRegistration.clientRegistration(any(), anyBoolean())).willReturn(
-                Collections.singletonMap(SUCCESS_FIELD, "Client registration success"));
+        given(mockClientRegistration.clientRegistration(any(), anyBoolean())).willReturn(ClientRegistrationSuccessDTO.builder().build());
     }
 
     private void prepareUsernameFind() {
@@ -112,7 +108,7 @@ public class ClientControllerTest {
     }
 
     private String bodyCorrectClientInfo() throws JsonProcessingException {
-        ClientInformation info = ClientInformation.builder()
+        ClientDTO info = ClientDTO.builder()
                 .photo("photo_path")
                 .comment("a comment")
                 .technicalComment("a technical comment")
@@ -122,7 +118,7 @@ public class ClientControllerTest {
                 .gender(true)
                 .birthday(null)
                 .phone("+33607271440")
-                .idOrigin(1).build();
+                .idPersonOrigin(1).build();
 
         return MAPPER.writeValueAsString(info);
     }

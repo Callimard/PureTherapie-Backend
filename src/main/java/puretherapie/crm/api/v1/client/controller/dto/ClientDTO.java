@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.client;
+package puretherapie.crm.api.v1.client.controller.dto;
 
 import lombok.*;
 import puretherapie.crm.data.person.PersonOrigin;
@@ -23,7 +23,7 @@ import static puretherapie.crm.tool.PhoneTool.formatPhone;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClientInformation {
+public class ClientDTO {
 
     // Variables.
 
@@ -36,7 +36,7 @@ public class ClientInformation {
     private boolean gender;
     private LocalDate birthday;
     private String phone;
-    private int idOrigin;
+    private int idPersonOrigin;
 
     public void verify() throws ClientInformationVerificationException {
         Map<String, String> error = new HashMap<>();
@@ -46,7 +46,7 @@ public class ClientInformation {
         verifyTechnicalComment(error);
         verifyFirstName(error);
         verifyLastName(error);
-        verifyMail(error);
+        verifyEMail(error);
         verifyPhoneNumber(error);
 
         if (!error.isEmpty())
@@ -87,7 +87,7 @@ public class ClientInformation {
             error.put(LAST_NAME_FIELD, "Client last name wrong format");
     }
 
-    private void verifyMail(Map<String, String> error) {
+    private void verifyEMail(Map<String, String> error) {
         if (email == null)
             error.put(EMAIL_FIELD, "Client mail must not be empty");
         else if (email.isBlank() || email.length() > MAIL_MAX_LENGTH || !isValidMail(email))
@@ -137,7 +137,7 @@ public class ClientInformation {
 
     private PersonOrigin getPersonOrigin(PersonOriginRepository personOriginRepository) {
         PersonOrigin personOrigin;
-        return (personOrigin = personOriginRepository.findByIdPersonOrigin(getIdOrigin())) == null ? noneOrigin(personOriginRepository) :
+        return (personOrigin = personOriginRepository.findByIdPersonOrigin(getIdPersonOrigin())) == null ? noneOrigin(personOriginRepository) :
                 personOrigin;
     }
 

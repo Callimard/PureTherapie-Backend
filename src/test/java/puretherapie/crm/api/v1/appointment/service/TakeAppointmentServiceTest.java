@@ -8,6 +8,8 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentFailDTO;
+import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.agenda.*;
 import puretherapie.crm.data.agenda.repository.*;
@@ -27,7 +29,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -52,7 +53,7 @@ public class TakeAppointmentServiceTest {
         @Test
         @DisplayName("Test with null day or null beginTime fail")
         void testWithNullDayOrNullBeginTime() {
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, null, CORRECT_RANDOM_TIME);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, null, CORRECT_RANDOM_TIME);
             verifyFail(res);
             verifyFailType(res, NULL_DAY_OR_BEGIN_TIME_ERROR);
 
@@ -66,7 +67,7 @@ public class TakeAppointmentServiceTest {
         void testWithNonCorrectClientId() {
             prepareTechnicianRepository();
             prepareACRepository();
-            Map<String, Object> res = tas.takeAppointment(1, TECHNICIAN_ID, AC_ID, CORRECT_RANDOM_DATE, CORRECT_RANDOM_TIME);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(1, TECHNICIAN_ID, AC_ID, CORRECT_RANDOM_DATE, CORRECT_RANDOM_TIME);
             verifyFail(res);
             verifyFailType(res, CLIENT_ID_NOT_FOUND_ERROR);
         }
@@ -76,7 +77,7 @@ public class TakeAppointmentServiceTest {
         void testWithNonCorrectTechnicianId() {
             prepareClientRepository();
             prepareACRepository();
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, 1, AC_ID, CORRECT_RANDOM_DATE, CORRECT_RANDOM_TIME);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, 1, AC_ID, CORRECT_RANDOM_DATE, CORRECT_RANDOM_TIME);
             verifyFail(res);
             verifyFailType(res, TECHNICIAN_ID_NOT_FOUND_ERROR);
         }
@@ -86,7 +87,7 @@ public class TakeAppointmentServiceTest {
         void testWithNonCorrectAestheticCareId() {
             prepareClientRepository();
             prepareTechnicianRepository();
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, 1, CORRECT_RANDOM_DATE, CORRECT_RANDOM_TIME);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, 1, CORRECT_RANDOM_DATE, CORRECT_RANDOM_TIME);
             verifyFail(res);
             verifyFailType(res, AESTHETIC_CARE_ID_NOT_FOUND_ERROR);
         }
@@ -95,7 +96,7 @@ public class TakeAppointmentServiceTest {
         @DisplayName("Test with exceptional close fail")
         void testWithExceptionalClose() {
             prepareMinimalContext();
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, EC_DATE, CORRECT_RANDOM_TIME);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, EC_DATE, CORRECT_RANDOM_TIME);
             verifyFail(res);
             verifyFailType(res, EXCEPTIONAL_CLOSE_ERROR);
         }
@@ -104,7 +105,7 @@ public class TakeAppointmentServiceTest {
         @DisplayName("Test with not open day fail")
         void testWithNotOpenDay() {
             prepareMinimalContext();
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, NOT_OPEN_DAY, CORRECT_RANDOM_TIME);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, NOT_OPEN_DAY, CORRECT_RANDOM_TIME);
             verifyFail(res);
             verifyFailType(res, NOT_OPEN_ERROR);
         }
@@ -114,7 +115,7 @@ public class TakeAppointmentServiceTest {
         void testWithNotInOpeningTime() {
             prepareMinimalContext();
 
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, BEFORE_OPENING_TIME);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, BEFORE_OPENING_TIME);
             verifyFail(res);
             verifyFailType(res, NOT_IN_OPENING_TIME_ERROR);
 
@@ -142,7 +143,7 @@ public class TakeAppointmentServiceTest {
             prepareLBRepository();
             prepareLB();
 
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, LAUNCH_BREAK_BEGIN_TIME);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, LAUNCH_BREAK_BEGIN_TIME);
             verifyFail(res);
             verifyFailType(res, DURING_LAUNCH_BREAK_ERROR);
 
@@ -163,21 +164,21 @@ public class TakeAppointmentServiceTest {
             prepareLB();
 
 
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, INCOMPATIBLE_TIME_SLOT_TIME_1);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, INCOMPATIBLE_TIME_SLOT_TIME_1);
             verifyFail(res);
-            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME);
+            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME_ERROR);
 
             res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, INCOMPATIBLE_TIME_SLOT_TIME_2);
             verifyFail(res);
-            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME);
+            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME_ERROR);
 
             res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, INCOMPATIBLE_TIME_SLOT_TIME_3);
             verifyFail(res);
-            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME);
+            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME_ERROR);
 
             res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, INCOMPATIBLE_TIME_SLOT_TIME_4);
             verifyFail(res);
-            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME);
+            verifyFailType(res, INCOMPATIBLE_TIME_SLOT_TIME_ERROR);
         }
 
         @Test
@@ -192,7 +193,7 @@ public class TakeAppointmentServiceTest {
             prepareMedAC();
             prepareLongAC();
 
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, AC_OVERLAP_TS1_1);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, AC_OVERLAP_TS1_1);
             verifyFail(res);
             verifyFailType(res, OVERLAP_ERROR);
 
@@ -210,8 +211,8 @@ public class TakeAppointmentServiceTest {
         void testWithBeginAtTheEndOfOtherAppointment() {
             prepareSuccessContext();
 
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
-                                                          TS1_2_BEGIN_TIME.plusMinutes(TSA_NB_MINUTE), false);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
+                                                                 TS1_2_BEGIN_TIME.plusMinutes(TSA_NB_MINUTE), false);
             verifySuccess(res);
 
             res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, TUESDAY_DATE,
@@ -224,8 +225,8 @@ public class TakeAppointmentServiceTest {
         void testWithFinishJustAtTheBeginOtherAppointment() {
             prepareSuccessContext();
 
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
-                                                          TS2_1_BEGIN_TIME.minusMinutes(AC_TIME_EXECUTION), false);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
+                                                                 TS2_1_BEGIN_TIME.minusMinutes(AC_TIME_EXECUTION), false);
             verifySuccess(res);
 
             res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, LONG_AC_ID, MONDAY_DATE,
@@ -238,8 +239,8 @@ public class TakeAppointmentServiceTest {
         void testWithJustBeginAtTheEndOfLB() {
             prepareSuccessContext();
 
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
-                                                          LAUNCH_BREAK_BEGIN_TIME.plusMinutes(LAUNCH_BREAK_DURATION), false);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
+                                                                 LAUNCH_BREAK_BEGIN_TIME.plusMinutes(LAUNCH_BREAK_DURATION), false);
             verifySuccess(res);
 
             res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, TUESDAY_DATE,
@@ -252,8 +253,8 @@ public class TakeAppointmentServiceTest {
         void testWithJustEndAtTheBeginOfLB() {
             prepareSuccessContext();
 
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
-                                                          LAUNCH_BREAK_BEGIN_TIME.minusMinutes(AC_TIME_EXECUTION), false);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE,
+                                                                 LAUNCH_BREAK_BEGIN_TIME.minusMinutes(AC_TIME_EXECUTION), false);
             verifySuccess(res);
 
             res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, LONG_AC_ID, MONDAY_DATE,
@@ -266,7 +267,7 @@ public class TakeAppointmentServiceTest {
         void testWithOverlapWithFreeTimeSlot() {
             prepareSuccessContext();
 
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, TS_FREE_BEGIN_TIME, false);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, MONDAY_DATE, TS_FREE_BEGIN_TIME, false);
             verifySuccess(res);
 
             res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, LONG_AC_ID, MONDAY_DATE,
@@ -279,7 +280,7 @@ public class TakeAppointmentServiceTest {
         void testWithExceptionalOpeningSuccess() {
             prepareSuccessContext();
 
-            Map<String, Object> res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, EO_DATE, EO_OPENING_TIME, false);
+            TakeAppointmentResponseDTO res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, EO_DATE, EO_OPENING_TIME, false);
             verifySuccess(res);
 
             res = tas.takeAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID, EO_DATE, EO_CLOSE_TIME.minusMinutes(AC_TIME_EXECUTION), false);
@@ -292,17 +293,20 @@ public class TakeAppointmentServiceTest {
 
     }
 
-    private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(tas.getSuccessTag());
+    private void verifySuccess(TakeAppointmentResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.isFailedResponse()).isFalse();
     }
 
-    private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(tas.getFailTag());
+    private void verifyFail(TakeAppointmentResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.isFailedResponse()).isTrue();
     }
 
-    void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(tas.getFailTag());
-        assertThat(errors).isNotNull().containsKey(expectedKey);
+    void verifyFailType(TakeAppointmentResponseDTO res, String expectedKey) {
+        assertThat(res).isNotNull();
+        assertThat(res.isFailedResponse()).isTrue();
+        assertThat(((TakeAppointmentFailDTO) res).getError()).isEqualTo(expectedKey);
     }
 
     // Context.

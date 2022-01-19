@@ -15,6 +15,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentDTO;
+import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentFailDTO;
+import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
+import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentSuccessDTO;
 import puretherapie.crm.api.v1.appointment.service.TakeAppointmentService;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.authentication.SecurityUserService;
@@ -22,15 +25,11 @@ import puretherapie.crm.data.person.user.User;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENT_URL;
-import static puretherapie.crm.api.v1.appointment.service.TakeAppointmentService.APPOINTMENT_CREATION_FAIL;
-import static puretherapie.crm.api.v1.appointment.service.TakeAppointmentService.APPOINTMENT_CREATION_SUCCESS;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
 import static puretherapie.crm.data.person.user.Role.MAMY_ROLE;
 import static util.RequestTool.httpPostJson;
@@ -116,12 +115,12 @@ public class AppointmentControllerTest {
         }
     }
 
-    private Map<String, Object> failAppointmentCreationRes() {
-        return Collections.singletonMap(APPOINTMENT_CREATION_FAIL, null);
+    private TakeAppointmentResponseDTO failAppointmentCreationRes() {
+        return TakeAppointmentFailDTO.builder().error("TA error").build();
     }
 
-    private Map<String, Object> successAppointmentCreationRes() {
-        return Collections.singletonMap(APPOINTMENT_CREATION_SUCCESS, null);
+    private TakeAppointmentResponseDTO successAppointmentCreationRes() {
+        return TakeAppointmentSuccessDTO.builder().success("TA success").build();
     }
 
     private String correctBody() throws JsonProcessingException {

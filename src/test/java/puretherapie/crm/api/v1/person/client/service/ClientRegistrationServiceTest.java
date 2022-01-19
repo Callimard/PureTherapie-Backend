@@ -286,6 +286,7 @@ class ClientRegistrationServiceTest {
 
     private ClientDTO createClientInfoMinimalRequirement() {
         return ClientDTO.builder()
+                .idPerson(-1)
                 .firstName("Guillaume")
                 .lastName("RAKOTOMALALA")
                 .email(DEFAULT_CORRECT_EMAIL)

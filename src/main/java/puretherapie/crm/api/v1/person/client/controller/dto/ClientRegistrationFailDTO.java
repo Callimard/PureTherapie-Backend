@@ -7,6 +7,7 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 public class ClientRegistrationFailDTO implements ClientRegistrationResponseDTO {

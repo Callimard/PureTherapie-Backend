@@ -124,6 +124,7 @@ public class ClientDTO extends PersonDTO {
 
     public Client buildClient(PersonOriginRepository personOriginRepository) {
         return Client.builder()
+                .idPerson(idPerson)
                 .photo(photo)
                 .comment(comment)
                 .technicalComment(technicalComment)

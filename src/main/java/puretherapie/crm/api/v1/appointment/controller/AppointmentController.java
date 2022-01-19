@@ -2,12 +2,12 @@ package puretherapie.crm.api.v1.appointment.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentDTO;
+import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
 import puretherapie.crm.api.v1.appointment.service.TakeAppointmentService;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
@@ -16,18 +16,13 @@ import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENT_URL;
-import static puretherapie.crm.api.v1.appointment.service.TakeAppointmentService.APPOINTMENT_CREATION_SUCCESS;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
 import static puretherapie.crm.data.person.user.Role.SECRETARY_ROLE;
-import static puretherapie.crm.tool.ControllerTool.ERROR_FIELD;
-import static puretherapie.crm.tool.ControllerTool.SUCCESS_FIELD;
 
 @Slf4j
 @AllArgsConstructor
@@ -54,37 +49,28 @@ public class AppointmentController {
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PostMapping
-    public ResponseEntity<Map<String, Object>> takeAnAppointment(@RequestBody TakeAppointmentDTO aInfo,
-                                                                 Authentication authentication) {
-        Map<String, Object> res;
+    public ResponseEntity<TakeAppointmentResponseDTO> takeAnAppointment(@RequestBody TakeAppointmentDTO aInfo, Authentication authentication) {
+        TakeAppointmentResponseDTO responseDTO;
         if (canAuthorizeOverlap(authentication)) {
             log.debug("Authorize to had overlap between appointment");
-            res = takeAppointmentService.takeAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(),
-                                                         aInfo.getIdAestheticCare(),
-                                                         LocalDate.parse(aInfo.getDay()),
-                                                         LocalTime.parse(aInfo.getBeginTime()),
-                                                         aInfo.isOverlapAuthorized());
+            responseDTO = takeAppointmentService.takeAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(),
+                                                                 aInfo.getIdAestheticCare(),
+                                                                 LocalDate.parse(aInfo.getDay()),
+                                                                 LocalTime.parse(aInfo.getBeginTime()),
+                                                                 aInfo.isOverlapAuthorized());
         } else {
             log.debug("Not authorize to had overlap between appointment");
-            res = takeAppointmentService.takeAppointment(aInfo.getIdClient(),
-                                                         aInfo.getIdTechnician(),
-                                                         aInfo.getIdAestheticCare(),
-                                                         LocalDate.parse(aInfo.getDay()),
-                                                         LocalTime.parse(aInfo.getBeginTime()));
+            responseDTO = takeAppointmentService.takeAppointment(aInfo.getIdClient(),
+                                                                 aInfo.getIdTechnician(),
+                                                                 aInfo.getIdAestheticCare(),
+                                                                 LocalDate.parse(aInfo.getDay()),
+                                                                 LocalTime.parse(aInfo.getBeginTime()));
         }
 
-        return generateTakeAnAppointmentResponse(aInfo, res);
-    }
-
-    private ResponseEntity<Map<String, Object>> generateTakeAnAppointmentResponse(TakeAppointmentDTO aInfo, Map<String, Object> res) {
-        Map<String, Object> resp = new HashMap<>();
-        if (res.containsKey(APPOINTMENT_CREATION_SUCCESS)) {
-            resp.put(SUCCESS_FIELD, "Success to create appointment for the day %s at %s".formatted(aInfo.getDay(), aInfo.getBeginTime()));
-            return ResponseEntity.ok(resp);
-        } else {
-            resp.put(ERROR_FIELD, "Fail to create appointment for the day %s at %s".formatted(aInfo.getDay(), aInfo.getBeginTime()));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
-        }
+        if (responseDTO.isFailedResponse())
+            return ResponseEntity.badRequest().body(responseDTO);
+        else
+            return ResponseEntity.ok(responseDTO);
     }
 
     private boolean canAuthorizeOverlap(Authentication auth) {

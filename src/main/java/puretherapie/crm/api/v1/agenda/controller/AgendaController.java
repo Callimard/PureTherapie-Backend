@@ -34,8 +34,8 @@ public class AgendaController {
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "false")
     @GetMapping(TECHNICIAN_FREE_TIME_SLOTS)
     public List<FreeTimeSlotDTO> getTechnicianFreeTimeSlots(@RequestParam(name = "idTechnician") int idTechnician, @RequestParam(name = "day")
-            LocalDate day) {
-        return technicianService.getTechnicianFreeTimeSlot(idTechnician, day);
+            String day) {
+        return technicianService.getTechnicianFreeTimeSlot(idTechnician, LocalDate.parse(day));
     }
 
 }

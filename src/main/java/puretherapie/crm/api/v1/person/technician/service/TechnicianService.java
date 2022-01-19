@@ -13,6 +13,7 @@ import puretherapie.crm.data.person.technician.Technician;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +36,7 @@ public class TechnicianService {
 
     // Methods.
 
-    public List<FreeTimeSlotDTO> getTechnicianFreeTimeSlot(int idTechnician, LocalDate day) {
+    public List<FreeTimeSlotDTO> getTechnicianFreeTimeSlot(int idTechnician, LocalDate day, int processDuration) {
         Technician technician = verifyTechnician(idTechnician);
         verifyDay(day);
 
@@ -46,7 +47,9 @@ public class TechnicianService {
 
             List<FreeTimeSlotDTO> freeTimeSlotDTOs = new ArrayList<>();
             for (Opening opening : openingList)
-                freeTimeSlotDTOs.addAll(searchFreeTS(opening, tsaService.searchCorrectTSA(day).getNumberOfMinutes(), existingTS, idTechnician, day));
+                freeTimeSlotDTOs.addAll(searchFreeTS(opening, tsaService.searchCorrectTSA(day).getNumberOfMinutes(), processDuration, existingTS,
+                                                     idTechnician,
+                                                     day));
 
             if (freeTimeSlotDTOs.isEmpty())
                 log.info("No free Time Slot found for the technician {} at the day {}", technician.simplyIdentifier(), day);
@@ -70,20 +73,83 @@ public class TechnicianService {
             throw new IllegalArgumentException("Day cannot be null");
     }
 
-    private Collection<FreeTimeSlotDTO> searchFreeTS(Opening opening, int tsDuration, List<TimeSlot> existingTS, int idTechnician,
-                                                     LocalDate day) {
+    private Collection<FreeTimeSlotDTO> searchFreeTS(Opening opening, int tsDuration, int processDuration, List<TimeSlot> existingTS,
+                                                     int idTechnician, LocalDate day) {
+        int nbTimeSlotToOccupy = getNbTimeSlotToOccupy(tsDuration, processDuration);
+        verifyNbTimeSlotToOccupy(nbTimeSlotToOccupy);
+
+        List<FreeTimeSlotDTO> freeTimeSlotDTOList = getAllFreeTimeSlots(opening, tsDuration, existingTS, idTechnician, day, nbTimeSlotToOccupy);
+        return filterWithCurrentTime(day, freeTimeSlotDTOList);
+    }
+
+    private int getNbTimeSlotToOccupy(int tsDuration, int processDuration) {
+        int nbTimeSlotToOccupy = processDuration / tsDuration;
+        nbTimeSlotToOccupy += (processDuration % tsDuration) != 0 ? 1 : 0; // Compute if there is rest of the division.
+        return nbTimeSlotToOccupy;
+    }
+
+    private void verifyNbTimeSlotToOccupy(int nbTimeSlotToOccupy) {
+        if (nbTimeSlotToOccupy <= 0) {
+            log.error("NubTimeSlot negative, nbTimeSlotToOccupy = {}", nbTimeSlotToOccupy);
+            throw new IllegalArgumentException("Number of time slot negative => nbTimeSlotToOccupy = " + nbTimeSlotToOccupy);
+        }
+    }
+
+    private List<FreeTimeSlotDTO> getAllFreeTimeSlots(Opening opening, int tsDuration, List<TimeSlot> existingTS, int idTechnician, LocalDate day,
+                                                      int nbTimeSlotToOccupy) {
         List<FreeTimeSlotDTO> freeTimeSlotDTOList = new ArrayList<>();
-
-        for (LocalTime tsBeginTime : correctTimeSlotTime(opening, tsDuration))
-            if (isFree(tsBeginTime, existingTS))
-                freeTimeSlotDTOList.add(buildFreeTimeSlot(idTechnician, day, tsBeginTime, tsDuration));
-
+        List<LocalTime> correctTSs = correctTimeSlotTime(opening, tsDuration);
+        for (int i = 0; i < correctTSs.size() - (nbTimeSlotToOccupy - 1); i++) {
+            List<LocalTime> toOccupy = getTimeSlotToOccupy(correctTSs, i, nbTimeSlotToOccupy);
+            if (canOccupyAllTimeSlots(toOccupy, existingTS))
+                freeTimeSlotDTOList.add(buildFreeTimeSlot(idTechnician, day, toOccupy.get(0), tsDuration));
+        }
         return freeTimeSlotDTOList;
     }
 
-    private boolean isFree(LocalTime tsBeginTime, List<TimeSlot> existingTS) {
+    /**
+     * @param correctTSs         all correct beginSearchIndex time of TS
+     * @param beginSearchIndex   the beginning index of the search in correctTSs
+     * @param nbTimeSlotToOccupy the number of ts that the process must occupy
+     *
+     * @return all beginSearchIndex local time of each time slot that the process must take.
+     */
+    private List<LocalTime> getTimeSlotToOccupy(List<LocalTime> correctTSs, int beginSearchIndex, int nbTimeSlotToOccupy) {
+        List<LocalTime> toOccupy = new ArrayList<>(correctTSs.subList(beginSearchIndex, beginSearchIndex + nbTimeSlotToOccupy));
+
+        if (toOccupy.size() != nbTimeSlotToOccupy) {
+            log.error("ToOccupy list size ({}) is not equal to nbTimeSlotToOccupy ({})", toOccupy.size(), nbTimeSlotToOccupy);
+            throw new IllegalArgumentException("ToOccupy size not equal to nbTimeSlotToOccupy");
+        }
+
+        return toOccupy;
+    }
+
+    private boolean canOccupyAllTimeSlots(List<LocalTime> toOccupy, List<TimeSlot> existingTS) {
+        boolean free = true;
+        for (LocalTime lt : toOccupy) {
+            if (!isFree(lt, existingTS)) {
+                free = false;
+                break;
+            }
+        }
+        return free;
+    }
+
+    private List<FreeTimeSlotDTO> filterWithCurrentTime(LocalDate day, List<FreeTimeSlotDTO> freeTimeSlotDTOList) {
+        return freeTimeSlotDTOList.stream().filter(freeTimeSlotDTO -> {
+            LocalTime tsTime = LocalTime.parse(freeTimeSlotDTO.getBegin());
+            LocalDateTime tsDateTime = LocalDateTime.of(day, tsTime);
+
+            LocalDateTime currentDateTime = LocalDateTime.now();
+
+            return tsDateTime.isAfter(currentDateTime);
+        }).toList();
+    }
+
+    private boolean isFree(LocalTime time, List<TimeSlot> existingTS) {
         for (TimeSlot timeSlot : existingTS)
-            if (!timeSlot.isFree() && timeSlot.getBegin().equals(tsBeginTime))
+            if (!timeSlot.isFree() && timeSlot.getBegin().equals(time))
                 return false;
 
         return true;

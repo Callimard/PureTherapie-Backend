@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.client.controller;
+package puretherapie.crm.api.v1.person.client.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,17 +12,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
-import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
-import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationSuccessDTO;
-import puretherapie.crm.api.v1.client.service.ClientRegistrationService;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationSuccessDTO;
+import puretherapie.crm.api.v1.person.client.service.ClientRegistrationService;
 import puretherapie.crm.authentication.SecurityUserService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static puretherapie.crm.api.v1.client.controller.ClientController.CLIENT_URL;
-import static puretherapie.crm.api.v1.client.controller.ClientController.PARAM_DOUBLOON_VERIFICATION;
+import static puretherapie.crm.api.v1.person.client.controller.ClientController.CLIENT_URL;
+import static puretherapie.crm.api.v1.person.client.controller.ClientController.PARAM_DOUBLOON_VERIFICATION;
 import static util.RequestTool.basicAuthorization;
 import static util.RequestTool.httpPostJson;
 

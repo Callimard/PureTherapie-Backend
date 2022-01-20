@@ -124,14 +124,14 @@ public class ClientDelayServiceTest {
             @Test
             @DisplayName("Test returns false if time is after but not too much")
             void testWithNotTooMuch() {
-                LocalTime time = LocalTime.now().plusMinutes(ClientDelayService.getMaximumClientDelay() - 2);
+                LocalTime time = LocalTime.now().plusMinutes(ClientDelayService.getMaximumClientDelay() - 5);
                 assertThat(ClientDelayService.isTooMuchLateFromNow(time)).isFalse();
             }
 
             @Test
             @DisplayName("Test returns true if time is too much")
             void testWithTooMuch() {
-                LocalTime time = LocalTime.now().plusMinutes(ClientDelayService.getMaximumClientDelay() + 2);
+                LocalTime time = LocalTime.now().plusMinutes(ClientDelayService.getMaximumClientDelay() + 5);
                 assertThat(ClientDelayService.isTooMuchLateFromNow(time)).isTrue();
             }
         }

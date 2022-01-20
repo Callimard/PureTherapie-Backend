@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.client.controller.dto;
+package puretherapie.crm.api.v1.person.client.controller.dto;
 
 import lombok.*;
 
@@ -7,6 +7,7 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 public class ClientRegistrationFailDTO implements ClientRegistrationResponseDTO {

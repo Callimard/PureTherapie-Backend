@@ -15,7 +15,7 @@ public abstract class SimpleService {
 
     // Errors.
 
-    public static final String UNKNOWN_ERROR = "unknown_errror";
+    public static final String UNKNOWN_ERROR = "unknown_error";
 
     // Methods.
 

@@ -6,10 +6,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.agenda.service.OpeningService;
+import puretherapie.crm.api.v1.agenda.service.TimeSlotAtomService;
+import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentFailDTO;
+import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
+import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentSuccessDTO;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
-import puretherapie.crm.data.agenda.*;
-import puretherapie.crm.data.agenda.repository.*;
+import puretherapie.crm.data.agenda.Opening;
+import puretherapie.crm.data.agenda.TimeSlot;
+import puretherapie.crm.data.agenda.TimeSlotAtom;
+import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.person.client.Client;
@@ -23,7 +29,10 @@ import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepo
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static puretherapie.crm.data.agenda.Opening.correctTimeSlotTime;
 import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
@@ -32,7 +41,7 @@ import static puretherapie.crm.tool.TimeTool.minuteBetween;
 @Slf4j
 @AllArgsConstructor
 @Service
-public class TakeAppointmentService extends SimpleService {
+public class TakeAppointmentService {
 
     // Constants.
 
@@ -55,7 +64,7 @@ public class TakeAppointmentService extends SimpleService {
     public static final String NOT_OPEN_ERROR = "not_open";
     public static final String NOT_IN_OPENING_TIME_ERROR = "not_in_opening_time";
     public static final String DURING_LAUNCH_BREAK_ERROR = "during_launch_break";
-    public static final String INCOMPATIBLE_TIME_SLOT_TIME = "incompatible_time_slot_time";
+    public static final String INCOMPATIBLE_TIME_SLOT_TIME_ERROR = "incompatible_time_slot_time";
     public static final String OVERLAP_ERROR = "overlap_detect";
 
     // Variables.
@@ -65,23 +74,21 @@ public class TakeAppointmentService extends SimpleService {
     private final AestheticCareRepository aestheticCareRepository;
     private final AppointmentRepository appointmentRepository;
     private final TimeSlotRepository timeSlotRepository;
-    private final TimeSlotAtomRepository tsaRepository;
-    private final ExceptionalOpeningRepository eoRepository;
-    private final ExceptionalCloseRepository ecRepository;
-    private final GlobalOpeningTimeRepository gotRepository;
     private final LaunchBreakRepository lbRepository;
     private final NotificationCreationService notificationCreationService;
+    private final TimeSlotAtomService tsaService;
+    private final OpeningService openingService;
 
     // Methods.
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Map<String, Object> takeAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime) {
+    public TakeAppointmentResponseDTO takeAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime) {
         return takeAppointment(idClient, idTechnician, idAestheticCare, day, beginTime, false);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Map<String, Object> takeAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime,
-                                               boolean overlapAuthorized) {
+    public TakeAppointmentResponseDTO takeAppointment(int idClient, int idTechnician, int idAestheticCare, LocalDate day, LocalTime beginTime,
+                                                      boolean overlapAuthorized) {
         try {
             verifyDayOrBeginTime(day, beginTime);
 
@@ -89,10 +96,8 @@ public class TakeAppointmentService extends SimpleService {
             Technician technician = verifyTechnician(idTechnician);
             AestheticCare aestheticCare = verifyAestheticCare(idAestheticCare);
 
-            List<TimeSlotAtom> tsaList = tsaRepository.findAllByOrderByEffectiveDate();
-
-            List<Opening> openingList = getOpenings(day);
-            TimeSlotAtom tsa = searchCorrectTSA(tsaList, day);
+            List<Opening> openingList = openingService.getOpenings(day);
+            TimeSlotAtom tsa = tsaService.searchCorrectTSA(day);
             int nbTimeSlot = getNbTimeSlot(aestheticCare, tsa.getNumberOfMinutes(), overlapAuthorized);
             int appointmentDuration = computeAppointmentDuration(nbTimeSlot, tsa.getNumberOfMinutes());
 
@@ -107,19 +112,31 @@ public class TakeAppointmentService extends SimpleService {
             appointment = saveAppointment(appointment);
             saveAllTimeSlot(allTimeSlots, appointment);
             notifyAppointmentCreate(client, technician, beginTime);
-            return generateSuccessRes();
+            return takeAppointmentSuccess(client, technician, aestheticCare, day, beginTime);
         } catch (Exception e) {
-            log.debug("Fail to create appointment, error message: {}", e.getMessage());
+            log.error("Fail to take appointment, error message: {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return generateErrorRes(e);
+            return takeAppointmentFail(e.getMessage());
         }
     }
 
+    private TakeAppointmentResponseDTO takeAppointmentSuccess(Client client, Technician technician, AestheticCare aestheticCare, LocalDate day,
+                                                              LocalTime beginTime) {
+        log.info("Taking appointment success for Client {}, Technician {}, Aesthetic Care {} at day {} at time {}", client.simplyIdentifier(),
+                 technician.simplyIdentifier(), aestheticCare, day, beginTime);
+        return TakeAppointmentSuccessDTO.builder()
+                .success("Taking appointment success for Client %s, Technician %s, Aesthetic Care %s at day %s at time %s".formatted(
+                        client.simplyIdentifier(), technician.simplyIdentifier(), aestheticCare, day, beginTime)).build();
+    }
+
+    private TakeAppointmentFailDTO takeAppointmentFail(String message) {
+        return TakeAppointmentFailDTO.builder().error(message).build();
+    }
+
     private void verifyExceptionalClose(LocalDate day) {
-        if (ecRepository.findByDay(day) != null) {
-            log.debug("Exception close detect for the day {}", day);
-            throw new AppointmentCreationException("Exceptional close at day %s".formatted(day),
-                                                   generateError(EXCEPTIONAL_CLOSE_ERROR, "Exceptional close at %s".formatted(day)));
+        if (openingService.hasExceptionClose(day)) {
+            log.error("Exception close detect for the day {}", day);
+            throw new TakeAppointmentException(EXCEPTIONAL_CLOSE_ERROR);
         }
     }
 
@@ -134,8 +151,8 @@ public class TakeAppointmentService extends SimpleService {
     private void verifyNoOverlapForAll(List<TimeSlot> timeSlots) {
         for (TimeSlot timeSlot : timeSlots)
             if (thereIsOverlap(timeSlot)) {
-                log.debug("Found overlap for time slot {}", timeSlot);
-                throw new AppointmentCreationException("Find an overlap for one time slot", generateError(OVERLAP_ERROR, "Overlap detected"));
+                log.error("Found overlap for time slot {}", timeSlot);
+                throw new TakeAppointmentException(OVERLAP_ERROR);
             }
     }
 
@@ -153,9 +170,8 @@ public class TakeAppointmentService extends SimpleService {
     private void verifyIsCompatibleTimeSlotTime(LocalTime beginTime, List<Opening> openingList, int tsaNumberOfMinutes) {
         Set<LocalTime> correct = allCorrectTimeSlotTimes(openingList, tsaNumberOfMinutes);
         if (!correct.contains(beginTime)) {
-            log.debug("Incompatible time slot time for begin time {}", beginTime);
-            throw new AppointmentCreationException("Incompatible time slot time", generateError(INCOMPATIBLE_TIME_SLOT_TIME, "Incompatible time " +
-                    "slot time for begin time %s".formatted(beginTime)));
+            log.error("Incompatible time slot time for begin time {}", beginTime);
+            throw new TakeAppointmentException(INCOMPATIBLE_TIME_SLOT_TIME_ERROR);
         }
     }
 
@@ -171,49 +187,23 @@ public class TakeAppointmentService extends SimpleService {
     private void verifyNotDuringLaunchBreak(Technician technician, LocalDate appointmentDay, LocalTime appointmentBeginTime,
                                             int appointmentDuration) {
         LaunchBreak technicianLaunchBreak = lbRepository.findByTechnicianAndDay(technician, appointmentDay);
-        LocalTime launchBreakBegin = technicianLaunchBreak.getBeginHour();
-        int launchBreakDuration = technicianLaunchBreak.getDuration();
-        if (notInLaunchBreak(appointmentBeginTime, appointmentDuration, launchBreakBegin, launchBreakDuration))
-            return;
 
-        log.debug("In launch break of the technician {}, appointment time = {}", technician.simplyIdentifier(), appointmentBeginTime);
-        throw new AppointmentCreationException("In launch break", generateError(DURING_LAUNCH_BREAK_ERROR, "In technician launch break"));
+        if (technicianLaunchBreak != null) {
+            LocalTime launchBreakBegin = technicianLaunchBreak.getBeginHour();
+            int launchBreakDuration = technicianLaunchBreak.getDuration();
+            if (notInLaunchBreak(appointmentBeginTime, appointmentDuration, launchBreakBegin, launchBreakDuration))
+                return;
+
+            log.error("In launch break of the technician {}, appointment time = {}", technician.simplyIdentifier(), appointmentBeginTime);
+            throw new TakeAppointmentException(DURING_LAUNCH_BREAK_ERROR);
+        } else {
+            log.info("No launch break for the technician {} at the day {}", technician.simplyIdentifier(), appointmentDay);
+        }
     }
 
     private boolean notInLaunchBreak(LocalTime appointmentBeginTime, int appointmentDuration, LocalTime launchBreakBegin, int launchBreakDuration) {
         return (appointmentBeginTime.isBefore(launchBreakBegin) && minuteBetween(appointmentBeginTime, launchBreakBegin) >= appointmentDuration) ||
                 (launchBreakBegin.isBefore(appointmentBeginTime) && minuteBetween(launchBreakBegin, appointmentBeginTime) >= launchBreakDuration);
-    }
-
-    private List<Opening> getOpenings(LocalDate day) {
-        List<ExceptionalOpening> eoList = eoRepository.findByDay(day);
-        List<GlobalOpeningTime> gotList = gotRepository.findByDay(day.getDayOfWeek().getValue());
-
-        List<Opening> openingList = new ArrayList<>();
-        openingList.addAll(eoList);
-        openingList.addAll(gotList);
-        return openingList;
-    }
-
-    private TimeSlotAtom searchCorrectTSA(List<TimeSlotAtom> tsaList, LocalDate day) {
-        verifyTSAList(tsaList);
-        return searchCorrectTSA(tsaList, day, tsaList.get(0));
-    }
-
-    private void verifyTSAList(List<TimeSlotAtom> tsaList) {
-        if (tsaList == null || tsaList.isEmpty())
-            throw new IllegalArgumentException("TimeSlotAtom list is null");
-    }
-
-    private TimeSlotAtom searchCorrectTSA(List<TimeSlotAtom> tsaList, LocalDate day, TimeSlotAtom chosenTSA) {
-        if (!chosenTSA.getEffectiveDate().isBefore(day))
-            for (int i = 1; i < tsaList.size(); i++) {
-                TimeSlotAtom current = tsaList.get(i);
-                if (current.getEffectiveDate().isBefore(day))
-                    return current;
-            }
-
-        return chosenTSA;
     }
 
     private int computeAppointmentDuration(int nbTimeSlot, int tsNumberOfMinutes) {
@@ -245,9 +235,8 @@ public class TakeAppointmentService extends SimpleService {
                 return;
         }
 
-        log.debug("BeginTime {} and appointment duration {} not in opening time", beginTime, appointmentDuration);
-        throw new AppointmentCreationException("Not in opening time (beginTime = %s, duration = %s)".formatted(beginTime, appointmentDuration),
-                                               generateError(NOT_IN_OPENING_TIME_ERROR, "Not in opening time"));
+        log.error("BeginTime {} and appointment duration {} not in opening time", beginTime, appointmentDuration);
+        throw new TakeAppointmentException(NOT_IN_OPENING_TIME_ERROR);
     }
 
     private boolean inOpeningTime(LocalTime openingTime, LocalTime closeTime, LocalTime timeToVerify, int appointmentDuration) {
@@ -257,41 +246,42 @@ public class TakeAppointmentService extends SimpleService {
 
     private void verifyInstituteIsOpen(List<Opening> openingList) {
         if (openingList == null || openingList.isEmpty()) {
-            log.debug("Institute not open for this day");
-            throw new AppointmentCreationException("Not open", generateError(NOT_OPEN_ERROR, "Institute not open"));
+            log.error("Institute not open for this day");
+            throw new TakeAppointmentException(NOT_OPEN_ERROR);
         }
     }
 
     private void verifyDayOrBeginTime(LocalDate day, LocalTime beginTime) throws IllegalArgumentException {
         if (day == null || beginTime == null) {
-            log.debug("Day or beginTime is null");
-            throw new AppointmentCreationException("Day or BeginTime is null",
-                                                   generateError(NULL_DAY_OR_BEGIN_TIME_ERROR, "Null pointer of day or begin " +
-                                                           "time"));
+            log.error("Day or beginTime is null");
+            throw new TakeAppointmentException(NULL_DAY_OR_BEGIN_TIME_ERROR);
         }
     }
 
     private Client verifyClient(int idClient) {
         Client c = clientRepository.findByIdPerson(idClient);
-        if (c == null)
-            throw new AppointmentCreationException("Not find client for idClient %s".formatted(idClient), generateError(CLIENT_ID_NOT_FOUND_ERROR,
-                                                                                                                        "Client id not found"));
+        if (c == null) {
+            log.error("Not find client for idClient {}", idClient);
+            throw new TakeAppointmentException(CLIENT_ID_NOT_FOUND_ERROR);
+        }
         return c;
     }
 
     private Technician verifyTechnician(int idTechnician) {
         Technician t = technicianRepository.findByIdPerson(idTechnician);
-        if (t == null)
-            throw new AppointmentCreationException("Not find technician for idTechnician %s".formatted(idTechnician),
-                                                   generateError(TECHNICIAN_ID_NOT_FOUND_ERROR, "Technician id not found"));
+        if (t == null) {
+            log.error("Not find technician for idTechnician {}", idTechnician);
+            throw new TakeAppointmentException(TECHNICIAN_ID_NOT_FOUND_ERROR);
+        }
         return t;
     }
 
     private AestheticCare verifyAestheticCare(int idAestheticCare) {
         AestheticCare ac = aestheticCareRepository.findByIdAestheticCare(idAestheticCare);
-        if (ac == null)
-            throw new AppointmentCreationException("Not find aesthetic care for idAestheticCare %s".formatted(idAestheticCare),
-                                                   generateError(AESTHETIC_CARE_ID_NOT_FOUND_ERROR, "Aesthetic care id not found"));
+        if (ac == null) {
+            log.error("Not find aesthetic care for idAestheticCare {}", idAestheticCare);
+            throw new TakeAppointmentException(AESTHETIC_CARE_ID_NOT_FOUND_ERROR);
+        }
         return ac;
     }
 
@@ -385,24 +375,11 @@ public class TakeAppointmentService extends SimpleService {
             log.error("Fail to create appointment notification");
     }
 
-    // SimpleService methods.
-
-    @Override
-    public String getSuccessTag() {
-        return APPOINTMENT_CREATION_SUCCESS;
-    }
-
-    @Override
-    public String getFailTag() {
-        return APPOINTMENT_CREATION_FAIL;
-    }
-
-
     // Exceptions.
 
-    private static class AppointmentCreationException extends SimpleService.ServiceException {
-        public AppointmentCreationException(String message, Map<String, String> errors) {
-            super(message, errors);
+    private static class TakeAppointmentException extends RuntimeException {
+        public TakeAppointmentException(String message) {
+            super(message);
         }
     }
 }

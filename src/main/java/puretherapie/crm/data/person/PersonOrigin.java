@@ -17,7 +17,7 @@ public class PersonOrigin {
 
     // Constants.
 
-    public static final String NONE_TYPE = "None";
+    public static final String NONE_TYPE = "Aucune";
 
     // Variables.
 

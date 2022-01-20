@@ -1,6 +1,7 @@
 package puretherapie.crm.data.product.aesthetic.care;
 
 import lombok.*;
+import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.AestheticCareDTO;
 
 import javax.persistence.*;
 
@@ -27,4 +28,13 @@ public class AestheticCare {
 
     @Column(name = "timeExecution", nullable = false)
     private Integer timeExecution;
+
+    public AestheticCareDTO transform() {
+        return AestheticCareDTO.builder()
+                .idAestheticCare(idAestheticCare)
+                .name(name)
+                .price(price)
+                .timeExecution(timeExecution)
+                .build();
+    }
 }

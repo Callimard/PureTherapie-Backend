@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.client.service;
+package puretherapie.crm.api.v1.person.client.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,11 +7,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import puretherapie.crm.api.v1.SimpleService;
-import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
-import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationFailDTO;
-import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationResponseDTO;
-import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationSuccessDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationFailDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationResponseDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationSuccessDTO;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;

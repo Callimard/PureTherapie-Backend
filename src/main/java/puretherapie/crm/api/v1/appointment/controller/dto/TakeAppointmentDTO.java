@@ -1,9 +1,6 @@
-package puretherapie.crm.api.v1.appointment;
+package puretherapie.crm.api.v1.appointment.controller.dto;
 
 import lombok.*;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Builder
 @Getter
@@ -11,13 +8,13 @@ import java.time.LocalTime;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class AppointmentInformation {
+public class TakeAppointmentDTO {
 
     private int idClient;
     private int idTechnician;
     private int idAestheticCare;
-    private LocalDate day;
-    private LocalTime beginTime;
+    private String day;
+    private String beginTime;
     private boolean overlapAuthorized;
 
 }

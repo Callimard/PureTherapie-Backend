@@ -4,6 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 
+import java.util.List;
+
 @Repository
 public interface AestheticCareRepository extends JpaRepository<AestheticCare, Integer> {
 
@@ -11,4 +13,5 @@ public interface AestheticCareRepository extends JpaRepository<AestheticCare, In
 
     AestheticCare findByName(String name);
 
+    List<AestheticCare> findAll();
 }

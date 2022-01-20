@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.client.service;
+package puretherapie.crm.api.v1.person.client.service;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
-import puretherapie.crm.api.v1.client.controller.dto.ClientDTO;
-import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationFailDTO;
-import puretherapie.crm.api.v1.client.controller.dto.ClientRegistrationResponseDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationFailDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationResponseDTO;
 import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
@@ -286,6 +286,7 @@ class ClientRegistrationServiceTest {
 
     private ClientDTO createClientInfoMinimalRequirement() {
         return ClientDTO.builder()
+                .idPerson(-1)
                 .firstName("Guillaume")
                 .lastName("RAKOTOMALALA")
                 .email(DEFAULT_CORRECT_EMAIL)

@@ -10,6 +10,8 @@ import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationRe
 import puretherapie.crm.api.v1.person.client.service.ClientRegistrationService;
 import puretherapie.crm.api.v1.user.controller.dto.PersonOriginDTO;
 import puretherapie.crm.data.person.PersonOrigin;
+import puretherapie.crm.data.person.client.Client;
+import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
 
 import java.util.ArrayList;
@@ -28,7 +30,10 @@ public class ClientController {
     // Constants.
 
     public static final String CLIENT_URL = API_V1_URL + "/clients";
-    
+
+    public static final String CLIENT_SEARCH_WITH_EMAIL = "/searchWithEmail";
+    public static final String CLIENT_SEARCH_WITH_EMAIL_URL = CLIENT_URL + CLIENT_SEARCH_WITH_EMAIL;
+
     public static final String PERSON_ORIGINS = "/person_origins";
     public static final String PERSON_ORIGINS_URL = CLIENT_URL + PERSON_ORIGINS;
 
@@ -37,6 +42,7 @@ public class ClientController {
     // Variables.
 
     private final ClientRegistrationService clientRegistrationService;
+    private final ClientRepository clientRepository;
     private final PersonOriginRepository personOriginRepository;
 
     // Methods.
@@ -63,6 +69,17 @@ public class ClientController {
         }
         return doubloonVerification;
     }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "false")
+    @GetMapping(CLIENT_SEARCH_WITH_EMAIL)
+    public ClientDTO getClientByEmail(@RequestParam(value = "email") String clientEmail) {
+        Client client = clientRepository.findByEmail(clientEmail);
+        if (client != null)
+            return client.transform();
+        else
+            return null;
+    }
+
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "false")
     @GetMapping(PERSON_ORIGINS)

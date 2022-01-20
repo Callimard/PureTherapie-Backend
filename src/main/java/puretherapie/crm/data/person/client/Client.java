@@ -59,7 +59,7 @@ public class Client extends Person {
         this.technicalComment = technicalComment;
     }
 
-    public ClientDTO getClientInformation() {
+    public ClientDTO transform() {
         return ClientDTO.builder()
                 .idPerson(getIdPerson())
                 .photo(getPhoto())

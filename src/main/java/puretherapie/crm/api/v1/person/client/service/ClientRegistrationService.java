@@ -88,7 +88,7 @@ public class ClientRegistrationService {
             if (clients != null && !clients.isEmpty()) {
                 List<ClientDTO> doubloons = new ArrayList<>();
                 for (Client doubloon : clients) {
-                    doubloons.add(doubloon.getClientInformation());
+                    doubloons.add(doubloon.transform());
                 }
                 throw new ClientDoubloonException(doubloons);
             }

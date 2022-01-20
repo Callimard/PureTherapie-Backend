@@ -16,8 +16,7 @@ import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 import static puretherapie.crm.WebConfiguration.IMAGES_URL;
 import static puretherapie.crm.api.v1.agenda.controller.AgendaController.TECHNICIAN_FREE_TIME_SLOTS_URL;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENT_URL;
-import static puretherapie.crm.api.v1.person.client.controller.ClientController.CLIENT_URL;
-import static puretherapie.crm.api.v1.person.client.controller.ClientController.PERSON_ORIGINS_URL;
+import static puretherapie.crm.api.v1.person.client.controller.ClientController.*;
 import static puretherapie.crm.api.v1.person.technician.controller.TechnicianController.TECHNICIANS_URL;
 import static puretherapie.crm.api.v1.product.aesthetic.care.controller.AestheticCareController.AESTHETIC_CARE_URL;
 import static puretherapie.crm.api.v1.user.controller.UserController.*;
@@ -65,6 +64,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers(HttpMethod.GET, PERSON_ORIGINS_URL).permitAll()
                 .antMatchers(HttpMethod.POST, CLIENT_URL).permitAll()
+                .antMatchers(HttpMethod.GET, CLIENT_SEARCH_WITH_EMAIL_URL).permitAll()
                 .antMatchers(HttpMethod.POST, APPOINTMENT_URL).permitAll()
                 .antMatchers(HttpMethod.GET, TECHNICIANS_URL).permitAll()
                 .antMatchers(HttpMethod.GET, AESTHETIC_CARE_URL).permitAll()

@@ -99,7 +99,7 @@ public class TechnicianService {
                                                       int nbTimeSlotToOccupy) {
         List<FreeTimeSlotDTO> freeTimeSlotDTOList = new ArrayList<>();
         List<LocalTime> correctTSs = correctTimeSlotTime(opening, tsDuration);
-        for (int i = 0; i < correctTSs.size() - (nbTimeSlotToOccupy - 1); i++) {
+        for (int i = 0; i < (correctTSs.size() - nbTimeSlotToOccupy); i++) {
             List<LocalTime> toOccupy = getTimeSlotToOccupy(correctTSs, i, nbTimeSlotToOccupy);
             if (canOccupyAllTimeSlots(toOccupy, existingTS))
                 freeTimeSlotDTOList.add(buildFreeTimeSlot(idTechnician, day, toOccupy.get(0), tsDuration));

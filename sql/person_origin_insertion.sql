@@ -1,5 +1,5 @@
 INSERT IGNORE INTO puretherapie.PersonOrigin (puretherapie.PersonOrigin.type)
-VALUES ('None'),
+VALUES ('Aucune'),
        ('Facebook'),
        ('Groupon'),
-       ('Friend');
+       ('Ami');

@@ -51,12 +51,8 @@ public class TechnicianService {
                                                      idTechnician,
                                                      day));
 
-            if (freeTimeSlotDTOs.isEmpty())
-                log.info("No free Time Slot found for the technician {} at the day {}", technician.simplyIdentifier(), day);
-
             return freeTimeSlotDTOs;
         } else {
-            log.info("No time slot free for technician {} at the day {}, because closed", technician.simplyIdentifier(), day);
             return Collections.emptyList();
         }
     }

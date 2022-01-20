@@ -68,6 +68,6 @@ public class ClientAbsenceServiceTest {
         given(mockAppointment.isCanceled()).willReturn(false);
         given(mockAppointment.getClientArrival()).willReturn(null);
         given(mockAppointment.getClient()).willReturn(Client.builder().build());
-        given(mockAppointment.getTime()).willReturn(LocalTime.now().plusMinutes(getMaximumClientDelay() + 3));
+        given(mockAppointment.getTime()).willReturn(LocalTime.now().minusMinutes(getMaximumClientDelay() + 3));
     }
 }

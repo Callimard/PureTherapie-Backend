@@ -97,15 +97,15 @@ public class ClientDelayService extends SimpleService {
     /**
      * @param appointmentTime the appointment time
      *
-     * @return true if the appointment time is after the now time ({@link LocalTime#now()}), else false.
+     * @return true if the appointment time is before the now time ({@link LocalTime#now()}), else false.
      */
     public static boolean isLateFromNow(LocalTime appointmentTime) {
-        return appointmentTime.isAfter(LocalTime.now());
+        return appointmentTime.isBefore(LocalTime.now());
     }
 
     public static boolean isTooMuchLateFromNow(LocalTime appointmentTime) {
         if (isLateFromNow(appointmentTime)) {
-            long diff = minuteBetween(LocalTime.now(), appointmentTime);
+            long diff = minuteBetween(appointmentTime, LocalTime.now());
             return diff >= getMaximumClientDelay();
         } else
             return false;
@@ -113,7 +113,7 @@ public class ClientDelayService extends SimpleService {
 
     public static long delayFromNow(LocalTime appointmentTime) {
         if (isLateFromNow(appointmentTime))
-            return minuteBetween(LocalTime.now(), appointmentTime);
+            return minuteBetween(appointmentTime, LocalTime.now());
         else
             return 0;
     }

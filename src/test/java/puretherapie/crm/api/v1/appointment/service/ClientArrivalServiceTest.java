@@ -130,9 +130,9 @@ public class ClientArrivalServiceTest {
 
     @MockBean
     private ClientDelayService mockCDService;
-    private static final LocalTime APPOINTMENT_TIME_NOT_LATE = LocalTime.now().minusMinutes(10);
-    private static final LocalTime APPOINTMENT_ACCEPTABLE_DELAY = LocalTime.now().plusMinutes(ClientDelayService.getMaximumClientDelay() - 2);
-    private static final LocalTime APPOINTMENT_TIME_TOO_MUCH_DELAY = LocalTime.now().plusMinutes(ClientDelayService.getMaximumClientDelay() + 2);
+    private static final LocalTime APPOINTMENT_TIME_NOT_LATE = LocalTime.now().plusMinutes(10);
+    private static final LocalTime APPOINTMENT_ACCEPTABLE_DELAY = LocalTime.now().minusMinutes(ClientDelayService.getMaximumClientDelay() - 2);
+    private static final LocalTime APPOINTMENT_TIME_TOO_MUCH_DELAY = LocalTime.now().minusMinutes(ClientDelayService.getMaximumClientDelay() + 2);
 
     @MockBean
     private PlaceInWaitingRoomService mockPCWRService;

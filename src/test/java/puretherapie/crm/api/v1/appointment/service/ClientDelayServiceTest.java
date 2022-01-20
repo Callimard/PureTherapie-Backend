@@ -96,16 +96,16 @@ public class ClientDelayServiceTest {
         @DisplayName("IsLateFromNow tests")
         class IsLateFromNow {
             @Test
-            @DisplayName("Test returns false if time before now")
-            void testWithTimeBeforeNow() {
-                LocalTime time = LocalTime.now().minusMinutes(2);
+            @DisplayName("Test returns false if time after now")
+            void testWithTimeAfterNow() {
+                LocalTime time = LocalTime.now().plusMinutes(2);
                 assertThat(ClientDelayService.isLateFromNow(time)).isFalse();
             }
 
             @Test
-            @DisplayName("Test returns true if time is after now")
-            void testWithTimeAfterNow() {
-                LocalTime time = LocalTime.now().plusMinutes(2);
+            @DisplayName("Test returns true if time is before now")
+            void testWithTimeBeforeNow() {
+                LocalTime time = LocalTime.now().minusMinutes(2);
                 assertThat(ClientDelayService.isLateFromNow(time)).isTrue();
             }
         }
@@ -131,7 +131,7 @@ public class ClientDelayServiceTest {
             @Test
             @DisplayName("Test returns true if time is too much")
             void testWithTooMuch() {
-                LocalTime time = LocalTime.now().plusMinutes(ClientDelayService.getMaximumClientDelay() + 5);
+                LocalTime time = LocalTime.now().minusMinutes(ClientDelayService.getMaximumClientDelay() + 5);
                 assertThat(ClientDelayService.isTooMuchLateFromNow(time)).isTrue();
             }
         }
@@ -141,9 +141,9 @@ public class ClientDelayServiceTest {
         class DelayFromNow {
 
             @Test
-            @DisplayName("Test returns 0 if appointment time is before now (not late)")
-            void testWithBeforeNow() {
-                LocalTime time = LocalTime.now().minusMinutes(2);
+            @DisplayName("Test returns 0 if appointment time is after now (not late)")
+            void testWithAfterNow() {
+                LocalTime time = LocalTime.now().plusMinutes(2);
                 assertThat(ClientDelayService.delayFromNow(time)).isEqualByComparingTo(0L);
             }
 
@@ -151,7 +151,7 @@ public class ClientDelayServiceTest {
             @DisplayName("Test returns correct delay with late time")
             void testWithLateTime() {
                 long delay = 3;
-                LocalTime time = LocalTime.now().plusMinutes(delay);
+                LocalTime time = LocalTime.now().minusMinutes(delay);
                 assertThat(ClientDelayService.delayFromNow(time)).isCloseTo(delay, Offset.offset(1L));
             }
 

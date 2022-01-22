@@ -30,7 +30,7 @@ public class TechnicianController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "false")
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping
     public List<TechnicianDTO> getAllTechnicians(
             @RequestParam(name = "alsoInactivated", required = false, defaultValue = "false") boolean alsoInactivated) {

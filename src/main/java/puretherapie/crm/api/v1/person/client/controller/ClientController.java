@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationResponseDTO;
 import puretherapie.crm.api.v1.person.client.service.ClientRegistrationService;
+import puretherapie.crm.api.v1.person.client.service.ClientUpdateService;
 import puretherapie.crm.api.v1.user.controller.dto.PersonOriginDTO;
 import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.client.Client;
@@ -47,11 +48,11 @@ public class ClientController {
     public static final String PARAM_DOUBLOON_VERIFICATION = "doubloonVerification";
 
     private static final int SEARCH_CLIENT_FILTER_SPLIT_ARRAY_SIZE = 4;
-    private static final int SEARCH_CLIENT_FILTER_MAX_ARG = 4;
 
     // Variables.
 
     private final ClientRegistrationService clientRegistrationService;
+    private final ClientUpdateService clientUpdateService;
     private final ClientRepository clientRepository;
     private final PersonOriginRepository personOriginRepository;
 
@@ -76,9 +77,19 @@ public class ClientController {
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping("/{clientId}")
     public ResponseEntity<ClientDTO> updateClient(@PathVariable(name = "clientId") int clientId, @RequestBody ClientDTO clientDTO) {
-        // TODO
+        if (clientDTO.getIdPerson() != clientId) {
+            log.error("Update a client with id {} but client data has different id {}", clientId, clientDTO.getIdPerson());
+            return ResponseEntity.badRequest().body(null);
+        }
 
-        return null;
+        ClientDTO client = this.clientUpdateService.updateClient(clientDTO);
+
+        if (client == null) {
+            log.error("Fail to update client with the id {}", clientId);
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        return ResponseEntity.ok(client);
     }
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")

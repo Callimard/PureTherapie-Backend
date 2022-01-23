@@ -16,7 +16,7 @@ public class PersonDTO {
     protected String lastName;
     protected String email;
     protected boolean gender;
-    protected LocalDate birthday;
+    protected String birthday;
     protected String phone;
     protected int idPersonOrigin;
 

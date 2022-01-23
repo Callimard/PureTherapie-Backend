@@ -43,7 +43,7 @@ public class Technician extends Person {
                 .lastName(getLastName())
                 .email(getEmail())
                 .gender(isGender())
-                .birthday(getBirthday())
+                .birthday(getBirthday() != null ? getBirthday().toString() : null)
                 .phone(getPhone())
                 .idPersonOrigin(getPersonOrigin().getIdPersonOrigin())
                 .speciality(speciality)

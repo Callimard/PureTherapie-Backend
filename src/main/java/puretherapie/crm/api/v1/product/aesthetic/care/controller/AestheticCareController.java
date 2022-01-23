@@ -32,7 +32,7 @@ public class AestheticCareController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "false")
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping
     public List<AestheticCareDTO> getAllAestheticCares() {
         List<AestheticCare> acList = this.aestheticCareRepository.findAll();

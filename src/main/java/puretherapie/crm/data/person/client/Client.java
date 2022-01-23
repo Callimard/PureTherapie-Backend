@@ -69,7 +69,7 @@ public class Client extends Person {
                 .lastName(getLastName())
                 .email(getEmail())
                 .gender(isGender())
-                .birthday(getBirthday())
+                .birthday(getBirthday() != null ? getBirthday().toString() : null)
                 .phone(getPhone())
                 .idPersonOrigin(getPersonOrigin().getIdPersonOrigin())
                 .build();

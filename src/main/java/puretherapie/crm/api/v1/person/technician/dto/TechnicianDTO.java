@@ -16,7 +16,7 @@ public class TechnicianDTO extends PersonDTO {
     private boolean isActive;
 
     @Builder
-    public TechnicianDTO(int idPerson, String firstName, String lastName, String email, boolean gender, LocalDate birthday, String phone,
+    public TechnicianDTO(int idPerson, String firstName, String lastName, String email, boolean gender, String birthday, String phone,
                          int idPersonOrigin, String speciality, boolean isActive) {
         super(idPerson, firstName, lastName, email, gender, birthday, phone, idPersonOrigin);
         this.speciality = speciality;

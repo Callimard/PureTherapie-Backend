@@ -32,7 +32,7 @@ public class ClientDTO extends PersonDTO {
     private String technicalComment;
 
     @Builder
-    public ClientDTO(int idPerson, String firstName, String lastName, String email, boolean gender, LocalDate birthday, String phone,
+    public ClientDTO(int idPerson, String firstName, String lastName, String email, boolean gender, String birthday, String phone,
                      int idPersonOrigin,
                      String photo, String comment, String technicalComment) {
         super(idPerson, firstName, lastName, email, gender, birthday, phone, idPersonOrigin);
@@ -132,7 +132,7 @@ public class ClientDTO extends PersonDTO {
                 .lastName(lastName != null ? lastName.toLowerCase() : null)
                 .email(email != null ? email.toLowerCase() : null)
                 .gender(gender)
-                .birthday(birthday)
+                .birthday(birthday != null ? LocalDate.parse(birthday) : null)
                 .phone(phone)
                 .creationDate(OffsetDateTime.now())
                 .personOrigin(getPersonOrigin(personOriginRepository))

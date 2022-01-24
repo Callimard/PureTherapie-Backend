@@ -17,31 +17,14 @@ public interface SimpleResponseDTO {
     }
 
     static SimpleResponseDTO generateFail(String msg) {
-        return new SimpleResponseDTO() {
-            @Override
-            public String message() {
-                return msg;
-            }
-
-            @Override
-            public boolean success() {
-                return false;
-            }
-        };
+        return new SimpleResponseDTOImpl(msg, false);
     }
 
     static SimpleResponseDTO generateSuccess(String msg) {
-        return new SimpleResponseDTO() {
-            @Override
-            public String message() {
-                return msg;
-            }
+        return new SimpleResponseDTOImpl(msg, true);
+    }
 
-            @Override
-            public boolean success() {
-                return true;
-            }
-        };
+    record SimpleResponseDTOImpl(String message, boolean success) implements SimpleResponseDTO {
     }
 
 }

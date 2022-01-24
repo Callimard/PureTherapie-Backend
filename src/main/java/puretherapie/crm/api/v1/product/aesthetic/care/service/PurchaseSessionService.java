@@ -52,7 +52,7 @@ public class PurchaseSessionService {
      *
      * @return the res of the purchaseSession
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.REQUIRED)
     public SimpleResponseDTO purchaseSession(int idClient, int idAestheticCare, double customPrice, int idPaymentType) {
         try {
             Client client = verifyClient(idClient);

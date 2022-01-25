@@ -11,7 +11,7 @@ import lombok.*;
 public class AestheticCarePackageDTO {
 
     private int idAestheticCarePackage;
-    private AestheticCareDTO aestheticCareDTO;
+    private AestheticCareDTO aestheticCare;
     private String name;
     private int numberAestheticCare;
 

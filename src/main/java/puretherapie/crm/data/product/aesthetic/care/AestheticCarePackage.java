@@ -41,7 +41,7 @@ public class AestheticCarePackage {
     public AestheticCarePackageDTO transform() {
         return AestheticCarePackageDTO.builder()
                 .idAestheticCarePackage(idAestheticCarePackage)
-                .aestheticCareDTO(aestheticCare.transform())
+                .aestheticCare(aestheticCare.transform())
                 .name(name)
                 .numberAestheticCare(numberAestheticCare)
                 .build();

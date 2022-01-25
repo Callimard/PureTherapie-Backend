@@ -40,7 +40,7 @@ public class Bundle {
                 .idBundle(idBundle)
                 .name(name)
                 .price(price)
-                .aestheticCareDTOList(
+                .aestheticCarePackageList(
                         aestheticCarePackages != null ? aestheticCarePackages.stream().map(AestheticCarePackage::transform).toList() :
                                 Collections.emptyList())
                 .build();

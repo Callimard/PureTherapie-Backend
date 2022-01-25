@@ -16,6 +16,6 @@ public class BundleDTO {
     private int idBundle;
     private String name;
     private double price;
-    private List<AestheticCarePackageDTO> aestheticCareDTOList;
+    private List<AestheticCarePackageDTO> aestheticCarePackageList;
 
 }

@@ -27,9 +27,6 @@ public class PurchaseSessionService {
 
     // Constants.
 
-    public static final String SESSION_PURCHASE_SUCCESS = "session_purchase_success";
-    public static final String SESSION_PURCHASE_FAIL = "session_purchase_fail";
-
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found_error";
     public static final String AESTHETIC_CARE_NOT_FOUND_ERROR = "ac_not_found_error";
     public static final String PAYMENT_TYPE_NOT_FOUND = "payment_type_not_found_error";
@@ -104,6 +101,13 @@ public class PurchaseSessionService {
         return bill;
     }
 
+    /**
+     * @param client the client
+     * @param paymentType the payment type
+     * @param basePrice the base price
+     * @param customPrice the custom price (ignored if less than 0)
+     * @return the bill corresponding to parameter
+     */
     private Bill buildBill(Client client, PaymentType paymentType, double basePrice, double customPrice) {
         return Bill.builder()
                 .client(client)

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
@@ -19,17 +19,13 @@ import puretherapie.crm.data.product.bill.repository.BillRepository;
 import puretherapie.crm.data.product.bill.repository.PaymentTypeRepository;
 
 import java.time.OffsetDateTime;
-import java.util.Map;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class PurchaseSessionService extends SimpleService {
+public class PurchaseSessionService {
 
     // Constants.
-
-    public static final String SESSION_PURCHASE_SUCCESS = "session_purchase_success";
-    public static final String SESSION_PURCHASE_FAIL = "session_purchase_fail";
 
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found_error";
     public static final String AESTHETIC_CARE_NOT_FOUND_ERROR = "ac_not_found_error";
@@ -45,50 +41,73 @@ public class PurchaseSessionService extends SimpleService {
 
     // Methods.
 
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> purchaseSession(int idClient, int idAestheticCare, double customPrice, int idPaymentType) {
+    /**
+     * @param idClient        the id of the client
+     * @param idAestheticCare the id of the aesthetic care
+     * @param customPrice     the custom price (ignored if negative)
+     * @param idPaymentType   this idPaymentType
+     *
+     * @return the res of the purchaseSession
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public SimpleResponseDTO purchaseSession(int idClient, int idAestheticCare, double customPrice, int idPaymentType) {
         try {
             Client client = verifyClient(idClient);
             AestheticCare aestheticCare = verifyAestheticCare(idAestheticCare);
             PaymentType paymentType = verifyPaymentType(idPaymentType);
             Bill bill = saveBill(client, paymentType, aestheticCare.getPrice(), customPrice);
             saveSessionPurchase(client, aestheticCare, bill);
-            return generateSuccessRes();
+            return generateSuccessRes(client.simplyIdentifier(), aestheticCare.getName());
         } catch (Exception e) {
-            log.debug("Fail to purchase a session, error message: {}", e.getMessage());
+            log.error("Fail to purchase a session, error message: {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return generateErrorRes(e);
+            return generateErrorRes(e.getMessage());
         }
+    }
+
+    private SimpleResponseDTO generateSuccessRes(String clientIdentifier, String acName) {
+        return SimpleResponseDTO.generateSuccess("Success purchase session of AC %s for the client %s".formatted(acName, clientIdentifier));
+    }
+
+    private SimpleResponseDTO generateErrorRes(String errorMsg) {
+        return SimpleResponseDTO.generateFail(errorMsg);
     }
 
     private Client verifyClient(int idClient) {
         Client client = clientRepository.findByIdPerson(idClient);
         if (client == null)
-            throw new PurchaseSessionException("Client not found", generateError(CLIENT_NOT_FOUND_ERROR, "Client id not found"));
+            throw new PurchaseSessionException(CLIENT_NOT_FOUND_ERROR);
         return client;
     }
 
     private AestheticCare verifyAestheticCare(int idAestheticCare) {
         AestheticCare ac = aestheticCareRepository.findByIdAestheticCare(idAestheticCare);
         if (ac == null)
-            throw new PurchaseSessionException("Aesthetic care not found", generateError(AESTHETIC_CARE_NOT_FOUND_ERROR, "AC not found"));
+            throw new PurchaseSessionException(AESTHETIC_CARE_NOT_FOUND_ERROR);
         return ac;
     }
 
     private PaymentType verifyPaymentType(int idPaymentType) {
         PaymentType paymentType = paymentTypeRepository.findByIdPaymentType(idPaymentType);
         if (paymentType == null)
-            throw new PurchaseSessionException("PaymentType not found", generateError(PAYMENT_TYPE_NOT_FOUND, "PaymentType not found"));
+            throw new PurchaseSessionException(PAYMENT_TYPE_NOT_FOUND);
         return paymentType;
     }
 
     private Bill saveBill(Client client, PaymentType paymentType, Double basePrice, double customPrice) {
         Bill bill = buildBill(client, paymentType, basePrice, customPrice);
         bill = billRepository.save(bill);
-        log.debug("Save bill {}", bill);
+        log.info("Save bill {}", bill);
         return bill;
     }
 
+    /**
+     * @param client the client
+     * @param paymentType the payment type
+     * @param basePrice the base price
+     * @param customPrice the custom price (ignored if less than 0)
+     * @return the bill corresponding to parameter
+     */
     private Bill buildBill(Client client, PaymentType paymentType, double basePrice, double customPrice) {
         return Bill.builder()
                 .client(client)
@@ -114,23 +133,11 @@ public class PurchaseSessionService extends SimpleService {
                 .build();
     }
 
-    // SimpleService methods.
-
-    @Override
-    public String getSuccessTag() {
-        return SESSION_PURCHASE_SUCCESS;
-    }
-
-    @Override
-    public String getFailTag() {
-        return SESSION_PURCHASE_FAIL;
-    }
-
     // Exceptions.
 
-    private static class PurchaseSessionException extends SimpleService.ServiceException {
-        public PurchaseSessionException(String message, Map<String, String> errors) {
-            super(message, errors);
+    private static class PurchaseSessionException extends RuntimeException {
+        public PurchaseSessionException(String message) {
+            super(message);
         }
     }
 }

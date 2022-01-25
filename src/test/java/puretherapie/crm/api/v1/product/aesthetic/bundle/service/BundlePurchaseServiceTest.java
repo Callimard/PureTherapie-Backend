@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.product.aesthetic.bundle.Bundle;
@@ -49,7 +50,7 @@ public class BundlePurchaseServiceTest {
         @Test
         @DisplayName("Test with client not found fail")
         void testWithClientNotFound() {
-            Map<String, Object> res = bps.purchaseBundle(-1, BUNDLE_ID, Collections.emptySet(), -1, PAYMENT_TYPE_ID);
+            SimpleResponseDTO res = bps.purchaseBundle(BUNDLE_ID, -1, Collections.emptySet(), -1, PAYMENT_TYPE_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
         }
@@ -57,7 +58,7 @@ public class BundlePurchaseServiceTest {
         @Test
         @DisplayName("Test with bundle not found fail")
         void testWithBundleNotFound() {
-            Map<String, Object> res = bps.purchaseBundle(CLIENT_ID, -1, Collections.emptySet(), -1, PAYMENT_TYPE_ID);
+            SimpleResponseDTO res = bps.purchaseBundle( -1, CLIENT_ID, Collections.emptySet(), -1, PAYMENT_TYPE_ID);
             verifyFail(res);
             verifyFailType(res, BUNDLE_NOT_FOUND_ERROR);
         }
@@ -67,7 +68,7 @@ public class BundlePurchaseServiceTest {
         void testWithEmptyBundle() {
             prepareEmptyBundle();
 
-            Map<String, Object> res = bps.purchaseBundle(CLIENT_ID, BUNDLE_ID, Collections.emptySet(), -1, PAYMENT_TYPE_ID);
+            SimpleResponseDTO res = bps.purchaseBundle(BUNDLE_ID, CLIENT_ID, Collections.emptySet(), -1, PAYMENT_TYPE_ID);
             verifyFail(res);
             verifyFailType(res, EMPTY_BUNDLE_ERROR);
         }
@@ -77,7 +78,7 @@ public class BundlePurchaseServiceTest {
         void testWithPaymentTypeNotFound() {
             prepareNotEmptyBundle();
 
-            Map<String, Object> res = bps.purchaseBundle(CLIENT_ID, BUNDLE_ID, Collections.emptySet(), -1, -1);
+            SimpleResponseDTO res = bps.purchaseBundle(BUNDLE_ID, CLIENT_ID, Collections.emptySet(), -1, -1);
             verifyFail(res);
             verifyFailType(res, PAYMENT_TYPE_NOT_FOUND);
         }
@@ -87,13 +88,13 @@ public class BundlePurchaseServiceTest {
         void testWithNoCustomizations() {
             prepareNotEmptyBundle();
 
-            Map<String, Object> res = bps.purchaseBundle(CLIENT_ID, BUNDLE_ID, Collections.emptySet(), -1, PAYMENT_TYPE_ID);
+            SimpleResponseDTO res = bps.purchaseBundle(BUNDLE_ID, CLIENT_ID, Collections.emptySet(), -1, PAYMENT_TYPE_ID);
             verifySuccess(res);
 
-            res = bps.purchaseBundle(CLIENT_ID, BUNDLE_ID, null, -1, PAYMENT_TYPE_ID);
+            res = bps.purchaseBundle(BUNDLE_ID, CLIENT_ID, null, -1, PAYMENT_TYPE_ID);
             verifySuccess(res);
 
-            res = bps.purchaseBundle(CLIENT_ID, BUNDLE_ID, null, 68, PAYMENT_TYPE_ID);
+            res = bps.purchaseBundle(BUNDLE_ID, CLIENT_ID, null, 68, PAYMENT_TYPE_ID);
             verifySuccess(res);
         }
 
@@ -105,10 +106,10 @@ public class BundlePurchaseServiceTest {
             Set<ACPackageCustomization> setCustomisation = new HashSet<>();
             setCustomisation.add(new ACPackageCustomization(178, 9));
 
-            Map<String, Object> res = bps.purchaseBundle(CLIENT_ID, BUNDLE_ID, setCustomisation, -1, PAYMENT_TYPE_ID);
+            SimpleResponseDTO res = bps.purchaseBundle(BUNDLE_ID, CLIENT_ID, setCustomisation, -1, PAYMENT_TYPE_ID);
             verifySuccess(res);
 
-            res = bps.purchaseBundle(CLIENT_ID, BUNDLE_ID, setCustomisation, 75, PAYMENT_TYPE_ID);
+            res = bps.purchaseBundle(BUNDLE_ID, CLIENT_ID, setCustomisation, 75, PAYMENT_TYPE_ID);
             verifySuccess(res);
         }
 
@@ -120,26 +121,29 @@ public class BundlePurchaseServiceTest {
             Set<ACPackageCustomization> setCustomisation = new HashSet<>();
             setCustomisation.add(new ACPackageCustomization(ACP_ID, 9));
 
-            Map<String, Object> res = bps.purchaseBundle(CLIENT_ID, BUNDLE_ID, setCustomisation, -1, PAYMENT_TYPE_ID);
+            SimpleResponseDTO res = bps.purchaseBundle(BUNDLE_ID, CLIENT_ID, setCustomisation, -1, PAYMENT_TYPE_ID);
             verifySuccess(res);
 
-            res = bps.purchaseBundle(CLIENT_ID, BUNDLE_ID, setCustomisation, 50, PAYMENT_TYPE_ID);
+            res = bps.purchaseBundle(BUNDLE_ID, CLIENT_ID, setCustomisation, 50, PAYMENT_TYPE_ID);
             verifySuccess(res);
         }
 
     }
 
-    private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(bps.getSuccessTag());
+    private void verifySuccess(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isTrue();
     }
 
-    private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(bps.getFailTag());
+    private void verifyFail(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
     }
 
-    void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(bps.getFailTag());
-        assertThat(errors).isNotNull().containsKey(expectedKey);
+    void verifyFailType(SimpleResponseDTO res, String expectedKey) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
+        assertThat(res.message()).isEqualTo(expectedKey);
     }
 
     // Context

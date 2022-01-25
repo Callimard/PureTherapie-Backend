@@ -5,4 +5,4 @@ INSERT INTO puretherapie.AestheticCare (puretherapie.AestheticCare.name, purethe
 VALUES ('Le soin expert', 80.50, 45);
 
 INSERT INTO puretherapie.AestheticCare (puretherapie.AestheticCare.name, puretherapie.AestheticCare.price, puretherapie.AestheticCare.timeExecution)
-VALUES ('Le soin primordiale', 120.33, 60);
+VALUES ('Le soin primordial', 120.33, 60);

@@ -1,6 +1,7 @@
 package puretherapie.crm.data.product.aesthetic.care;
 
 import lombok.*;
+import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.AestheticCarePackageDTO;
 import puretherapie.crm.data.product.aesthetic.bundle.Bundle;
 
 import javax.persistence.*;
@@ -36,4 +37,13 @@ public class AestheticCarePackage {
             = "idBundle"))
     @ToString.Exclude
     private List<Bundle> bundles;
+
+    public AestheticCarePackageDTO transform() {
+        return AestheticCarePackageDTO.builder()
+                .idAestheticCarePackage(idAestheticCarePackage)
+                .aestheticCare(aestheticCare.transform())
+                .name(name)
+                .numberAestheticCare(numberAestheticCare)
+                .build();
+    }
 }

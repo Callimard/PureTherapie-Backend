@@ -2,11 +2,12 @@ package puretherapie.crm.api.v1.product.aesthetic.care.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.AestheticCareDTO;
+import puretherapie.crm.api.v1.product.aesthetic.care.service.PurchaseSessionService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
 
@@ -26,9 +27,13 @@ public class AestheticCareController {
 
     public static final String AESTHETIC_CARE_URL = API_V1_URL + "/aesthetic_cares";
 
+    public static final String AESTHETIC_CARE_PURCHASE = "/purchase";
+    public static final String AESTHETIC_CARE_PURCHASE_URL = AESTHETIC_CARE_URL + AESTHETIC_CARE_PURCHASE;
+
     // Variables.
 
     private final AestheticCareRepository aestheticCareRepository;
+    private final PurchaseSessionService purchaseSessionService;
 
     // Methods.
 
@@ -43,6 +48,15 @@ public class AestheticCareController {
             log.error("Empty list of Aesthetic care");
 
         return allAC;
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PostMapping("/{idAc}/" + AESTHETIC_CARE_PURCHASE)
+    public ResponseEntity<SimpleResponseDTO> sessionPurchase(@PathVariable(name = "idAc") int idAc, @RequestParam(name = "idClient") int idClient,
+                                                             @RequestParam(name = "customPrice", required = false, defaultValue = "-1") double customPrice,
+                                                             @RequestParam(name = "idPaymentType", required = false, defaultValue = "1") int idPaymentType) {
+        return SimpleResponseDTO.generateResponse(this.purchaseSessionService.purchaseSession(idClient, idAc, customPrice, idPaymentType));
     }
 
 }

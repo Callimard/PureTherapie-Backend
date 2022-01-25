@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.product.aesthetic.bundle.Bundle;
@@ -27,12 +27,9 @@ import java.util.*;
 @Slf4j
 @AllArgsConstructor
 @Service
-public class BundlePurchaseService extends SimpleService {
+public class BundlePurchaseService {
 
     // Constants.
-
-    public static final String BUNDLE_PURCHASE_SUCCESS = "bundle_purchase_success";
-    public static final String BUNDLE_PURCHASE_FAIL = "bundle_purchase_fail";
 
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found_error";
     public static final String BUNDLE_NOT_FOUND_ERROR = "bundle_not_found_error";
@@ -51,8 +48,8 @@ public class BundlePurchaseService extends SimpleService {
     // Methods.
 
     /**
-     * @param idClient                id client
      * @param idBundle                id bundle
+     * @param idClient                id client
      * @param acPackageCustomizations list of ac package customization
      * @param customPrice             custom Price (not take in account if less than 0)
      * @param idPaymentType           id payment type
@@ -60,8 +57,8 @@ public class BundlePurchaseService extends SimpleService {
      * @return res of the try to purchase bundle.
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Map<String, Object> purchaseBundle(int idClient, int idBundle, Set<ACPackageCustomization> acPackageCustomizations, double customPrice,
-                                              int idPaymentType) {
+    public SimpleResponseDTO purchaseBundle(int idBundle, int idClient, Set<ACPackageCustomization> acPackageCustomizations, double customPrice,
+                                            int idPaymentType) {
         try {
             Client client = verifyClient(idClient);
             Bundle bundle = verifyBundle(idBundle);
@@ -69,18 +66,26 @@ public class BundlePurchaseService extends SimpleService {
             Bill bill = saveBill(client, paymentType, bundle.getPrice(), customPrice);
             BundlePurchase bundlePurchase = saveBundlePurchase(client, bundle, bill);
             saveAllStocks(bundle, bundlePurchase, acPackageCustomizations);
-            return generateSuccessRes();
+            return generateSuccessRes(client.simplyIdentifier(), bundle.getName());
         } catch (Exception e) {
             log.debug("Fail to purchase a bundle, error message: {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return generateErrorRes(e);
+            return generateErrorRes(e.getMessage());
         }
+    }
+
+    private SimpleResponseDTO generateSuccessRes(String clientIdentifier, String bundleName) {
+        return SimpleResponseDTO.generateSuccess("Success purchase Bundle %s for the client %s".formatted(bundleName, clientIdentifier));
+    }
+
+    private SimpleResponseDTO generateErrorRes(String errorMsg) {
+        return SimpleResponseDTO.generateFail(errorMsg);
     }
 
     private Client verifyClient(int idClient) {
         Client client = clientRepository.findByIdPerson(idClient);
         if (client == null)
-            throw new BundlePurchaseException("Client not found", generateError(CLIENT_NOT_FOUND_ERROR, "Client id not found"));
+            throw new BundlePurchaseException(CLIENT_NOT_FOUND_ERROR);
         return client;
     }
 
@@ -94,18 +99,18 @@ public class BundlePurchaseService extends SimpleService {
 
     private void verifyNotNullBundle(Bundle bundle) {
         if (bundle == null)
-            throw new BundlePurchaseException("Bundle not found", generateError(BUNDLE_NOT_FOUND_ERROR, "Bundle not found"));
+            throw new BundlePurchaseException(BUNDLE_NOT_FOUND_ERROR);
     }
 
     private void verifyNotEmptyBundle(Bundle bundle) {
         if (bundle.getAestheticCarePackages() == null || bundle.getAestheticCarePackages().isEmpty())
-            throw new BundlePurchaseException("Empty bundle", generateError(EMPTY_BUNDLE_ERROR, "Empty bundle"));
+            throw new BundlePurchaseException(EMPTY_BUNDLE_ERROR);
     }
 
     private PaymentType verifyPaymentType(int idPaymentType) {
         PaymentType paymentType = paymentTypeRepository.findByIdPaymentType(idPaymentType);
         if (paymentType == null)
-            throw new BundlePurchaseException("PaymentType not found", generateError(PAYMENT_TYPE_NOT_FOUND, "PaymentType not found"));
+            throw new BundlePurchaseException(PAYMENT_TYPE_NOT_FOUND);
 
         return paymentType;
     }
@@ -125,6 +130,13 @@ public class BundlePurchaseService extends SimpleService {
         return bill;
     }
 
+    /**
+     * @param client the client
+     * @param paymentType the payment type
+     * @param basePrice the base price
+     * @param customPrice the custom price (ignored if less than 0)
+     * @return the bill corresponding to parameter
+     */
     private Bill buildBill(Client client, PaymentType paymentType, double basePrice, double customPrice) {
         return Bill.builder()
                 .client(client)
@@ -181,18 +193,6 @@ public class BundlePurchaseService extends SimpleService {
                 .build();
     }
 
-    // SimpleService methods.
-
-    @Override
-    public String getSuccessTag() {
-        return BUNDLE_PURCHASE_SUCCESS;
-    }
-
-    @Override
-    public String getFailTag() {
-        return BUNDLE_PURCHASE_FAIL;
-    }
-
     // Inner class.
 
     public static record ACPackageCustomization(int idAestheticCarePackage, int customStock) {
@@ -211,9 +211,9 @@ public class BundlePurchaseService extends SimpleService {
 
     // Exception.
 
-    private static class BundlePurchaseException extends SimpleService.ServiceException {
-        public BundlePurchaseException(String message, Map<String, String> errors) {
-            super(message, errors);
+    private static class BundlePurchaseException extends RuntimeException {
+        public BundlePurchaseException(String message) {
+            super(message);
         }
     }
 

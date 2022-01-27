@@ -11,6 +11,7 @@ import puretherapie.crm.api.v1.user.service.UserLoginService;
 import javax.servlet.http.HttpSession;
 
 import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
+import static puretherapie.crm.api.v1.ApiV1.generateOkJsonResponse;
 import static puretherapie.crm.api.v1.user.controller.UserController.API_V1_USER_URL;
 
 @Slf4j
@@ -44,5 +45,16 @@ public class UserController {
     @PostMapping(USER_LOGOUT)
     public ResponseEntity<String> logout(HttpSession session, Authentication authentication) {
         return userLoginService.successLogout(session, authentication);
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(path = USER_LOGIN, method = RequestMethod.HEAD)
+    public ResponseEntity<String> checkLogin() {
+        return generateOkJsonResponse("""
+                                                  {
+                                                      "message":"check login success"
+                                                  }
+                                              """);
     }
 }

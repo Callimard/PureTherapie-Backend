@@ -3,6 +3,7 @@ package puretherapie.crm.data.person.client;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.SimpleClientInfoDTO;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.person.Person;
 import puretherapie.crm.data.person.PersonOrigin;
@@ -72,6 +73,12 @@ public class Client extends Person {
                 .birthday(getBirthday() != null ? getBirthday().toString() : null)
                 .phone(getPhone())
                 .idPersonOrigin(getPersonOrigin().getIdPersonOrigin())
+                .build();
+    }
+
+    public SimpleClientInfoDTO transformSimple() {
+        return SimpleClientInfoDTO.builder()
+                .idPerson(getIdPerson())
                 .build();
     }
 

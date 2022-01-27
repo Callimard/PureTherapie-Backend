@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationResponseDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.SimpleClientInfoDTO;
 import puretherapie.crm.api.v1.person.client.service.ClientRegistrationService;
 import puretherapie.crm.api.v1.person.client.service.ClientUpdateService;
 import puretherapie.crm.api.v1.user.controller.dto.PersonOriginDTO;
@@ -120,10 +121,10 @@ public class ClientController {
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping(CLIENT_SEARCH_WITH_EMAIL)
-    public ClientDTO getClientByEmail(@RequestParam(value = "email") String clientEmail) {
+    public SimpleClientInfoDTO getClientByEmail(@RequestParam(value = "email") String clientEmail) {
         Client client = clientRepository.findByEmail(clientEmail);
         if (client != null)
-            return client.transform();
+            return client.transformSimple();
         else
             return null;
     }

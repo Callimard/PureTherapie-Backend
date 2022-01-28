@@ -1,6 +1,7 @@
 package puretherapie.crm.data.appointment;
 
 import lombok.*;
+import puretherapie.crm.api.v1.appointment.controller.dto.ClientArrivalDTO;
 import puretherapie.crm.data.person.client.Client;
 
 import javax.persistence.*;
@@ -27,4 +28,12 @@ public class ClientArrival {
     @ManyToOne(optional = false)
     @JoinColumn(name = "idClient", nullable = false)
     private Client client;
+
+    public ClientArrivalDTO transform() {
+        return ClientArrivalDTO.builder()
+                .idClientArrival(idClientArrival)
+                .arrivalDate(arrivalDate != null ? arrivalDate.toString() : null)
+                .client(client != null ? client.transform() : null)
+                .build();
+    }
 }

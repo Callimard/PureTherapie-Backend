@@ -1,6 +1,7 @@
 package puretherapie.crm.data.appointment;
 
 import lombok.*;
+import puretherapie.crm.api.v1.appointment.controller.dto.AppointmentDTO;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.technician.Technician;
@@ -54,5 +55,19 @@ public class Appointment {
     @OneToMany(targetEntity = TimeSlot.class, mappedBy = "appointment")
     @ToString.Exclude
     private List<TimeSlot> timeSlots;
+
+    public AppointmentDTO transform() {
+        return AppointmentDTO.builder()
+                .idAppointment(idAppointment)
+                .aestheticCare(aestheticCare != null ? aestheticCare.transform() : null)
+                .client(client != null ? client.transform() : null)
+                .technician(technician != null ? technician.transform() : null)
+                .clientArrival(clientArrival != null ? clientArrival.transform() : null)
+                .canceled(canceled)
+                .day(day != null ? day.toString() : null)
+                .time(time != null ? time.toString() : null)
+                .timeSlots(timeSlots != null ? timeSlots.stream().map(TimeSlot::transform).toList() : null)
+                .build();
+    }
 
 }

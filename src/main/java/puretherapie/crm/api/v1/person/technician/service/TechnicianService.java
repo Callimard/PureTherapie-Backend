@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import puretherapie.crm.api.v1.agenda.controller.dto.FreeTimeSlotDTO;
+import puretherapie.crm.api.v1.agenda.controller.dto.TimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.service.OpeningService;
 import puretherapie.crm.api.v1.agenda.service.TimeSlotAtomService;
 import puretherapie.crm.data.agenda.Opening;
@@ -35,6 +36,29 @@ public class TechnicianService {
     private final OpeningService openingService;
 
     // Methods.
+
+    /**
+     * @param idTechnician the technician id
+     * @param day          the day
+     *
+     * @return the list of all {@link TimeSlotDTO} which are not free and occupied for an appointment with the technician (no TS for absence or launch
+     * break)
+     */
+    public List<TimeSlotDTO> getTechnicianOccupiedTimeSlot(int idTechnician, LocalDate day) {
+        Technician technician = verifyTechnician(idTechnician);
+        verifyDay(day);
+        if (openingService.isOpen(day)) {
+            List<TimeSlot> occupiedTS = timeSlotRepository.findByTechnicianAndDayAndFree(technician, day, false);
+
+            List<TimeSlotDTO> allOccupiedTS = new ArrayList<>();
+            for (TimeSlot ts : occupiedTS)
+                allOccupiedTS.add(ts.transform());
+
+            return allOccupiedTS;
+        } else
+            return Collections.emptyList();
+
+    }
 
     public List<FreeTimeSlotDTO> getTechnicianFreeTimeSlot(int idTechnician, LocalDate day, int processDuration) {
         Technician technician = verifyTechnician(idTechnician);

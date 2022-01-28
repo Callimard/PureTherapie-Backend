@@ -66,7 +66,7 @@ public class Appointment {
                 .canceled(canceled)
                 .day(day != null ? day.toString() : null)
                 .time(time != null ? time.toString() : null)
-                .timeSlots(timeSlots != null ? timeSlots.stream().map(TimeSlot::transform).toList() : null)
+                .timeSlots(timeSlots != null ? timeSlots.stream().map(TimeSlot::transformWithoutAppointment).toList() : null)
                 .build();
     }
 

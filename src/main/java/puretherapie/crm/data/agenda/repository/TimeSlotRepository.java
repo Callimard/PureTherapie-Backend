@@ -12,6 +12,8 @@ import java.util.List;
 @Repository
 public interface TimeSlotRepository extends JpaRepository<TimeSlot, Integer> {
 
+    List<TimeSlot> findByTechnicianAndDayAndFree(Technician technician, LocalDate day, boolean free);
+
     List<TimeSlot> findByTechnicianAndDay(Technician technician, LocalDate day);
 
     List<TimeSlot> findByAppointmentOrderByBeginAsc(Appointment appointment);

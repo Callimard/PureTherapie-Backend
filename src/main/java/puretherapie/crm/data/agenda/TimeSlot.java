@@ -50,8 +50,24 @@ public class TimeSlot {
                 .begin(begin != null ? begin.toString() : null)
                 .time(time)
                 .free(free)
+                .isLaunchBreak(false)
+                .isAbsence(false)
                 .technician(technician != null ? technician.transform() : null)
                 .appointment(appointment != null ? appointment.transform() : null)
+                .build();
+    }
+
+    public TimeSlotDTO transformWithoutAppointment() {
+        return TimeSlotDTO.builder()
+                .idTimeSlot(idTimeSlot)
+                .day(day != null ? day.toString() : null)
+                .begin(begin != null ? begin.toString() : null)
+                .time(time)
+                .free(free)
+                .isLaunchBreak(false)
+                .isAbsence(false)
+                .technician(technician != null ? technician.transform() : null)
+                .appointment(null)
                 .build();
     }
 

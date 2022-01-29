@@ -1,10 +1,12 @@
 package puretherapie.crm.data.product.bill;
 
 import lombok.*;
+import puretherapie.crm.api.v1.product.bill.controller.dto.BillDTO;
 import puretherapie.crm.data.person.client.Client;
 
 import javax.persistence.*;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Builder
 @Getter
@@ -37,4 +39,20 @@ public class Bill {
     @ManyToOne(optional = false)
     @JoinColumn(name = "idPaymentType", nullable = false)
     private PaymentType paymentType;
+
+    @OneToMany(targetEntity = Payment.class, mappedBy = "bill")
+    @ToString.Exclude
+    private List<Payment> payments;
+
+    public BillDTO transform() {
+        return BillDTO.builder()
+                .idBill(idBill)
+                .basePrice(basePrice)
+                .purchasePrice(purchasePrice)
+                .creationDate(creationDate != null ? creationDate.toString() : null)
+                .client(client != null ? client.transform() : null)
+                .paymentType(paymentType != null ? paymentType.transform() : null)
+                .payments(payments != null ? payments.stream().map(p -> p.transformWithBill(this)).toList() : null)
+                .build();
+    }
 }

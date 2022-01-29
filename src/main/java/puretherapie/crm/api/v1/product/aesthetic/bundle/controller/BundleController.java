@@ -6,9 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.BundleDTO;
+import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.BundlePurchaseDTO;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.service.BundlePurchaseService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.product.aesthetic.bundle.Bundle;
+import puretherapie.crm.data.product.aesthetic.bundle.BundlePurchase;
 import puretherapie.crm.data.product.aesthetic.bundle.repository.BundleRepository;
 
 import java.util.ArrayList;
@@ -29,8 +31,11 @@ public class BundleController {
 
     public static final String BUNDLES_URL = API_V1_URL + "/bundles";
 
-    public static final String BUNDLE_PURCHASE = "/purchase";
-    public static final String BUNDLE_PURCHASE_URL = BUNDLES_URL + BUNDLE_PURCHASE;
+    public static final String CLIENT_BUNDLE_PURCHASE = "/{idBundle}/purchase";
+    public static final String CLIENT_BUNDLE_PURCHASE_URL = BUNDLES_URL + CLIENT_BUNDLE_PURCHASE;
+
+    public static final String CLIENT_ALL_BUNDLE_PURCHASES = "/purchases";
+    public static final String CLIENT_ALL_BUNDLE_PURCHASES_URL = BUNDLES_URL + CLIENT_ALL_BUNDLE_PURCHASES;
 
     // Variables.
 
@@ -55,13 +60,21 @@ public class BundleController {
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
-    @PostMapping("/{idBundle}/" + BUNDLE_PURCHASE)
+    @PostMapping(CLIENT_BUNDLE_PURCHASE)
     public ResponseEntity<SimpleResponseDTO> bundlePurchase(@PathVariable(name = "idBundle") int idBundle,
                                                             @RequestParam(name = "idClient") int idClient,
                                                             @RequestParam(name = "customPrice", required = false, defaultValue = "-1") double customPrice,
                                                             @RequestParam(name = "idPaymentType", required = false, defaultValue = "1") int idPaymentType) {
         return SimpleResponseDTO.generateResponse(this.bundlePurchaseService.purchaseBundle(idBundle, idClient, Collections.emptySet(), customPrice
                 , idPaymentType));
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(CLIENT_ALL_BUNDLE_PURCHASES)
+    public List<BundlePurchaseDTO> getAllClientBundlePurchases(@RequestParam(name = "idClient") int idClient) {
+        List<BundlePurchase> bundlePurchases = bundlePurchaseService.getAllClientBundlePurchases(idClient);
+        return bundlePurchases.stream().map(BundlePurchase::transform).toList();
     }
 
 }

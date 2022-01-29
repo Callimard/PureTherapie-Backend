@@ -1,6 +1,7 @@
 package puretherapie.crm.data.product.aesthetic.care;
 
 import lombok.*;
+import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.SessionPurchaseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.product.bill.Bill;
 
@@ -34,4 +35,15 @@ public class SessionPurchase {
     @ManyToOne(optional = false)
     @JoinColumn(name = "idBill", nullable = false)
     private Bill bill;
+
+    public SessionPurchaseDTO transform() {
+        return SessionPurchaseDTO.builder()
+                .idSessionPurchase(idSessionPurchase)
+                .used(used)
+                .aestheticCare(aestheticCare != null ? aestheticCare.transform() : null)
+                .client(client != null ? client.transform() : null)
+                .bill(bill != null ? bill.transform() : null)
+                .build();
+    }
+
 }

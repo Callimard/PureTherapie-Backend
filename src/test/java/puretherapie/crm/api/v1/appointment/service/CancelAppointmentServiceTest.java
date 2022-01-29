@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
 import puretherapie.crm.data.appointment.Appointment;
@@ -14,7 +15,6 @@ import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,7 +39,7 @@ public class CancelAppointmentServiceTest {
         void testWithNotFoundAppointment() {
             prepareAppointmentRepository();
 
-            Map<String, Object> res = cas.cancelAppointment(133);
+            SimpleResponseDTO res = cas.cancelAppointment(133);
             verifyFail(res);
             verifyFailType(res, APPOINTMENT_NOT_FOUND_ERROR);
         }
@@ -51,7 +51,7 @@ public class CancelAppointmentServiceTest {
             prepareTimeSlotRepository();
             prepareNotCanceledAppointment();
 
-            Map<String, Object> res = cas.cancelAppointment(APPOINTMENT_ID);
+            SimpleResponseDTO res = cas.cancelAppointment(APPOINTMENT_ID);
             verifySuccess(res);
 
             verify(mockAppointmentRepository, times(1)).save(mockAppointment);
@@ -68,7 +68,7 @@ public class CancelAppointmentServiceTest {
             prepareTimeSlotRepository();
             prepareAlreadyCanceledAppointment();
 
-            Map<String, Object> res = cas.cancelAppointment(APPOINTMENT_ID);
+            SimpleResponseDTO res = cas.cancelAppointment(APPOINTMENT_ID);
             verifySuccess(res);
 
             verify(mockAppointmentRepository, times(0)).save(mockAppointment);
@@ -80,17 +80,20 @@ public class CancelAppointmentServiceTest {
 
     }
 
-    private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(cas.getSuccessTag());
+    private void verifySuccess(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isTrue();
     }
 
-    private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(cas.getFailTag());
+    private void verifyFail(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
     }
 
-    void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(cas.getFailTag());
-        assertThat(errors).isNotNull().containsKey(expectedKey);
+    void verifyFailType(SimpleResponseDTO res, String expectedMsg) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
+        assertThat(res.message()).isEqualTo(expectedMsg);
     }
 
     // Context.

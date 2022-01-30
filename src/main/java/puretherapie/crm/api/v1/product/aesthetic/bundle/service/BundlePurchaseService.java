@@ -47,6 +47,15 @@ public class BundlePurchaseService {
 
     // Methods.
 
+    public List<BundlePurchase> getAllClientBundlePurchases(int idClient) {
+        try {
+            return bundlePurchaseRepository.findByClient(verifyClient(idClient));
+        } catch (Exception e) {
+            log.error("Error during searching client bundle purchases, Error = {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
     /**
      * @param idBundle                id bundle
      * @param idClient                id client
@@ -131,10 +140,11 @@ public class BundlePurchaseService {
     }
 
     /**
-     * @param client the client
+     * @param client      the client
      * @param paymentType the payment type
-     * @param basePrice the base price
+     * @param basePrice   the base price
      * @param customPrice the custom price (ignored if less than 0)
+     *
      * @return the bill corresponding to parameter
      */
     private Bill buildBill(Client client, PaymentType paymentType, double basePrice, double customPrice) {

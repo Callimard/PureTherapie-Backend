@@ -1,6 +1,9 @@
 package puretherapie.crm.data.product.aesthetic.bundle;
 
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
+import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.BundlePurchaseDTO;
+import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.StockDTO;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 
 import javax.persistence.*;
@@ -52,5 +55,23 @@ public class Stock {
                                                                                               getRemainingQuantity() - reduceQuantity));
         else
             setRemainingQuantity(getRemainingQuantity() - reduceQuantity);
+    }
+
+    public StockDTO transform() {
+        return StockDTO.builder()
+                .idStock(idStock)
+                .remainingQuantity(remainingQuantity)
+                .aestheticCare(aestheticCare != null ? aestheticCare.transform() : null)
+                .bundlePurchase(bundlePurchase != null ? bundlePurchase.transform() : null)
+                .build();
+    }
+
+    public StockDTO transform(BundlePurchaseDTO bundlePurchase) {
+        return StockDTO.builder()
+                .idStock(idStock)
+                .remainingQuantity(remainingQuantity)
+                .aestheticCare(aestheticCare != null ? aestheticCare.transform() : null)
+                .bundlePurchase(bundlePurchase)
+                .build();
     }
 }

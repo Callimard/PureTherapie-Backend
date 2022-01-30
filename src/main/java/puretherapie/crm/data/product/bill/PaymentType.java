@@ -1,6 +1,7 @@
 package puretherapie.crm.data.product.bill;
 
 import lombok.*;
+import puretherapie.crm.api.v1.product.bill.controller.dto.PaymentTypeDTO;
 
 import javax.persistence.*;
 
@@ -24,4 +25,12 @@ public class PaymentType {
 
     @Column(name = "description", nullable = false)
     private String description;
+
+    public PaymentTypeDTO transform() {
+        return PaymentTypeDTO.builder()
+                .idPaymentType(idPaymentType)
+                .name(name)
+                .description(description)
+                .build();
+    }
 }

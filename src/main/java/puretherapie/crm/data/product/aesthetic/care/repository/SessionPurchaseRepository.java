@@ -15,4 +15,6 @@ public interface SessionPurchaseRepository extends JpaRepository<SessionPurchase
 
     List<SessionPurchase> findByClientAndAestheticCare(Client client, AestheticCare aestheticCare);
 
+    List<SessionPurchase> findByClient(Client client);
+
 }

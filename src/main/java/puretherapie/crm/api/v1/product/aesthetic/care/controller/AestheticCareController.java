@@ -6,9 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.AestheticCareDTO;
+import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.SessionPurchaseDTO;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.PurchaseSessionService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
+import puretherapie.crm.data.product.aesthetic.care.SessionPurchase;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
 
 import java.util.ArrayList;
@@ -29,6 +31,9 @@ public class AestheticCareController {
 
     public static final String AESTHETIC_CARE_PURCHASE = "/purchase";
     public static final String AESTHETIC_CARE_PURCHASE_URL = AESTHETIC_CARE_URL + AESTHETIC_CARE_PURCHASE;
+
+    public static final String CLIENT_ALL_SESSION_PURCHASES = "/purchases";
+    public static final String CLIENT_ALL_SESSION_PURCHASES_URL = AESTHETIC_CARE_URL + CLIENT_ALL_SESSION_PURCHASES;
 
     // Variables.
 
@@ -59,4 +64,11 @@ public class AestheticCareController {
         return SimpleResponseDTO.generateResponse(this.purchaseSessionService.purchaseSession(idClient, idAc, customPrice, idPaymentType));
     }
 
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(CLIENT_ALL_SESSION_PURCHASES)
+    public List<SessionPurchaseDTO> getAllClientSessionPurchases(@RequestParam(name = "idClient") int idClient) {
+        List<SessionPurchase> sessionPurchases = purchaseSessionService.getAllSessionPurchases(idClient);
+        return sessionPurchases.stream().map(SessionPurchase::transform).toList();
+    }
 }

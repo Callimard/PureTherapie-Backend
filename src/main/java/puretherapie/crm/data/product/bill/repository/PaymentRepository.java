@@ -2,11 +2,11 @@ package puretherapie.crm.data.product.bill.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import puretherapie.crm.data.product.bill.Bill;
+import puretherapie.crm.data.product.bill.Payment;
 
 @Repository
-public interface BillRepository extends JpaRepository<Bill, Integer> {
+public interface PaymentRepository extends JpaRepository<Payment, Integer> {
 
-    Bill findByIdBill(int idBill);
+    Payment findByIdPayment(int idPayment);
 
 }

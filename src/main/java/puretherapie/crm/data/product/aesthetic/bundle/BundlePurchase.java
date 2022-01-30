@@ -6,6 +6,7 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.product.bill.Bill;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Builder
 @Getter
@@ -33,6 +34,10 @@ public class BundlePurchase {
     @ManyToOne(optional = false)
     @JoinColumn(name = "idBill", nullable = false)
     private Bill bill;
+
+    @OneToMany(targetEntity = Stock.class, mappedBy = "bundlePurchase")
+    @ToString.Exclude
+    private List<Stock> stocks;
 
     public BundlePurchaseDTO transform() {
         return BundlePurchaseDTO.builder()

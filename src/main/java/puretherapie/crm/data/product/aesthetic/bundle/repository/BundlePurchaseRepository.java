@@ -10,6 +10,8 @@ import java.util.List;
 @Repository
 public interface BundlePurchaseRepository extends JpaRepository<BundlePurchase, Integer> {
 
+    BundlePurchase findByIdBundlePurchase(int idBundlePurchase);
+
     List<BundlePurchase> findByClient(Client client);
 
 }

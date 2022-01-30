@@ -1,6 +1,7 @@
 package puretherapie.crm.data.product.bill;
 
 import lombok.*;
+import puretherapie.crm.api.v1.product.bill.controller.dto.BillDTO;
 import puretherapie.crm.api.v1.product.bill.controller.dto.PaymentDTO;
 
 import javax.persistence.*;
@@ -40,12 +41,12 @@ public class Payment {
                 .build();
     }
 
-    public PaymentDTO transformWithBill(Bill bill) {
+    public PaymentDTO transformWithBill(BillDTO bill) {
         return PaymentDTO.builder()
                 .idPayment(idPayment)
                 .amountPaid(amountPaid)
                 .paymentDate(paymentDate != null ? paymentDate.toString() : null)
-                .bill(bill.transform())
+                .bill(bill)
                 .build();
     }
 }

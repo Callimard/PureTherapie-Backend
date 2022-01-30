@@ -45,14 +45,15 @@ public class Bill {
     private List<Payment> payments;
 
     public BillDTO transform() {
-        return BillDTO.builder()
+        BillDTO billDTO = BillDTO.builder()
                 .idBill(idBill)
                 .basePrice(basePrice)
                 .purchasePrice(purchasePrice)
                 .creationDate(creationDate != null ? creationDate.toString() : null)
                 .client(client != null ? client.transform() : null)
                 .paymentType(paymentType != null ? paymentType.transform() : null)
-                .payments(payments != null ? payments.stream().map(p -> p.transformWithBill(this)).toList() : null)
                 .build();
+        billDTO.setPayments(payments != null ? payments.stream().map(p -> p.transformWithBill(billDTO)).toList() : null);
+        return billDTO;
     }
 }

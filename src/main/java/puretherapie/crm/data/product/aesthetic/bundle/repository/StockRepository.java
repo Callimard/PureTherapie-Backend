@@ -6,11 +6,15 @@ import puretherapie.crm.data.product.aesthetic.bundle.BundlePurchase;
 import puretherapie.crm.data.product.aesthetic.bundle.Stock;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 
+import java.util.List;
+
 @Repository
 public interface StockRepository extends JpaRepository<Stock, Integer> {
 
     Stock findByIdStock(int idStock);
 
     Stock findByBundlePurchaseAndAestheticCare(BundlePurchase bundlePurchase, AestheticCare aestheticCare);
+
+    List<Stock> findByBundlePurchase(BundlePurchase bundlePurchase);
 
 }

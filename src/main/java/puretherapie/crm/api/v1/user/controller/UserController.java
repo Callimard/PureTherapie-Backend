@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.user.service.UserLoginService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 
 import javax.servlet.http.HttpSession;
 
@@ -44,5 +45,12 @@ public class UserController {
     @PostMapping(USER_LOGOUT)
     public ResponseEntity<String> logout(HttpSession session, Authentication authentication) {
         return userLoginService.successLogout(session, authentication);
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true", methods = {RequestMethod.HEAD})
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(path = USER_LOGIN, method = RequestMethod.HEAD)
+    public ResponseEntity<SimpleResponseDTO> checkLogin() {
+        return SimpleResponseDTO.generateResponse(SimpleResponseDTO.generateSuccess("Success check login"));
     }
 }

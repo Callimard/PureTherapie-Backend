@@ -13,6 +13,8 @@ public class PaymentDTO {
     private int idPayment;
     private double amountPaid;
     private String paymentDate;
+    private boolean canceled;
+    private MeansOfPaymentDTO meansOfPayment;
     private BillDTO bill;
 
 }

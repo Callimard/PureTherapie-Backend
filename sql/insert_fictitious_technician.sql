@@ -21,7 +21,7 @@ VALUES (@tech_id);
 INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Person.firstname, puretherapie.Person.lastname,
                                  puretherapie.Person.email, puretherapie.Person.gender,
                                  puretherapie.Person.phone, puretherapie.Person.creationdate, puretherapie.Person.idPersonOrigin)
-VALUES ('T', 'romane', 'boucher', 'romane.boucer@puretherapie.fr', 0, '+33 6 66 66 77 00', NOW(), @none_person_origin_id);
+VALUES ('T', 'charlotte', 'zigwer', 'romane.boucer@puretherapie.fr', 0, '+33 6 66 66 77 00', NOW(), @none_person_origin_id);
 SET @tech_id = LAST_INSERT_ID();
 
 INSERT INTO puretherapie.Technician (puretherapie.Technician.idPerson)

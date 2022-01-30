@@ -53,7 +53,11 @@ public class Bill {
                 .client(client != null ? client.transform() : null)
                 .paymentType(paymentType != null ? paymentType.transform() : null)
                 .build();
-        billDTO.setPayments(payments != null ? payments.stream().map(p -> p.transformWithBill(billDTO)).toList() : null);
+
+        BillDTO clone = billDTO.clone();
+        clone.setPayments(null); // To avoid stack overflow during the serialization in http response.
+
+        billDTO.setPayments(payments != null ? payments.stream().map(p -> p.transformWithBill(clone)).toList() : null);
         return billDTO;
     }
 }

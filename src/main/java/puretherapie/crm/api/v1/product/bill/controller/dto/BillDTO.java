@@ -20,4 +20,16 @@ public class BillDTO {
     private ClientDTO client;
     private PaymentTypeDTO paymentType;
     private List<PaymentDTO> payments;
+
+    public BillDTO clone() {
+        return BillDTO.builder()
+                .idBill(idBill)
+                .basePrice(basePrice)
+                .purchasePrice(purchasePrice)
+                .creationDate(creationDate)
+                .client(client)
+                .paymentType(paymentType)
+                .payments(payments)
+                .build();
+    }
 }

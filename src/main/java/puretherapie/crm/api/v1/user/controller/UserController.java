@@ -7,11 +7,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.user.service.UserLoginService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 
 import javax.servlet.http.HttpSession;
 
 import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
-import static puretherapie.crm.api.v1.ApiV1.generateOkJsonResponse;
 import static puretherapie.crm.api.v1.user.controller.UserController.API_V1_USER_URL;
 
 @Slf4j
@@ -47,14 +47,10 @@ public class UserController {
         return userLoginService.successLogout(session, authentication);
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true", methods = {RequestMethod.HEAD})
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(path = USER_LOGIN, method = RequestMethod.HEAD)
-    public ResponseEntity<String> checkLogin() {
-        return generateOkJsonResponse("""
-                                                  {
-                                                      "message":"check login success"
-                                                  }
-                                              """);
+    public ResponseEntity<SimpleResponseDTO> checkLogin() {
+        return SimpleResponseDTO.generateResponse(SimpleResponseDTO.generateSuccess("Success check login"));
     }
 }

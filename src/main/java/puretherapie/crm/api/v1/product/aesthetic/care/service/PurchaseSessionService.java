@@ -19,6 +19,8 @@ import puretherapie.crm.data.product.bill.repository.BillRepository;
 import puretherapie.crm.data.product.bill.repository.PaymentTypeRepository;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
@@ -40,6 +42,16 @@ public class PurchaseSessionService {
     private final SessionPurchaseRepository sessionPurchaseRepository;
 
     // Methods.
+
+
+    public List<SessionPurchase> getAllSessionPurchases(int idClient) {
+        try {
+            return sessionPurchaseRepository.findByClient(verifyClient(idClient));
+        } catch (Exception e) {
+            log.error("Error during searching client session purchases, Error = {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
 
     /**
      * @param idClient        the id of the client
@@ -102,10 +114,11 @@ public class PurchaseSessionService {
     }
 
     /**
-     * @param client the client
+     * @param client      the client
      * @param paymentType the payment type
-     * @param basePrice the base price
+     * @param basePrice   the base price
      * @param customPrice the custom price (ignored if less than 0)
+     *
      * @return the bill corresponding to parameter
      */
     private Bill buildBill(Client client, PaymentType paymentType, double basePrice, double customPrice) {

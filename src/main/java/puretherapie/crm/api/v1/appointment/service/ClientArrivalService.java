@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientArrival;
@@ -17,6 +17,7 @@ import puretherapie.crm.data.person.client.repository.ClientRepository;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.*;
@@ -25,7 +26,7 @@ import static puretherapie.crm.tool.TimeTool.today;
 @Slf4j
 @AllArgsConstructor
 @Service
-public class ClientArrivalService extends SimpleService {
+public class ClientArrivalService {
 
     // Constants.
 
@@ -47,7 +48,7 @@ public class ClientArrivalService extends SimpleService {
     // Methods.
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Map<String, Object> clientArrive(int idClient) {
+    public SimpleResponseDTO clientArrive(int idClient) {
         try {
             Client client = verifyClient(idClient);
             Appointment appointment = getAppointment(client, today());
@@ -58,24 +59,25 @@ public class ClientArrivalService extends SimpleService {
                 appointment = linkAppointmentAndClientArrival(appointment, clientArrival);
             }
             placeClientInWaitingRoom(client, appointment);
-            return generateSuccessRes();
+            return SimpleResponseDTO.generateSuccess("Success client arrive");
         } catch (Exception e) {
             log.debug("Fail client arrival, error message: {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return generateErrorRes(e);
+            return SimpleResponseDTO.generateFail(e.getMessage());
         }
     }
 
     private Client verifyClient(int idClient) {
         Client client = clientRepository.findByIdPerson(idClient);
         if (client == null)
-            throw new ClientArrivalException("Client not found", generateError(CLIENT_NOT_FOUND_ERROR, "Client not found"));
+            throw new ClientArrivalException(CLIENT_NOT_FOUND_ERROR);
 
         return client;
     }
 
     private Appointment getAppointment(Client client, LocalDate today) {
-        return appointmentRepository.findByClientAndDay(client, today);
+        List<Appointment> appointments = appointmentRepository.findByClientAndDay(client, today);
+        return appointments.isEmpty() ? null : appointments.get(0);
     }
 
     private ClientArrival buildClientArrival(Client client) {
@@ -95,9 +97,7 @@ public class ClientArrivalService extends SimpleService {
         if (isLateFromNow(appointment.getTime())) {
             if (isTooMuchLateFromNow(appointment.getTime())) {
                 log.debug("Too much client delay ({} minutes)", delayFromNow(appointment.getTime()));
-                throw new ClientArrivalException("Client too much late", generateError(CLIENT_TOO_MUCH_LATE_ERROR,
-                                                                                       "Client to much late (%s minutes)".formatted(
-                                                                                               delayFromNow(appointment.getTime()))));
+                throw new ClientArrivalException(CLIENT_TOO_MUCH_LATE_ERROR);
             } else {
                 log.debug("Save client delay ({} minutes)", delayFromNow(appointment.getTime()));
                 Map<String, Object> res = clientDelayService.createClientDelay(appointment.getClient(), appointment,
@@ -116,32 +116,19 @@ public class ClientArrivalService extends SimpleService {
     }
 
     private void placeClientInWaitingRoom(Client client, Appointment appointment) {
-        Map<String, Object> res = placeInWaitingRoomService.placeClient(client, appointment);
-        if (!placeInWaitingRoomService.hasSuccess(res)) {
+        SimpleResponseDTO res = placeInWaitingRoomService.placeClient(client, appointment);
+        if (!res.success()) {
             log.debug("Fail to place client in waiting room");
-            throw new ClientArrivalException("Fail to place the client in waiting room", generateError(WAITING_ROOM_ERROR, "Fail to place client in" +
-                    " waiting room"));
+            throw new ClientArrivalException(WAITING_ROOM_ERROR);
         }
-    }
-
-    // SimpleService methods.
-
-    @Override
-    public String getSuccessTag() {
-        return CLIENT_ARRIVAL_SUCCESS;
-    }
-
-    @Override
-    public String getFailTag() {
-        return CLIENT_ARRIVAL_FAIL;
     }
 
     // Exception.
 
-    private static class ClientArrivalException extends SimpleService.ServiceException {
+    private static class ClientArrivalException extends RuntimeException {
 
-        public ClientArrivalException(String message, Map<String, String> errors) {
-            super(message, errors);
+        public ClientArrivalException(String message) {
+            super(message);
         }
     }
 

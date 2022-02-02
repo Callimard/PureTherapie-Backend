@@ -6,7 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.person.client.controller.dto.SimpleClientInfoDTO;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
 import puretherapie.crm.data.appointment.Appointment;
@@ -18,14 +19,13 @@ import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 
 import static puretherapie.crm.tool.TimeTool.today;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class PlaceInWaitingRoomService extends SimpleService {
+public class PlaceInWaitingRoomService {
 
     // Constants.
 
@@ -50,7 +50,7 @@ public class PlaceInWaitingRoomService extends SimpleService {
     // Methods.
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> placeClient(Client client, Appointment appointment) {
+    public SimpleResponseDTO placeClient(Client client, Appointment appointment) {
         return placeClient(client.getIdPerson(), appointment != null ? appointment.getIdAppointment() : -1);
     }
 
@@ -62,7 +62,7 @@ public class PlaceInWaitingRoomService extends SimpleService {
      * @return the result of the try to place client in waiting room
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> placeClient(int idClient) {
+    public SimpleResponseDTO placeClient(int idClient) {
         return placeClient(idClient, -1);
     }
 
@@ -75,26 +75,25 @@ public class PlaceInWaitingRoomService extends SimpleService {
      * @return the result of the try to place client in waiting room
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> placeClient(int idClient, int idAppointment) {
+    public SimpleResponseDTO placeClient(int idClient, int idAppointment) {
         try {
             Client client = verifyClient(idClient);
             Appointment appointment = getAppointment(idAppointment);
             verifyClientAndAppointmentCoherence(client, appointment);
             verifyAppointmentIsForToday(appointment);
             saveWaitingRoom(client, appointment);
-            return generateSuccessRes();
+            return SimpleResponseDTO.generateSuccess("Success to place client in Waiting room");
         } catch (Exception e) {
             log.debug("Fail to place client in waiting room", e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return generateErrorRes(e);
+            return SimpleResponseDTO.generateFail(e.getMessage());
         }
     }
 
     private Client verifyClient(int idClient) {
         Client c = clientRepository.findByIdPerson(idClient);
         if (c == null)
-            throw new PlaceClientInWaitingRoomException("Client not found", generateError(CLIENT_NOT_FOUND_ERROR,
-                                                                                          "Client with id %s not found".formatted(idClient)));
+            throw new PlaceClientInWaitingRoomException(CLIENT_NOT_FOUND_ERROR);
         return c;
     }
 
@@ -109,14 +108,10 @@ public class PlaceInWaitingRoomService extends SimpleService {
         }
 
         if (!appointment.getClient().getIdPerson().equals(client.getIdPerson()))
-            throw new PlaceClientInWaitingRoomException(
-                    "Client with id %s is not link to the appointment (appointment.idClient = %s)".formatted(appointment.getClient().getIdPerson(),
-                                                                                                             client.getIdPerson()),
-                    generateError(NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT_ERROR, "client not link to the appointment"));
+            throw new PlaceClientInWaitingRoomException(NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT_ERROR);
 
         if (appointment.isCanceled())
-            throw new PlaceClientInWaitingRoomException("Appointment canceled", generateError(APPOINTMENT_CANCELED_ERROR, "Client appointment was " +
-                    "canceled"));
+            throw new PlaceClientInWaitingRoomException(APPOINTMENT_CANCELED_ERROR);
     }
 
     private void verifyAppointmentIsForToday(Appointment appointment) {
@@ -125,17 +120,14 @@ public class PlaceInWaitingRoomService extends SimpleService {
             verifyTimeSlot(timeSlots);
             TimeSlot first = timeSlots.get(0);
             if (!first.getDay().equals(today()))
-                throw new PlaceClientInWaitingRoomException("Appointment is not for today %s but for the day %s".formatted(first.getDay(), today()),
-                                                            generateError(APPOINTMENT_NOT_FOR_TODAY_ERROR, "Appointment not for today"));
+                throw new PlaceClientInWaitingRoomException(APPOINTMENT_NOT_FOR_TODAY_ERROR);
         }
     }
 
     private void verifyTimeSlot(List<TimeSlot> timeSlots) {
         for (TimeSlot timeSlot : timeSlots) {
             if (timeSlot == null || timeSlot.isFree())
-                throw new PlaceClientInWaitingRoomException("Time slot null or free",
-                                                            generateError(TIME_SLOT_INCOHERENCE_ERROR, "Time slot null or " +
-                                                                    "free"));
+                throw new PlaceClientInWaitingRoomException(TIME_SLOT_INCOHERENCE_ERROR);
         }
     }
 
@@ -163,23 +155,11 @@ public class PlaceInWaitingRoomService extends SimpleService {
             return null;
     }
 
-    // SimpleService methods.
-
-    @Override
-    public String getSuccessTag() {
-        return CLIENT_PLACE_IN_WR_SUCCESS;
-    }
-
-    @Override
-    public String getFailTag() {
-        return CLIENT_PLACE_IN_WR_FAIL;
-    }
-
     // Exceptions.
 
-    private static class PlaceClientInWaitingRoomException extends SimpleService.ServiceException {
-        public PlaceClientInWaitingRoomException(String message, Map<String, String> errors) {
-            super(message, errors);
+    private static class PlaceClientInWaitingRoomException extends RuntimeException {
+        public PlaceClientInWaitingRoomException(String message) {
+            super(message);
         }
     }
 

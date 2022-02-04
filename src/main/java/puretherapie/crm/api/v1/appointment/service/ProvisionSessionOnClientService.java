@@ -47,7 +47,6 @@ public class ProvisionSessionOnClientService {
     public static final String CLIENT_WITHOUT_APPOINTMENT_ERROR = "client_without_appointment_error";
     public static final String CLIENT_APPOINTMENT_CANCELED_ERROR = "client_appointment_canceled_error";
     public static final String FAIL_TO_REMOVE_CLIENT_WR_ERROR = "fail_remove_client_from_wr_error";
-    public static final String NOT_STOCK_ERROR = "no_stock_error";
 
     // Variables.
 
@@ -180,8 +179,8 @@ public class ProvisionSessionOnClientService {
             for (SessionPurchase sessionPurchase : clientSessionPurchases) {
                 if (!sessionPurchase.isUsed()) {
                     log.info("Found session purchase not used for the client {} and the aesthetic care {}", client.simplyIdentifier(), aestheticCare);
-                    Map<String, Object> reduceRes = useSessionService.useSession(sessionPurchase.getIdSessionPurchase());
-                    if (!useSessionService.hasSuccess(reduceRes)) {
+                    SimpleResponseDTO reduceRes = useSessionService.useSession(sessionPurchase.getIdSessionPurchase());
+                    if (!reduceRes.success()) {
                         log.error("Fail to reduce stock of session purchase {}", sessionPurchase);
                         continue;
                     }

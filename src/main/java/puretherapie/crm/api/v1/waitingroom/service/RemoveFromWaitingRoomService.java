@@ -6,18 +6,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.waitingroom.WaitingRoom;
 import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 
-import java.util.Map;
-
 @Slf4j
 @AllArgsConstructor
 @Service
-public class RemoveFromWaitingRoomService extends SimpleService {
+public class RemoveFromWaitingRoomService {
 
     // Constants.
 
@@ -42,15 +40,15 @@ public class RemoveFromWaitingRoomService extends SimpleService {
      * @return the res of the try to remove client from waiting room
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> removeClient(int idClient) {
+    public SimpleResponseDTO removeClient(int idClient) {
         try {
             WaitingRoom waitingRoom = verifyAndGetWR(idClient);
             removeWR(waitingRoom);
-            return generateSuccessRes();
+            return SimpleResponseDTO.generateSuccess("Success to remove from WR");
         } catch (Exception e) {
             log.debug("Fail to remove client from waiting room, error message: {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return generateErrorRes(e);
+            return SimpleResponseDTO.generateFail(e.getMessage());
         }
     }
 
@@ -58,8 +56,7 @@ public class RemoveFromWaitingRoomService extends SimpleService {
         Client client = verifyClient(idClient);
         WaitingRoom wr = waitingRoomRepository.findByClient(client);
         if (wr == null)
-            throw new RemoveFromWaitingRoomException("Client not in waiting room",
-                                                     generateError(CLIENT_NOT_IN_WR_ERROR, "Client not in waiting room"));
+            throw new RemoveFromWaitingRoomException(CLIENT_NOT_IN_WR_ERROR);
 
         return wr;
     }
@@ -67,8 +64,7 @@ public class RemoveFromWaitingRoomService extends SimpleService {
     private Client verifyClient(int idClient) {
         Client client = clientRepository.findByIdPerson(idClient);
         if (client == null)
-            throw new RemoveFromWaitingRoomException("Not find client for idClient %s".formatted(idClient),
-                                                     generateError(CLIENT_ID_NOT_FOUND_ERROR, "Client id not found"));
+            throw new RemoveFromWaitingRoomException(CLIENT_ID_NOT_FOUND_ERROR);
         return client;
     }
 
@@ -78,21 +74,11 @@ public class RemoveFromWaitingRoomService extends SimpleService {
 
     // SimpleService methods.
 
-    @Override
-    public String getSuccessTag() {
-        return CLIENT_REMOVE_FROM_WR_SUCCESS;
-    }
-
-    @Override
-    public String getFailTag() {
-        return CLIENT_REMOVE_FROM_WR_FAIL;
-    }
-
     // Exceptions.
 
-    private static class RemoveFromWaitingRoomException extends SimpleService.ServiceException {
-        public RemoveFromWaitingRoomException(String message, Map<String, String> errors) {
-            super(message, errors);
+    private static class RemoveFromWaitingRoomException extends RuntimeException {
+        public RemoveFromWaitingRoomException(String message) {
+            super(message);
         }
     }
 }

@@ -7,12 +7,11 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.waitingroom.WaitingRoom;
 import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
-
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -35,7 +34,7 @@ public class RemoveFromWaitingRoomServiceTest {
         void testWithNotFoundClient() {
             prepareClientRepository();
 
-            Map<String, Object> res = rwrs.removeClient(585);
+            SimpleResponseDTO res = rwrs.removeClient(585);
             verifyFail(res);
             verifyFailType(res, CLIENT_ID_NOT_FOUND_ERROR);
         }
@@ -46,7 +45,7 @@ public class RemoveFromWaitingRoomServiceTest {
             prepareClientRepository();
             prepareClientNotInWR();
 
-            Map<String, Object> res = rwrs.removeClient(CLIENT_ID);
+            SimpleResponseDTO res = rwrs.removeClient(CLIENT_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_IN_WR_ERROR);
         }
@@ -57,23 +56,26 @@ public class RemoveFromWaitingRoomServiceTest {
             prepareClientRepository();
             prepareClientIsInWR();
 
-            Map<String, Object> res = rwrs.removeClient(CLIENT_ID);
+            SimpleResponseDTO res = rwrs.removeClient(CLIENT_ID);
             verifySuccess(res);
         }
 
     }
 
-    private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(rwrs.getSuccessTag());
+    private void verifySuccess(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isTrue();
     }
 
-    private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(rwrs.getFailTag());
+    private void verifyFail(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
     }
 
-    void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(rwrs.getFailTag());
-        assertThat(errors).isNotNull().containsKey(expectedKey);
+    void verifyFailType(SimpleResponseDTO res, String expectedKey) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
+        assertThat(res.message()).isEqualTo(expectedKey);
     }
 
     // Context.

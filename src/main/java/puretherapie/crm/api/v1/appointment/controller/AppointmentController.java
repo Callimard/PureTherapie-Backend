@@ -12,6 +12,7 @@ import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentDTO;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
 import puretherapie.crm.api.v1.appointment.service.CancelAppointmentService;
 import puretherapie.crm.api.v1.appointment.service.ClientArrivalService;
+import puretherapie.crm.api.v1.appointment.service.ProvisionSessionOnClientService;
 import puretherapie.crm.api.v1.appointment.service.TakeAppointmentService;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
@@ -51,6 +52,12 @@ public class AppointmentController {
     public static final String CLIENT_ARRIVE = "/client_arrive";
     public static final String CLIENT_ARRIVE_URL = APPOINTMENT_URL + CLIENT_ARRIVE;
 
+    public static final String PROVISION_CLIENT_WITH_APPOINTMENT = "/provision_client_with_appointment";
+    public static final String PROVISION_CLIENT_WITH_APPOINTMENT_URL = APPOINTMENT_URL + PROVISION_CLIENT_WITH_APPOINTMENT;
+
+    public static final String PROVISION_CLIENT_WITHOUT_APPOINTMENT = "/provision_client_without_appointment";
+    public static final String PROVISION_CLIENT_WITHOUT_APPOINTMENT_URL = APPOINTMENT_URL + PROVISION_CLIENT_WITHOUT_APPOINTMENT;
+
     public static final String NOTIFICATION_SUR_BOOKING_TITLE = "Sur booking fait lors de la prise d'un rendez-vous";
     public static final String NOTIFICATION_SUR_BOOKING_TEXT = "Sur booking de %s minutes pour le rendez-vous du client %s avec le technicien %s " +
             "le %s à %s";
@@ -61,11 +68,29 @@ public class AppointmentController {
     private final CancelAppointmentService cancelAppointmentService;
     private final NotificationCreationService notificationCreationService;
     private final ClientArrivalService clientArrivalService;
+    private final ProvisionSessionOnClientService provisionSessionOnClientService;
     private final AppointmentRepository appointmentRepository;
     private final ClientRepository clientRepository;
     private final TechnicianRepository technicianRepository;
 
     // Methods.
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PostMapping(PROVISION_CLIENT_WITHOUT_APPOINTMENT)
+    public ResponseEntity<SimpleResponseDTO> provisionClientWithoutAppointment(@RequestParam(name = "idClient") int idClient,
+                                                                               @RequestParam(name = "idTechnician") int idTechnician,
+                                                                               @RequestParam(name = "idAestheticCare") int idAestheticCare) {
+        return SimpleResponseDTO.generateResponse(
+                provisionSessionOnClientService.provisionWithoutAppointment(idClient, idTechnician, idAestheticCare));
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PostMapping(PROVISION_CLIENT_WITH_APPOINTMENT)
+    public ResponseEntity<SimpleResponseDTO> provisionClientWithAppointment(@RequestParam(name = "idClient") int idClient) {
+        return SimpleResponseDTO.generateResponse(provisionSessionOnClientService.provisionWithAppointment(idClient));
+    }
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")

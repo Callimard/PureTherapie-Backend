@@ -53,6 +53,11 @@ public class PurchaseSessionService {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public SimpleResponseDTO purchaseSession(int idClient, int idAestheticCare) {
+        return purchaseSession(idClient, idAestheticCare, -1, 1);
+    }
+
     /**
      * @param idClient        the id of the client
      * @param idAestheticCare the id of the aesthetic care

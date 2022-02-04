@@ -366,7 +366,7 @@ public class ProvisionSessionOnClientServiceTest {
     }
 
     private void prepareUseSessionService() {
-        given(mockUSService.hasSuccess(any())).willReturn(true);
+        given(mockUSService.useSession(anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
     }
 
     private void prepareReduceStockServiceSuccess() {

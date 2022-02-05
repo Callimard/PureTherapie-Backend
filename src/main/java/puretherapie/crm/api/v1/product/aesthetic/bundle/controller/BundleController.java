@@ -10,6 +10,7 @@ import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.BundlePur
 import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.StockDTO;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.service.BundlePurchaseService;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.service.StockService;
+import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.product.aesthetic.bundle.Bundle;
 import puretherapie.crm.data.product.aesthetic.bundle.BundlePurchase;
@@ -43,12 +44,16 @@ public class BundleController {
     public static final String BUNDLE_PURCHASES_STOCKS = CLIENT_ALL_BUNDLE_PURCHASES + "/{idBundlePurchase}" + "/stocks";
     public static final String BUNDLE_PURCHASES_STOCKS_URL = BUNDLES_URL + BUNDLE_PURCHASES_STOCKS;
 
+    public static final String UNPAID_BUNDLE_PURCHASES = CLIENT_ALL_BUNDLE_PURCHASES + "/unpaid";
+    public static final String UNPAID_BUNDLE_PURCHASES_URL = BUNDLES_URL + UNPAID_BUNDLE_PURCHASES;
+
     // Variables.
 
     private final BundleRepository bundleRepository;
     private final BundlePurchaseRepository bundlePurchaseRepository;
     private final BundlePurchaseService bundlePurchaseService;
     private final StockService stockService;
+    private final PaymentService paymentService;
 
     // Methods.
 
@@ -82,6 +87,15 @@ public class BundleController {
     @GetMapping(CLIENT_ALL_BUNDLE_PURCHASES)
     public List<BundlePurchaseDTO> getAllClientBundlePurchases(@RequestParam(name = "idClient") int idClient) {
         List<BundlePurchase> bundlePurchases = bundlePurchaseService.getAllClientBundlePurchases(idClient);
+        return bundlePurchases.stream().map(BundlePurchase::transform).toList();
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(UNPAID_BUNDLE_PURCHASES)
+    public List<BundlePurchaseDTO> getAllUnpaidClientBundlePurchase(@RequestParam(name = "idClient") int idClient) {
+        List<BundlePurchase> bundlePurchases = bundlePurchaseService.getAllClientBundlePurchases(idClient);
+        bundlePurchases = bundlePurchases.stream().filter(bP -> paymentService.billNotTotallyPaid(bP.getBill())).toList();
         return bundlePurchases.stream().map(BundlePurchase::transform).toList();
     }
 

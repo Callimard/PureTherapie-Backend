@@ -5,9 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import puretherapie.crm.api.v1.product.bill.controller.dto.BillDTO;
 import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
+import puretherapie.crm.data.product.bill.Bill;
 import puretherapie.crm.data.product.bill.MeansOfPayment;
+import puretherapie.crm.data.product.bill.repository.BillRepository;
 import puretherapie.crm.data.product.bill.repository.MeansOfPaymentRepository;
 
 import java.util.List;
@@ -36,10 +39,23 @@ public class BillController {
 
     // Variables.
 
+    private final BillRepository billRepository;
     private final MeansOfPaymentRepository meansOfPaymentRepository;
     private final PaymentService paymentService;
 
     // Methods.
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping("/{idBill}")
+    public ResponseEntity<BillDTO> getBill(@PathVariable(name = "idBill") int idBill) {
+        try {
+            Bill b = billRepository.findByIdBill(idBill);
+            return ResponseEntity.ok(b != null ? b.transform() : null);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")

@@ -47,6 +47,9 @@ public class ProvisionSessionOnClientService {
     public static final String CLIENT_WITHOUT_APPOINTMENT_ERROR = "client_without_appointment_error";
     public static final String CLIENT_APPOINTMENT_CANCELED_ERROR = "client_appointment_canceled_error";
     public static final String FAIL_TO_REMOVE_CLIENT_WR_ERROR = "fail_remove_client_from_wr_error";
+    public static final String CANNOT_USE_SESSION_PURCHASE_AFTER_UPDATE_STOCK_ERROR = "cannot_use_session_purchase_after_update_stock_error";
+    public static final String AC_PROVISION_ALREADY_DONE_ON_CLIENT_FOR_APPOINTMENT_ERROR =
+            "ac_provision_already_done_on_client_for_appointment_error";
 
     // Variables.
 
@@ -111,47 +114,53 @@ public class ProvisionSessionOnClientService {
     private Client verifyClient(int idClient) {
         Client client = clientRepository.findByIdPerson(idClient);
         if (client == null)
-            throw new TerminateClientException(CLIENT_NOT_FOUND_ERROR);
+            throw new ProvisionSessionOnClientException(CLIENT_NOT_FOUND_ERROR);
         return client;
     }
 
     private Technician verifyTechnician(int idTechnician) {
         Technician t = technicianRepository.findByIdPerson(idTechnician);
         if (t == null)
-            throw new TerminateClientException(TECHNICIAN_ID_NOT_FOUND_ERROR);
+            throw new ProvisionSessionOnClientException(TECHNICIAN_ID_NOT_FOUND_ERROR);
         return t;
     }
 
     private AestheticCare verifyAestheticCare(int idAestheticCare) {
         AestheticCare ac = aestheticCareRepository.findByIdAestheticCare(idAestheticCare);
         if (ac == null)
-            throw new TerminateClientException(AESTHETIC_CARE_ID_NOT_FOUND_ERROR);
+            throw new ProvisionSessionOnClientException(AESTHETIC_CARE_ID_NOT_FOUND_ERROR);
         return ac;
     }
 
     private WaitingRoom verifyIsInWaitingRoom(Client client) {
         WaitingRoom waitingRoom = waitingRoomRepository.findByClient(client);
         if (waitingRoom == null)
-            throw new TerminateClientException(CLIENT_NOT_IN_WR_ERROR);
+            throw new ProvisionSessionOnClientException(CLIENT_NOT_IN_WR_ERROR);
         return waitingRoom;
     }
 
     private void verifyAppointment(Appointment appointment) {
         if (appointment == null)
-            throw new TerminateClientException(CLIENT_WITHOUT_APPOINTMENT_ERROR);
+            throw new ProvisionSessionOnClientException(CLIENT_WITHOUT_APPOINTMENT_ERROR);
 
         if (appointment.isCanceled())
-            throw new TerminateClientException(CLIENT_APPOINTMENT_CANCELED_ERROR);
+            throw new ProvisionSessionOnClientException(CLIENT_APPOINTMENT_CANCELED_ERROR);
     }
 
     private void removeFromWaitingRoom(WaitingRoom waitingRoom) {
         SimpleResponseDTO res = removeFromWaitingRoomService.removeClient(waitingRoom.getClient().getIdPerson());
         if (!res.success())
-            throw new TerminateClientException(FAIL_TO_REMOVE_CLIENT_WR_ERROR);
+            throw new ProvisionSessionOnClientException(FAIL_TO_REMOVE_CLIENT_WR_ERROR);
     }
 
     private void saveAestheticCareProvision(Client client, Appointment appointment, Technician technician, AestheticCare aestheticCare) {
         AestheticCareProvision acProvision = buildACProvision(client, appointment, technician, aestheticCare);
+
+        AestheticCareProvision acProvisionDoneForAppointment = aestheticCareProvisionRepository.findByAppointment(appointment);
+        if (acProvisionDoneForAppointment != null)
+            throw new ProvisionSessionOnClientException(AC_PROVISION_ALREADY_DONE_ON_CLIENT_FOR_APPOINTMENT_ERROR);
+
+
         acProvision = aestheticCareProvisionRepository.save(acProvision);
         log.debug("Save ACProvision {}", acProvision);
     }
@@ -169,6 +178,9 @@ public class ProvisionSessionOnClientService {
     private void updateClientACStock(Client client, AestheticCare aestheticCare) {
         if (!tryToUseSessionPurchase(client, aestheticCare) && !tryToReduceBundlePurchaseStock(client, aestheticCare)) {
             purchaseSessionService.purchaseSession(client.getIdPerson(), aestheticCare.getIdAestheticCare());
+            boolean usedSession = tryToUseSessionPurchase(client, aestheticCare);
+            if (!usedSession)
+                throw new ProvisionSessionOnClientException(CANNOT_USE_SESSION_PURCHASE_AFTER_UPDATE_STOCK_ERROR);
         }
     }
 
@@ -221,8 +233,8 @@ public class ProvisionSessionOnClientService {
 
     // Exceptions.
 
-    private static class TerminateClientException extends RuntimeException {
-        public TerminateClientException(String message) {
+    private static class ProvisionSessionOnClientException extends RuntimeException {
+        public ProvisionSessionOnClientException(String message) {
             super(message);
         }
     }

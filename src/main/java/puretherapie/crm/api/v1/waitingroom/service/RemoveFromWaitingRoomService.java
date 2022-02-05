@@ -18,12 +18,7 @@ import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 public class RemoveFromWaitingRoomService {
 
     // Constants.
-
-    public static final String CLIENT_REMOVE_FROM_WR_SUCCESS = "client_remove_wr_success";
-    public static final String CLIENT_REMOVE_FROM_WR_FAIL = "client_remove_wr_fail";
-
     public static final String CLIENT_ID_NOT_FOUND_ERROR = "client_not_found_error";
-    public static final String CLIENT_NOT_IN_WR_ERROR = "client_not_in_wr_error";
 
     // Variables.
 
@@ -42,8 +37,11 @@ public class RemoveFromWaitingRoomService {
     @Transactional(propagation = Propagation.SUPPORTS)
     public SimpleResponseDTO removeClient(int idClient) {
         try {
-            WaitingRoom waitingRoom = verifyAndGetWR(idClient);
-            removeWR(waitingRoom);
+            WaitingRoom waitingRoom = getWR(idClient);
+            if (waitingRoom != null)
+                removeWR(waitingRoom);
+            else
+                log.debug("Remove client from WR which is not in the WR.");
             return SimpleResponseDTO.generateSuccess("Success to remove from WR");
         } catch (Exception e) {
             log.debug("Fail to remove client from waiting room, error message: {}", e.getMessage());
@@ -52,13 +50,9 @@ public class RemoveFromWaitingRoomService {
         }
     }
 
-    private WaitingRoom verifyAndGetWR(int idClient) {
+    private WaitingRoom getWR(int idClient) {
         Client client = verifyClient(idClient);
-        WaitingRoom wr = waitingRoomRepository.findByClient(client);
-        if (wr == null)
-            throw new RemoveFromWaitingRoomException(CLIENT_NOT_IN_WR_ERROR);
-
-        return wr;
+        return waitingRoomRepository.findByClient(client);
     }
 
     private Client verifyClient(int idClient) {

@@ -16,7 +16,6 @@ import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static puretherapie.crm.api.v1.waitingroom.service.RemoveFromWaitingRoomService.CLIENT_ID_NOT_FOUND_ERROR;
-import static puretherapie.crm.api.v1.waitingroom.service.RemoveFromWaitingRoomService.CLIENT_NOT_IN_WR_ERROR;
 
 @SpringBootTest
 @DisplayName("RemoveFromWaitingRoomService tests")
@@ -46,8 +45,7 @@ public class RemoveFromWaitingRoomServiceTest {
             prepareClientNotInWR();
 
             SimpleResponseDTO res = rwrs.removeClient(CLIENT_ID);
-            verifyFail(res);
-            verifyFailType(res, CLIENT_NOT_IN_WR_ERROR);
+            verifySuccess(res);
         }
 
         @Test

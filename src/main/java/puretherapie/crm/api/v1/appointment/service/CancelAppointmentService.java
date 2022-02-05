@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
+import puretherapie.crm.api.v1.waitingroom.service.RemoveFromWaitingRoomService;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
 import puretherapie.crm.data.appointment.Appointment;
@@ -25,9 +26,11 @@ public class CancelAppointmentService {
     public static final String CANCEL_APPOINTMENT_FAIL = "cancel_appointment_fail";
 
     public static final String APPOINTMENT_NOT_FOUND_ERROR = "appointment_not_found_error";
+    public static final String REMOVE_FROM_WR_ERROR = "remove_from_wr_error";
 
     // Variables.
 
+    private final RemoveFromWaitingRoomService removeFromWaitingRoomService;
     private final AppointmentRepository appointmentRepository;
     private final TimeSlotRepository timeSlotRepository;
 
@@ -40,6 +43,7 @@ public class CancelAppointmentService {
             if (!appointment.isCanceled()) {
                 setAppointmentCanceled(appointment);
                 updateAllAppointmentTimeSlots(appointment);
+                removeClientFromWR(appointment);
             } else
                 log.debug("Already canceled appointment, nothing has been done");
 
@@ -76,6 +80,12 @@ public class CancelAppointmentService {
             timeSlot.setFree(true);
         timeSlotRepository.saveAll(appointmentTimeSlots);
         log.debug("Update all time slots -> set them to free = true");
+    }
+
+    private void removeClientFromWR(Appointment appointment) {
+        SimpleResponseDTO res = removeFromWaitingRoomService.removeClient(appointment.getClient().getIdPerson());
+        if (!res.success())
+            throw new CancelAppointmentException(REMOVE_FROM_WR_ERROR);
     }
 
     // Exceptions.

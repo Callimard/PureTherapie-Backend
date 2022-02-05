@@ -17,7 +17,7 @@ import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareProvisionRepository;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +51,7 @@ public class AestheticCareProvisionCreationServiceTest {
         void testWithNotFoundClient() {
             prepareMinimalRepository();
 
-            Map<String, Object> res = acps.createAestheticCareProvision(2, TECHNICIAN_ID, AC_ID, APPOINTMENT_ID, OffsetDateTime.now());
+            Map<String, Object> res = acps.createAestheticCareProvision(2, TECHNICIAN_ID, AC_ID, APPOINTMENT_ID, LocalDateTime.now());
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
         }
@@ -61,7 +61,7 @@ public class AestheticCareProvisionCreationServiceTest {
         void testWithNotFoundTechnician() {
             prepareMinimalRepository();
 
-            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, 5, AC_ID, APPOINTMENT_ID, OffsetDateTime.now());
+            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, 5, AC_ID, APPOINTMENT_ID, LocalDateTime.now());
             verifyFail(res);
             verifyFailType(res, TECHNICIAN_NOT_FOUND_ERROR);
         }
@@ -71,7 +71,7 @@ public class AestheticCareProvisionCreationServiceTest {
         void testWithNotFoundAestheticCare() {
             prepareMinimalRepository();
 
-            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, TECHNICIAN_ID, 9, APPOINTMENT_ID, OffsetDateTime.now());
+            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, TECHNICIAN_ID, 9, APPOINTMENT_ID, LocalDateTime.now());
             verifyFail(res);
             verifyFailType(res, AESTHETIC_CARE_NOT_FOUND_ERROR);
         }
@@ -84,7 +84,7 @@ public class AestheticCareProvisionCreationServiceTest {
             prepareAppointmentRepository();
             prepareNotAssociatedToClientAppointment();
 
-            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, TECHNICIAN_ID, AC_ID, APPOINTMENT_ID, OffsetDateTime.now());
+            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, TECHNICIAN_ID, AC_ID, APPOINTMENT_ID, LocalDateTime.now());
             verifyFail(res);
             verifyFailType(res, CLIENT_AND_APPOINTMENT_NOT_ASSOCIATED_ERROR);
         }
@@ -97,7 +97,7 @@ public class AestheticCareProvisionCreationServiceTest {
             prepareAppointmentRepository();
             prepareCanceledAppointment();
 
-            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, TECHNICIAN_ID, AC_ID, APPOINTMENT_ID, OffsetDateTime.now());
+            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, TECHNICIAN_ID, AC_ID, APPOINTMENT_ID, LocalDateTime.now());
             verifyFail(res);
             verifyFailType(res, APPOINTMENT_CANCELED_ERROR);
         }
@@ -110,7 +110,7 @@ public class AestheticCareProvisionCreationServiceTest {
             prepareAppointmentRepository();
             prepareAssociatedToClientAppointment();
 
-            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, TECHNICIAN_ID, AC_ID, APPOINTMENT_ID, OffsetDateTime.now());
+            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, TECHNICIAN_ID, AC_ID, APPOINTMENT_ID, LocalDateTime.now());
             verifySuccess(res);
         }
 
@@ -120,7 +120,7 @@ public class AestheticCareProvisionCreationServiceTest {
             prepareMinimalRepository();
             prepareClient();
 
-            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, TECHNICIAN_ID, AC_ID, -1, OffsetDateTime.now());
+            Map<String, Object> res = acps.createAestheticCareProvision(CLIENT_ID, TECHNICIAN_ID, AC_ID, -1, LocalDateTime.now());
             verifySuccess(res);
         }
 

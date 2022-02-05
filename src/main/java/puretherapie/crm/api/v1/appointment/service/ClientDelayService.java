@@ -3,7 +3,7 @@ package puretherapie.crm.api.v1.appointment.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientDelay;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
@@ -15,14 +15,15 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalTime;
-import java.util.Map;
 
+import static puretherapie.crm.api.v1.SimpleService.DATA_DIRECTORY_PATH;
+import static puretherapie.crm.api.v1.SimpleService.createDataDirectory;
 import static puretherapie.crm.tool.TimeTool.minuteBetween;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class ClientDelayService extends SimpleService {
+public class ClientDelayService {
 
     // Constants.
 
@@ -30,9 +31,6 @@ public class ClientDelayService extends SimpleService {
 
     public static final int DEFAULT_MAXIMUM_CLIENT_DELAY = 15;
     private static int maximumClientDelay = chargeMaximumClientDelay();
-
-    public static final String CLIENT_DELAY_CREATION_SUCCESS = "client_delay_creation_success";
-    public static final String CLIENT_DELAY_CREATION_FAIL = "client_delay_creation_fail";
 
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found";
     public static final String APPOINTMENT_NOT_FOUND_ERROR = "appointment_not_found";
@@ -120,43 +118,41 @@ public class ClientDelayService extends SimpleService {
 
     // Service methods.
 
-    public Map<String, Object> createClientDelay(Client client, Appointment appointment, int delay) {
+    public SimpleResponseDTO createClientDelay(Client client, Appointment appointment, int delay) {
         return createClientDelay(client.getIdPerson(), appointment.getIdAppointment(), delay);
     }
 
-    public Map<String, Object> createClientDelay(int idClient, int idAppointment, int delay) {
+    public SimpleResponseDTO createClientDelay(int idClient, int idAppointment, int delay) {
         try {
             Client client = verifyClient(idClient);
             Appointment appointment = verifyAppointment(idAppointment);
             verifyClientAssociateToAppointment(client, appointment);
             delay = verifyDelay(delay);
             saveClientDelay(client, appointment, delay);
-            return generateSuccessRes();
+            return SimpleResponseDTO.generateSuccess("Success to create client delay");
         } catch (Exception e) {
             log.debug("Fail to create client delay: {}", e.getMessage());
-            return generateErrorRes(e);
+            return SimpleResponseDTO.generateFail(e.getMessage());
         }
     }
 
     private Client verifyClient(int idClient) {
         Client client = clientRepository.findByIdPerson(idClient);
         if (client == null)
-            throw new ClientDelayCreationException("Client not found", generateError(CLIENT_NOT_FOUND_ERROR, "Client not found"));
+            throw new ClientDelayCreationException(CLIENT_NOT_FOUND_ERROR);
         return client;
     }
 
     private Appointment verifyAppointment(int idAppointment) {
         Appointment appointment = appointmentRepository.findByIdAppointment(idAppointment);
         if (appointment == null)
-            throw new ClientDelayCreationException("Appointment not found", generateError(APPOINTMENT_NOT_FOUND_ERROR, "Appointment not found"));
+            throw new ClientDelayCreationException(APPOINTMENT_NOT_FOUND_ERROR);
         return appointment;
     }
 
     private void verifyClientAssociateToAppointment(Client client, Appointment appointment) {
         if (!client.isAssociateTo(appointment))
-            throw new ClientDelayCreationException("Client is not associate to the appointment",
-                                                   generateError(CLIENT_NOT_ASSOCIATE_TO_APPOINTMENT_ERROR,
-                                                                 "Client not associate to appointment"));
+            throw new ClientDelayCreationException(CLIENT_NOT_ASSOCIATE_TO_APPOINTMENT_ERROR);
 
     }
 
@@ -183,23 +179,11 @@ public class ClientDelayService extends SimpleService {
                 .build();
     }
 
-    // SimpleService methods.
-
-    @Override
-    public String getSuccessTag() {
-        return CLIENT_DELAY_CREATION_SUCCESS;
-    }
-
-    @Override
-    public String getFailTag() {
-        return CLIENT_DELAY_CREATION_FAIL;
-    }
-
     // Exceptions.
 
-    private static class ClientDelayCreationException extends SimpleService.ServiceException {
-        public ClientDelayCreationException(String message, Map<String, String> errors) {
-            super(message, errors);
+    private static class ClientDelayCreationException extends RuntimeException {
+        public ClientDelayCreationException(String message) {
+            super(message);
         }
     }
 }

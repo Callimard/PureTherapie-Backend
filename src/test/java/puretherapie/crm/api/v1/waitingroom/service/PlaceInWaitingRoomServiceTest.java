@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
 import puretherapie.crm.data.appointment.Appointment;
@@ -43,7 +44,7 @@ public class PlaceInWaitingRoomServiceTest {
         @DisplayName("Test with client not found fail")
         void testWithNotFoundClient() {
             prepareClientRepository();
-            Map<String, Object> res = pcs.placeClient(-1, APPOINTMENT_ID);
+            SimpleResponseDTO res = pcs.placeClient(-1, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
         }
@@ -56,7 +57,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareAppointmentRepository();
             prepareNotAssociatedAppointment();
 
-            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
+            SimpleResponseDTO res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, NON_COHERENCE_BETWEEN_CLIENT_APPOINTMENT_ERROR);
         }
@@ -70,7 +71,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareCoherentAppointment();
             prepareCanceledAppointment();
 
-            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
+            SimpleResponseDTO res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, APPOINTMENT_CANCELED_ERROR);
         }
@@ -85,7 +86,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareTimeSlotRepository();
             prepareFreeTimeSlot();
 
-            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
+            SimpleResponseDTO res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, TIME_SLOT_INCOHERENCE_ERROR);
         }
@@ -99,7 +100,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareCoherentAppointment();
             prepareNotForTodayAppointment();
 
-            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
+            SimpleResponseDTO res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, APPOINTMENT_NOT_FOR_TODAY_ERROR);
         }
@@ -114,7 +115,7 @@ public class PlaceInWaitingRoomServiceTest {
             prepareTodayAppointment();
             prepareWRRepository();
 
-            Map<String, Object> res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
+            SimpleResponseDTO res = pcs.placeClient(CLIENT_ID, APPOINTMENT_ID);
             verifySuccess(res);
         }
 
@@ -124,22 +125,25 @@ public class PlaceInWaitingRoomServiceTest {
             prepareClientRepository();
             prepareClient();
 
-            Map<String, Object> res = pcs.placeClient(CLIENT_ID);
+            SimpleResponseDTO res = pcs.placeClient(CLIENT_ID);
             verifySuccess(res);
         }
     }
 
-    private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(pcs.getSuccessTag());
+    private void verifySuccess(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isTrue();
     }
 
-    private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(pcs.getFailTag());
+    private void verifyFail(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
     }
 
-    void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(pcs.getFailTag());
-        assertThat(errors).isNotNull().containsKey(expectedKey);
+    void verifyFailType(SimpleResponseDTO res, String expectedKey) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
+        assertThat(res.message()).isEqualTo(expectedKey);
     }
 
     // Context.

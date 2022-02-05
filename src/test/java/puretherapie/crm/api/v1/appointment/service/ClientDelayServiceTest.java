@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientDelay;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
@@ -20,7 +21,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalTime;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -172,7 +172,7 @@ public class ClientDelayServiceTest {
         void testWithUnknownClient() {
             prepareMinimalRepository();
 
-            Map<String, Object> res = cds.createClientDelay(-1, APPOINTMENT_ID, CORRECT_DELAY);
+            SimpleResponseDTO res = cds.createClientDelay(-1, APPOINTMENT_ID, CORRECT_DELAY);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
         }
@@ -182,7 +182,7 @@ public class ClientDelayServiceTest {
         void testWithUnknownAppointment() {
             prepareMinimalRepository();
 
-            Map<String, Object> res = cds.createClientDelay(CLIENT_ID, -1, CORRECT_DELAY);
+            SimpleResponseDTO res = cds.createClientDelay(CLIENT_ID, -1, CORRECT_DELAY);
             verifyFail(res);
             verifyFailType(res, APPOINTMENT_NOT_FOUND_ERROR);
         }
@@ -193,7 +193,7 @@ public class ClientDelayServiceTest {
             prepareMinimalRepository();
             prepareNotAssociateClient();
 
-            Map<String, Object> res = cds.createClientDelay(CLIENT_ID, APPOINTMENT_ID, CORRECT_DELAY);
+            SimpleResponseDTO res = cds.createClientDelay(CLIENT_ID, APPOINTMENT_ID, CORRECT_DELAY);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_ASSOCIATE_TO_APPOINTMENT_ERROR);
         }
@@ -203,7 +203,7 @@ public class ClientDelayServiceTest {
         void testWithAllCorrect() {
             prepareSuccess();
 
-            Map<String, Object> res = cds.createClientDelay(CLIENT_ID, APPOINTMENT_ID, CORRECT_DELAY);
+            SimpleResponseDTO res = cds.createClientDelay(CLIENT_ID, APPOINTMENT_ID, CORRECT_DELAY);
             verifySuccess(res);
         }
 
@@ -212,21 +212,24 @@ public class ClientDelayServiceTest {
         void testWithNegativeDelay() {
             prepareSuccess();
 
-            Map<String, Object> res = cds.createClientDelay(CLIENT_ID, APPOINTMENT_ID, -1);
+            SimpleResponseDTO res = cds.createClientDelay(CLIENT_ID, APPOINTMENT_ID, -1);
             verifySuccess(res);
         }
 
-        private void verifySuccess(Map<String, Object> res) {
-            assertThat(res).isNotNull().containsKey(cds.getSuccessTag());
+        private void verifySuccess(SimpleResponseDTO res) {
+            assertThat(res).isNotNull();
+            assertThat(res.success()).isTrue();
         }
 
-        private void verifyFail(Map<String, Object> res) {
-            assertThat(res).isNotNull().containsKey(cds.getFailTag());
+        private void verifyFail(SimpleResponseDTO res) {
+            assertThat(res).isNotNull();
+            assertThat(res.success()).isFalse();
         }
 
-        void verifyFailType(Map<String, Object> res, String expectedKey) {
-            @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(cds.getFailTag());
-            assertThat(errors).isNotNull().containsKey(expectedKey);
+        void verifyFailType(SimpleResponseDTO res, String expectedKey) {
+            assertThat(res).isNotNull();
+            assertThat(res.success()).isFalse();
+            assertThat(res.message()).isEqualTo(expectedKey);
         }
 
         // Context.

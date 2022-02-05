@@ -21,7 +21,7 @@ import puretherapie.crm.data.product.bill.PaymentType;
 import puretherapie.crm.data.product.bill.repository.BillRepository;
 import puretherapie.crm.data.product.bill.repository.PaymentTypeRepository;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -153,7 +153,7 @@ public class BundlePurchaseService {
                 .paymentType(paymentType)
                 .basePrice(basePrice)
                 .purchasePrice(customPrice < 0 ? basePrice : customPrice)
-                .creationDate(OffsetDateTime.now())
+                .creationDate(LocalDateTime.now())
                 .build();
     }
 

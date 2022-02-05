@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.service.ReduceStockService;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.UseSessionService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.api.v1.waitingroom.service.RemoveFromWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.person.client.Client;
@@ -30,16 +31,16 @@ import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
-import static puretherapie.crm.api.v1.appointment.service.TerminateClientService.*;
+import static puretherapie.crm.api.v1.appointment.service.ProvisionSessionOnClientService.*;
 
 @SpringBootTest
 @DisplayName("TerminateClientService tests")
-public class TerminateClientServiceTest {
+public class ProvisionSessionOnClientServiceTest {
 
     @BeforeEach
     void setUp() {
@@ -53,7 +54,7 @@ public class TerminateClientServiceTest {
     }
 
     @Autowired
-    private TerminateClientService tcs;
+    private ProvisionSessionOnClientService tcs;
 
     @Nested
     @DisplayName("Terminate client with appointment tests")
@@ -64,7 +65,7 @@ public class TerminateClientServiceTest {
         void testWithNotFoundClient() {
             prepareClientRepository();
 
-            Map<String, Object> res = tcs.terminateWithAppointment(590);
+            SimpleResponseDTO res = tcs.provisionWithAppointment(590);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
         }
@@ -75,7 +76,7 @@ public class TerminateClientServiceTest {
             prepareClientRepository();
             prepareClientNotInWR();
 
-            Map<String, Object> res = tcs.terminateWithAppointment(CLIENT_ID);
+            SimpleResponseDTO res = tcs.provisionWithAppointment(CLIENT_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_IN_WR_ERROR);
         }
@@ -87,7 +88,7 @@ public class TerminateClientServiceTest {
             prepareClientInWR();
             prepareClientWithoutAppointment();
 
-            Map<String, Object> res = tcs.terminateWithAppointment(CLIENT_ID);
+            SimpleResponseDTO res = tcs.provisionWithAppointment(CLIENT_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_WITHOUT_APPOINTMENT_ERROR);
         }
@@ -100,7 +101,7 @@ public class TerminateClientServiceTest {
             prepareClientWithAppointment();
             prepareAppointmentCanceled();
 
-            Map<String, Object> res = tcs.terminateWithAppointment(CLIENT_ID);
+            SimpleResponseDTO res = tcs.provisionWithAppointment(CLIENT_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_APPOINTMENT_CANCELED_ERROR);
         }
@@ -115,7 +116,7 @@ public class TerminateClientServiceTest {
             prepareAppointmentNotCanceled();
             prepareFailRemoveWR();
 
-            Map<String, Object> res = tcs.terminateWithAppointment(CLIENT_ID);
+            SimpleResponseDTO res = tcs.provisionWithAppointment(CLIENT_ID);
             verifyFail(res);
             verifyFailType(res, FAIL_TO_REMOVE_CLIENT_WR_ERROR);
         }
@@ -130,7 +131,7 @@ public class TerminateClientServiceTest {
             prepareAppointmentNotCanceled();
             prepareSuccessRemoveWR();
 
-            Map<String, Object> res = tcs.terminateWithAppointment(CLIENT_ID);
+            SimpleResponseDTO res = tcs.provisionWithAppointment(CLIENT_ID);
             verifySuccess(res);
         }
     }
@@ -145,7 +146,7 @@ public class TerminateClientServiceTest {
             prepareTechnicianRepository();
             prepareACRepository();
 
-            Map<String, Object> res = tcs.terminateWithoutAppointment(215, TECHNICIAN_ID, AC_ID);
+            SimpleResponseDTO res = tcs.provisionWithoutAppointment(215, TECHNICIAN_ID, AC_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
         }
@@ -157,7 +158,7 @@ public class TerminateClientServiceTest {
             prepareTechnicianRepository();
             prepareACRepository();
 
-            Map<String, Object> res = tcs.terminateWithoutAppointment(CLIENT_ID, 545, AC_ID);
+            SimpleResponseDTO res = tcs.provisionWithoutAppointment(CLIENT_ID, 545, AC_ID);
             verifyFail(res);
             verifyFailType(res, TECHNICIAN_ID_NOT_FOUND_ERROR);
         }
@@ -169,7 +170,7 @@ public class TerminateClientServiceTest {
             prepareTechnicianRepository();
             prepareACRepository();
 
-            Map<String, Object> res = tcs.terminateWithoutAppointment(CLIENT_ID, TECHNICIAN_ID, 302);
+            SimpleResponseDTO res = tcs.provisionWithoutAppointment(CLIENT_ID, TECHNICIAN_ID, 302);
             verifyFail(res);
             verifyFailType(res, AESTHETIC_CARE_ID_NOT_FOUND_ERROR);
         }
@@ -182,7 +183,7 @@ public class TerminateClientServiceTest {
             prepareACRepository();
             prepareClientNotInWR();
 
-            Map<String, Object> res = tcs.terminateWithoutAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID);
+            SimpleResponseDTO res = tcs.provisionWithoutAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_IN_WR_ERROR);
         }
@@ -199,7 +200,7 @@ public class TerminateClientServiceTest {
             prepareAppointmentNotCanceled();
             prepareFailRemoveWR();
 
-            Map<String, Object> res = tcs.terminateWithoutAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID);
+            SimpleResponseDTO res = tcs.provisionWithoutAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID);
             verifyFail(res);
             verifyFailType(res, FAIL_TO_REMOVE_CLIENT_WR_ERROR);
         }
@@ -216,22 +217,25 @@ public class TerminateClientServiceTest {
             prepareAppointmentNotCanceled();
             prepareSuccessRemoveWR();
 
-            Map<String, Object> res = tcs.terminateWithoutAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID);
+            SimpleResponseDTO res = tcs.provisionWithoutAppointment(CLIENT_ID, TECHNICIAN_ID, AC_ID);
             verifySuccess(res);
         }
     }
 
-    private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(tcs.getSuccessTag());
+    private void verifySuccess(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isTrue();
     }
 
-    private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(tcs.getFailTag());
+    private void verifyFail(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
     }
 
-    void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(tcs.getFailTag());
-        assertThat(errors).isNotNull().containsKey(expectedKey);
+    void verifyFailType(SimpleResponseDTO res, String expectedKey) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
+        assertThat(res.message()).isEqualTo(expectedKey);
     }
 
     // Context.
@@ -330,11 +334,11 @@ public class TerminateClientServiceTest {
     }
 
     private void prepareSuccessRemoveWR() {
-        given(mockRWRService.hasSuccess(any())).willReturn(true);
+        given(mockRWRService.removeClient(anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
     }
 
     private void prepareFailRemoveWR() {
-        given(mockRWRService.hasSuccess(any())).willReturn(false);
+        given(mockRWRService.removeClient(anyInt())).willReturn(SimpleResponseDTO.generateFail(""));
     }
 
     private void prepareAppointmentAC() {
@@ -362,7 +366,7 @@ public class TerminateClientServiceTest {
     }
 
     private void prepareUseSessionService() {
-        given(mockUSService.hasSuccess(any())).willReturn(true);
+        given(mockUSService.useSession(anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
     }
 
     private void prepareReduceStockServiceSuccess() {

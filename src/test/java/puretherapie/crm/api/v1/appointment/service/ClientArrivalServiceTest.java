@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientArrival;
@@ -16,11 +17,11 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 
 import java.time.LocalTime;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static puretherapie.crm.api.v1.appointment.service.ClientArrivalService.*;
 
@@ -39,21 +40,9 @@ public class ClientArrivalServiceTest {
         @DisplayName("Test with not found client fail")
         void testWithNotFoundClient() {
             prepareClientRepository();
-            Map<String, Object> res = cas.clientArrive(46);
+            SimpleResponseDTO res = cas.clientArrive(46, -1);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
-        }
-
-        @Test
-        @DisplayName("Test with too much client delay client delay fail")
-        void testWithNormalClientDelay() {
-            prepareClientRepository();
-            prepareFindAppointment();
-            prepareTooMuchDelay();
-
-            Map<String, Object> res = cas.clientArrive(CLIENT_ID);
-            verifyFail(res);
-            verifyFailType(res, CLIENT_TOO_MUCH_LATE_ERROR);
         }
 
         @Test
@@ -64,7 +53,7 @@ public class ClientArrivalServiceTest {
             prepareNotLate();
             prepareFailPlaceInWaitingRoom();
 
-            Map<String, Object> res = cas.clientArrive(CLIENT_ID);
+            SimpleResponseDTO res = cas.clientArrive(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, WAITING_ROOM_ERROR);
         }
@@ -77,7 +66,7 @@ public class ClientArrivalServiceTest {
             prepareNotLate();
             prepareSuccessPlaceInWaitingRoom();
 
-            Map<String, Object> res = cas.clientArrive(CLIENT_ID);
+            SimpleResponseDTO res = cas.clientArrive(CLIENT_ID, APPOINTMENT_ID);
             verifySuccess(res);
         }
 
@@ -90,23 +79,27 @@ public class ClientArrivalServiceTest {
             prepareSuccessCreateClientDelay();
             prepareSuccessPlaceInWaitingRoom();
 
-            Map<String, Object> res = cas.clientArrive(CLIENT_ID);
+            SimpleResponseDTO res = cas.clientArrive(CLIENT_ID, APPOINTMENT_ID);
             verifySuccess(res);
         }
 
     }
 
-    private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(cas.getSuccessTag());
+    private void verifySuccess(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isTrue();
     }
 
-    private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(cas.getFailTag());
+    private void verifyFail(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
     }
 
-    void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(cas.getFailTag());
-        assertThat(errors).isNotNull().containsKey(expectedKey);
+    void verifyFailType(SimpleResponseDTO res, String expectedKey) {
+        System.out.println("Res = " + res);
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
+        assertThat(res.message()).isEqualTo(expectedKey);
     }
 
     // Context.
@@ -142,7 +135,9 @@ public class ClientArrivalServiceTest {
     }
 
     private void prepareFindAppointment() {
-        given(mockAppointmentRepository.findByClientAndDay(eq(mockClient), any())).willReturn(mockAppointment);
+        List<Appointment> appointmentList = new ArrayList<>();
+        appointmentList.add(mockAppointment);
+        given(mockAppointmentRepository.findByClientAndDay(eq(mockClient), any())).willReturn(appointmentList);
     }
 
     private void prepareNotFoundAppointment() {
@@ -162,15 +157,20 @@ public class ClientArrivalServiceTest {
     }
 
     private void prepareSuccessCreateClientDelay() {
-        given(mockCDService.hasSuccess(any())).willReturn(true);
+        given(mockCDService.createClientDelay(anyInt(), anyInt(), anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
+        given(mockCDService.createClientDelay(any(), any(), anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
     }
 
     private void prepareSuccessPlaceInWaitingRoom() {
-        given(mockPCWRService.hasSuccess(any())).willReturn(true);
+        given(mockPCWRService.placeClient(any(), any())).willReturn(SimpleResponseDTO.generateSuccess(""));
+        given(mockPCWRService.placeClient(anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
+        given(mockPCWRService.placeClient(anyInt(), anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
     }
 
     private void prepareFailPlaceInWaitingRoom() {
-        given(mockPCWRService.hasSuccess(any())).willReturn(false);
+        given(mockPCWRService.placeClient(any(), any())).willReturn(SimpleResponseDTO.generateFail(""));
+        given(mockPCWRService.placeClient(anyInt())).willReturn(SimpleResponseDTO.generateFail(""));
+        given(mockPCWRService.placeClient(anyInt(), anyInt())).willReturn(SimpleResponseDTO.generateFail(""));
     }
 
 }

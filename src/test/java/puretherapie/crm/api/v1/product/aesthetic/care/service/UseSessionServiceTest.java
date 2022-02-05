@@ -8,10 +8,9 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.product.aesthetic.care.SessionPurchase;
 import puretherapie.crm.data.product.aesthetic.care.repository.SessionPurchaseRepository;
-
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -37,7 +36,7 @@ public class UseSessionServiceTest {
         @Test
         @DisplayName("Test with session purchase not found fail")
         void testWithSessionPurchaseNotFound() {
-            Map<String, Object> res = uss.useSession(-1);
+            SimpleResponseDTO res = uss.useSession(-1);
             verifyFail(res);
             verifyFailType(res, SESSION_PURCHASE_NOT_FOUND_ERROR);
         }
@@ -47,7 +46,7 @@ public class UseSessionServiceTest {
         void testWithSessionAlreadyUsed() {
             prepareUsedSession();
 
-            Map<String, Object> res = uss.useSession(SP_ID);
+            SimpleResponseDTO res = uss.useSession(SP_ID);
             verifyFail(res);
             verifyFailType(res, SESSION_ALREADY_USED_ERROR);
         }
@@ -57,22 +56,25 @@ public class UseSessionServiceTest {
         void testWithSessionNotUsed() {
             prepareNotUsedSession();
 
-            Map<String, Object> res = uss.useSession(SP_ID);
+            SimpleResponseDTO res = uss.useSession(SP_ID);
             verifySuccess(res);
         }
     }
 
-    private void verifySuccess(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(uss.getSuccessTag());
+    private void verifySuccess(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isTrue();
     }
 
-    private void verifyFail(Map<String, Object> res) {
-        assertThat(res).isNotNull().containsKey(uss.getFailTag());
+    private void verifyFail(SimpleResponseDTO res) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
     }
 
-    void verifyFailType(Map<String, Object> res, String expectedKey) {
-        @SuppressWarnings("unchecked") Map<String, String> errors = (Map<String, String>) res.get(uss.getFailTag());
-        assertThat(errors).isNotNull().containsKey(expectedKey);
+    void verifyFailType(SimpleResponseDTO res, String expectedKey) {
+        assertThat(res).isNotNull();
+        assertThat(res.success()).isFalse();
+        assertThat(res.message()).isEqualTo(expectedKey);
     }
 
     // Context.

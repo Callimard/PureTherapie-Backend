@@ -13,7 +13,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Getter
@@ -53,7 +53,7 @@ public class Client extends Person {
 
     @Builder
     public Client(Integer idPerson, String firstName, String lastName, String email, boolean gender, LocalDate birthday, String phone,
-                  OffsetDateTime creationDate, PersonOrigin personOrigin, String photo, String comment, String technicalComment) {
+                  LocalDateTime creationDate, PersonOrigin personOrigin, String photo, String comment, String technicalComment) {
         super(idPerson, firstName, lastName, email, gender, birthday, phone, creationDate, personOrigin);
         this.photo = photo;
         this.comment = comment;

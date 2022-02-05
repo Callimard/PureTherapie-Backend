@@ -5,7 +5,7 @@ import puretherapie.crm.api.v1.product.bill.controller.dto.BillDTO;
 import puretherapie.crm.data.person.client.Client;
 
 import javax.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
@@ -30,7 +30,7 @@ public class Bill {
     private Double purchasePrice;
 
     @Column(name = "creationDate", nullable = false)
-    private OffsetDateTime creationDate;
+    private LocalDateTime creationDate;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idClient", nullable = false)

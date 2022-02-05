@@ -10,7 +10,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -30,7 +30,7 @@ public class Technician extends Person {
 
     @Builder
     public Technician(Integer idPerson, String firstName, String lastName, String mail, boolean gender, LocalDate birthday, String phone,
-                      OffsetDateTime creationDate, PersonOrigin personOrigin, String speciality, boolean isActive) {
+                      LocalDateTime creationDate, PersonOrigin personOrigin, String speciality, boolean isActive) {
         super(idPerson, firstName, lastName, mail, gender, birthday, phone, creationDate, personOrigin);
         this.speciality = speciality;
         this.isActive = isActive;

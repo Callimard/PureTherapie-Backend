@@ -6,16 +6,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.SimpleService;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.product.aesthetic.care.SessionPurchase;
 import puretherapie.crm.data.product.aesthetic.care.repository.SessionPurchaseRepository;
-
-import java.util.Map;
 
 @Slf4j
 @AllArgsConstructor
 @Service
-public class UseSessionService extends SimpleService {
+public class UseSessionService {
 
     // Constants.
 
@@ -32,30 +30,30 @@ public class UseSessionService extends SimpleService {
     // Methods.
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<String, Object> useSession(int idSessionPurchase) {
+    public SimpleResponseDTO useSession(int idSessionPurchase) {
         try {
             SessionPurchase sessionPurchase = verifySessionPurchase(idSessionPurchase);
             verifyNotUsed(sessionPurchase);
             updateSessionPurchase(sessionPurchase);
-            return generateSuccessRes();
+            return SimpleResponseDTO.generateSuccess("Success to use session.");
         } catch (Exception e) {
             log.debug("Fail to use session, error message {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return generateErrorRes(e);
+            return SimpleResponseDTO.generateFail(e.getMessage());
         }
     }
 
     private SessionPurchase verifySessionPurchase(int idSessionPurchase) {
         SessionPurchase sessionPurchase = sessionPurchaseRepository.findByIdSessionPurchase(idSessionPurchase);
         if (sessionPurchase == null)
-            throw new UseSessionException("Session purchase not found", generateError(SESSION_PURCHASE_NOT_FOUND_ERROR, "SP not found"));
+            throw new UseSessionException(SESSION_PURCHASE_NOT_FOUND_ERROR);
 
         return sessionPurchase;
     }
 
     private void verifyNotUsed(SessionPurchase sessionPurchase) {
         if (sessionPurchase.isUsed())
-            throw new UseSessionException("Session already used", generateError(SESSION_ALREADY_USED_ERROR, "Session already used"));
+            throw new UseSessionException(SESSION_ALREADY_USED_ERROR);
     }
 
     private void updateSessionPurchase(SessionPurchase sessionPurchase) {
@@ -64,23 +62,11 @@ public class UseSessionService extends SimpleService {
         log.debug("Update (set to used = true) session purchase {}", sessionPurchase);
     }
 
-    // SimpleService methods.
-
-    @Override
-    public String getSuccessTag() {
-        return USE_SESSION_SUCCESS;
-    }
-
-    @Override
-    public String getFailTag() {
-        return USE_SESSION_FAIL;
-    }
-
     // Exceptions.
 
-    private static class UseSessionException extends SimpleService.ServiceException {
-        public UseSessionException(String message, Map<String, String> errors) {
-            super(message, errors);
+    private static class UseSessionException extends RuntimeException {
+        public UseSessionException(String message) {
+            super(message);
         }
     }
 }

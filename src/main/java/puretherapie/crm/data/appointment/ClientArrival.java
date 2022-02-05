@@ -5,7 +5,7 @@ import puretherapie.crm.api.v1.appointment.controller.dto.ClientArrivalDTO;
 import puretherapie.crm.data.person.client.Client;
 
 import javax.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Builder
 @Getter
@@ -23,7 +23,7 @@ public class ClientArrival {
     private Integer idClientArrival;
 
     @Column(name = "arrivalDate", nullable = false)
-    private OffsetDateTime arrivalDate;
+    private LocalDateTime arrivalDate;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idClient", nullable = false)

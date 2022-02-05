@@ -5,7 +5,7 @@ import puretherapie.crm.api.v1.product.bill.controller.dto.BillDTO;
 import puretherapie.crm.api.v1.product.bill.controller.dto.PaymentDTO;
 
 import javax.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Builder
 @Getter
@@ -26,7 +26,7 @@ public class Payment {
     private Double amountPaid;
 
     @Column(name = "paymentDate", nullable = false)
-    private OffsetDateTime paymentDate;
+    private LocalDateTime paymentDate;
 
     @Column(name = "canceled", nullable = false)
     private boolean canceled = false;

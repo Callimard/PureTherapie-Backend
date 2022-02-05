@@ -2,15 +2,16 @@ package puretherapie.crm.api.v1.waitingroom.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.api.v1.waitingroom.controller.dto.WaitingRoomDTO;
+import puretherapie.crm.api.v1.waitingroom.service.RemoveFromWaitingRoomService;
 import puretherapie.crm.data.waitingroom.WaitingRoom;
 import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 
+import java.awt.event.WindowFocusListener;
 import java.util.List;
 
 import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
@@ -29,6 +30,7 @@ public class WaitingRoomController {
 
     // Variables.
 
+    private final RemoveFromWaitingRoomService removeFromWaitingRoomService;
     private final WaitingRoomRepository waitingRoomRepository;
 
     // Methods
@@ -39,6 +41,13 @@ public class WaitingRoomController {
     public List<WaitingRoomDTO> getAllWaitingRoomRow() {
         List<WaitingRoom> wr = waitingRoomRepository.findAll();
         return wr.stream().map(WaitingRoom::transform).toList();
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @DeleteMapping("/{idClient}")
+    public ResponseEntity<SimpleResponseDTO> removeClientFromWaitingRoom(@PathVariable(name = "idClient") int idClient) {
+        return SimpleResponseDTO.generateResponse(removeFromWaitingRoomService.removeClient(idClient));
     }
 
 }

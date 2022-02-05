@@ -40,21 +40,9 @@ public class ClientArrivalServiceTest {
         @DisplayName("Test with not found client fail")
         void testWithNotFoundClient() {
             prepareClientRepository();
-            SimpleResponseDTO res = cas.clientArrive(46);
+            SimpleResponseDTO res = cas.clientArrive(46, -1);
             verifyFail(res);
             verifyFailType(res, CLIENT_NOT_FOUND_ERROR);
-        }
-
-        @Test
-        @DisplayName("Test with too much client delay client delay fail")
-        void testWithNormalClientDelay() {
-            prepareClientRepository();
-            prepareFindAppointment();
-            prepareTooMuchDelay();
-
-            SimpleResponseDTO res = cas.clientArrive(CLIENT_ID);
-            verifyFail(res);
-            verifyFailType(res, CLIENT_TOO_MUCH_LATE_ERROR);
         }
 
         @Test
@@ -65,7 +53,7 @@ public class ClientArrivalServiceTest {
             prepareNotLate();
             prepareFailPlaceInWaitingRoom();
 
-            SimpleResponseDTO res = cas.clientArrive(CLIENT_ID);
+            SimpleResponseDTO res = cas.clientArrive(CLIENT_ID, APPOINTMENT_ID);
             verifyFail(res);
             verifyFailType(res, WAITING_ROOM_ERROR);
         }
@@ -78,7 +66,7 @@ public class ClientArrivalServiceTest {
             prepareNotLate();
             prepareSuccessPlaceInWaitingRoom();
 
-            SimpleResponseDTO res = cas.clientArrive(CLIENT_ID);
+            SimpleResponseDTO res = cas.clientArrive(CLIENT_ID, APPOINTMENT_ID);
             verifySuccess(res);
         }
 
@@ -91,7 +79,7 @@ public class ClientArrivalServiceTest {
             prepareSuccessCreateClientDelay();
             prepareSuccessPlaceInWaitingRoom();
 
-            SimpleResponseDTO res = cas.clientArrive(CLIENT_ID);
+            SimpleResponseDTO res = cas.clientArrive(CLIENT_ID, APPOINTMENT_ID);
             verifySuccess(res);
         }
 
@@ -108,6 +96,7 @@ public class ClientArrivalServiceTest {
     }
 
     void verifyFailType(SimpleResponseDTO res, String expectedKey) {
+        System.out.println("Res = " + res);
         assertThat(res).isNotNull();
         assertThat(res.success()).isFalse();
         assertThat(res.message()).isEqualTo(expectedKey);
@@ -168,19 +157,20 @@ public class ClientArrivalServiceTest {
     }
 
     private void prepareSuccessCreateClientDelay() {
-        given(mockCDService.hasSuccess(any())).willReturn(true);
+        given(mockCDService.createClientDelay(anyInt(), anyInt(), anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
+        given(mockCDService.createClientDelay(any(), any(), anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
     }
 
     private void prepareSuccessPlaceInWaitingRoom() {
+        given(mockPCWRService.placeClient(any(), any())).willReturn(SimpleResponseDTO.generateSuccess(""));
         given(mockPCWRService.placeClient(anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
         given(mockPCWRService.placeClient(anyInt(), anyInt())).willReturn(SimpleResponseDTO.generateSuccess(""));
-        given(mockPCWRService.placeClient(any(), any())).willReturn(SimpleResponseDTO.generateSuccess(""));
     }
 
     private void prepareFailPlaceInWaitingRoom() {
+        given(mockPCWRService.placeClient(any(), any())).willReturn(SimpleResponseDTO.generateFail(""));
         given(mockPCWRService.placeClient(anyInt())).willReturn(SimpleResponseDTO.generateFail(""));
         given(mockPCWRService.placeClient(anyInt(), anyInt())).willReturn(SimpleResponseDTO.generateFail(""));
-        given(mockPCWRService.placeClient(any(), any())).willReturn(SimpleResponseDTO.generateFail(""));
     }
 
 }

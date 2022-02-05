@@ -158,7 +158,8 @@ public class AppointmentController {
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PostMapping(CLIENT_ARRIVE)
-    public ResponseEntity<SimpleResponseDTO> clientArrive(@RequestParam(name = "idClient") int idClient) {
-        return SimpleResponseDTO.generateResponse(clientArrivalService.clientArrive(idClient));
+    public ResponseEntity<SimpleResponseDTO> clientArrive(@RequestParam(name = "idClient") int idClient,
+                                                          @RequestParam(name = "idAppointment", required = false, defaultValue = "-1") int idAppointment) {
+        return SimpleResponseDTO.generateResponse(clientArrivalService.clientArrive(idClient, idAppointment));
     }
 }

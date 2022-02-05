@@ -17,11 +17,8 @@ import puretherapie.crm.data.person.client.repository.ClientRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.*;
-import static puretherapie.crm.tool.TimeTool.today;
 
 @Slf4j
 @AllArgsConstructor
@@ -34,6 +31,7 @@ public class ClientArrivalService {
     public static final String CLIENT_ARRIVAL_FAIL = "client_arrival_fail";
 
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found_error";
+    public static final String APPOINTMENT_NOT_FOR_TODAY_ERROR = "appointment_not_for_today_error";
     public static final String CLIENT_TOO_MUCH_LATE_ERROR = "client_too_much_late_error";
     public static final String WAITING_ROOM_ERROR = "waiting_room_error";
 
@@ -48,19 +46,21 @@ public class ClientArrivalService {
     // Methods.
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public SimpleResponseDTO clientArrive(int idClient) {
+    public SimpleResponseDTO clientArrive(int idClient, int idAppointment) {
         try {
             Client client = verifyClient(idClient);
-            Appointment appointment = getAppointment(client, today());
             ClientArrival clientArrival = buildClientArrival(client);
             clientArrival = saveClientArrival(clientArrival);
+            Appointment appointment = getAppointment(idAppointment);
             if (appointment != null) {
+                verifyAppointmentIsForToday(appointment);
                 verifyClientDelay(appointment);
                 appointment = linkAppointmentAndClientArrival(appointment, clientArrival);
             }
             placeClientInWaitingRoom(client, appointment);
             return SimpleResponseDTO.generateSuccess("Success client arrive");
         } catch (Exception e) {
+            log.error("Exception", e);
             log.debug("Fail client arrival, error message: {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return SimpleResponseDTO.generateFail(e.getMessage());
@@ -75,9 +75,8 @@ public class ClientArrivalService {
         return client;
     }
 
-    private Appointment getAppointment(Client client, LocalDate today) {
-        List<Appointment> appointments = appointmentRepository.findByClientAndDay(client, today);
-        return appointments.isEmpty() ? null : appointments.get(0);
+    private Appointment getAppointment(int idAppointment) {
+        return appointmentRepository.findByIdAppointment(idAppointment);
     }
 
     private ClientArrival buildClientArrival(Client client) {
@@ -93,6 +92,11 @@ public class ClientArrivalService {
         return ca;
     }
 
+    private void verifyAppointmentIsForToday(Appointment appointment) {
+        if (!appointment.getDay().equals(LocalDate.now()))
+            throw new ClientArrivalException(APPOINTMENT_NOT_FOR_TODAY_ERROR);
+    }
+
     private void verifyClientDelay(Appointment appointment) {
         if (isLateFromNow(appointment.getTime())) {
             if (isTooMuchLateFromNow(appointment.getTime())) {
@@ -100,9 +104,9 @@ public class ClientArrivalService {
                 throw new ClientArrivalException(CLIENT_TOO_MUCH_LATE_ERROR);
             } else {
                 log.debug("Save client delay ({} minutes)", delayFromNow(appointment.getTime()));
-                Map<String, Object> res = clientDelayService.createClientDelay(appointment.getClient(), appointment,
-                                                                               (int) delayFromNow(appointment.getTime()));
-                if (!clientDelayService.hasSuccess(res))
+                SimpleResponseDTO res = clientDelayService.createClientDelay(appointment.getClient(), appointment,
+                                                                             (int) delayFromNow(appointment.getTime()));
+                if (!res.success())
                     log.debug("Fail to create client delay");
             }
         }

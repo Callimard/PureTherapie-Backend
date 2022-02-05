@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.person.client.controller.dto.SimpleClientInfoDTO;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
@@ -26,11 +25,6 @@ import static puretherapie.crm.tool.TimeTool.today;
 @AllArgsConstructor
 @Service
 public class PlaceInWaitingRoomService {
-
-    // Constants.
-
-    public static final String CLIENT_PLACE_IN_WR_SUCCESS = "client_place_in_waiting_room_success";
-    public static final String CLIENT_PLACE_IN_WR_FAIL = "client_place_in_waiting_room_fail";
 
     // ERRORS.
 

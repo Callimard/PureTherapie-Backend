@@ -9,7 +9,7 @@ import puretherapie.crm.data.person.PersonOrigin;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -39,7 +39,7 @@ public class User extends Person implements UserDetails {
 
     @Builder
     public User(Integer idPerson, String firstName, String lastName, String email, boolean gender, LocalDate birthday, String phone,
-                OffsetDateTime creationDate, PersonOrigin personOrigin, String username, String password, List<Role> roles) {
+                LocalDateTime creationDate, PersonOrigin personOrigin, String username, String password, List<Role> roles) {
         super(idPerson, firstName, lastName, email, gender, birthday, phone, creationDate, personOrigin);
         this.username = username;
         this.password = password;

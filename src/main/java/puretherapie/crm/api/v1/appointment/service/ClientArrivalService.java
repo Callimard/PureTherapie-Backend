@@ -16,7 +16,7 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -83,7 +83,7 @@ public class ClientArrivalService {
     private ClientArrival buildClientArrival(Client client) {
         return ClientArrival.builder()
                 .client(client)
-                .arrivalDate(OffsetDateTime.now())
+                .arrivalDate(LocalDateTime.now())
                 .build();
     }
 

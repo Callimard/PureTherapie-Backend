@@ -7,7 +7,7 @@ import puretherapie.crm.data.person.client.Client;
 
 import javax.persistence.*;
 import java.time.LocalTime;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Builder
 @Getter
@@ -25,7 +25,7 @@ public class WaitingRoom {
     private Integer idWaitingRoom;
 
     @Column(name = "arrivalDate", nullable = false)
-    private OffsetDateTime arrivalDate;
+    private LocalDateTime arrivalDate;
 
     @Column(name = "appointmentTime")
     private LocalTime appointmentTime;

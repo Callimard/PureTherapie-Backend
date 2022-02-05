@@ -4,7 +4,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -69,7 +69,7 @@ public abstract class Person {
     private String phone;
 
     @Column(name = CREATION_DATE_FIELD, nullable = false)
-    private OffsetDateTime creationDate;
+    private LocalDateTime creationDate;
 
     @ManyToOne
     @JoinColumn(name = ID_PERSON_ORIGIN_FIELD, nullable = false)

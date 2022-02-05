@@ -11,7 +11,7 @@ import puretherapie.crm.data.product.bill.repository.BillRepository;
 import puretherapie.crm.data.product.bill.repository.MeansOfPaymentRepository;
 import puretherapie.crm.data.product.bill.repository.PaymentRepository;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -116,7 +116,7 @@ public class PaymentService {
     private Payment createPayment(double amountPaid, MeansOfPayment meansOfPayment, Bill bill) {
         return Payment.builder()
                 .amountPaid(amountPaid)
-                .paymentDate(OffsetDateTime.now())
+                .paymentDate(LocalDateTime.now())
                 .meansOfPayment(meansOfPayment)
                 .bill(bill)
                 .build();

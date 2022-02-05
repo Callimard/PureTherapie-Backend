@@ -17,7 +17,7 @@ import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.waitingroom.WaitingRoom;
 import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static puretherapie.crm.tool.TimeTool.today;
@@ -142,7 +142,7 @@ public class PlaceInWaitingRoomService {
         return WaitingRoom.builder()
                 .client(client)
                 .appointment(appointment)
-                .arrivalDate(OffsetDateTime.now())
+                .arrivalDate(LocalDateTime.now())
                 .appointmentTime(firstTS != null ? firstTS.getBegin() : null)
                 .build();
     }

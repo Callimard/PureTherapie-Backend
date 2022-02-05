@@ -18,7 +18,7 @@ import puretherapie.crm.data.product.aesthetic.care.AestheticCareProvision;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareProvisionRepository;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Slf4j
@@ -59,7 +59,7 @@ public class AestheticCareProvisionCreationService extends SimpleService {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public Map<String, Object> createAestheticCareProvision(int idClient, int idTechnician, int idAestheticCare,
-                                                            int idAppointment, OffsetDateTime dateTime) {
+                                                            int idAppointment, LocalDateTime dateTime) {
         try {
             verifyDateTime(dateTime);
             Client client = verifyClient(idClient);
@@ -76,7 +76,7 @@ public class AestheticCareProvisionCreationService extends SimpleService {
         }
     }
 
-    private void verifyDateTime(OffsetDateTime dateTime) {
+    private void verifyDateTime(LocalDateTime dateTime) {
         if (dateTime == null)
             throw new AestheticCareProvisionCreationException("Null date time for aesthetic care provision", generateError(NO_DATE_TIME_ERROR, "No " +
                     "date time for aesthetic care provision"));
@@ -129,14 +129,14 @@ public class AestheticCareProvisionCreationService extends SimpleService {
     }
 
     private void saveACProvision(Client client, Technician technician, AestheticCare aestheticCare, Appointment appointment,
-                                 OffsetDateTime dateTime) {
+                                 LocalDateTime dateTime) {
         AestheticCareProvision aestheticCareProvision = buildAestheticCareProvision(client, technician, aestheticCare, appointment, dateTime);
         aestheticCareProvisionRepository.save(aestheticCareProvision);
     }
 
     private AestheticCareProvision buildAestheticCareProvision(Client client, Technician technician, AestheticCare aestheticCare,
                                                                Appointment appointment,
-                                                               OffsetDateTime dateTime) {
+                                                               LocalDateTime dateTime) {
         return AestheticCareProvision.builder()
                 .date(dateTime)
                 .client(client)

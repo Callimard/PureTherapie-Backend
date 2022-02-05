@@ -6,7 +6,7 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.technician.Technician;
 
 import javax.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Builder
 @Getter
@@ -23,7 +23,7 @@ public class AestheticCareProvision {
     private Integer idAestheticCareProvision;
 
     @Column(name = "date", nullable = false)
-    private OffsetDateTime date;
+    private LocalDateTime date;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idClient", nullable = false)

@@ -29,7 +29,7 @@ import puretherapie.crm.data.product.aesthetic.care.repository.SessionPurchaseRe
 import puretherapie.crm.data.waitingroom.WaitingRoom;
 import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -162,7 +162,7 @@ public class ProvisionSessionOnClientService {
                 .technician(technician)
                 .aestheticCare(aestheticCare)
                 .appointment(appointment)
-                .date(OffsetDateTime.now())
+                .date(LocalDateTime.now())
                 .build();
     }
 

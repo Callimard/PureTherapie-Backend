@@ -8,7 +8,7 @@ import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import puretherapie.crm.tool.PhoneTool;
 
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -134,7 +134,7 @@ public class ClientDTO extends PersonDTO {
                 .gender(gender)
                 .birthday(birthday != null ? LocalDate.parse(birthday) : null)
                 .phone(phone)
-                .creationDate(OffsetDateTime.now())
+                .creationDate(LocalDateTime.now())
                 .personOrigin(getPersonOrigin(personOriginRepository))
                 .build();
     }

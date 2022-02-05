@@ -35,6 +35,18 @@ public class PaymentService {
 
     // Methods.
 
+    public boolean billNotTotallyPaid(Bill bill) {
+        if (bill.getPayments() != null) {
+            double amountPaid = 0.d;
+            for (Payment payment : bill.getPayments()) {
+                if (!payment.isCanceled())
+                    amountPaid += payment.getAmountPaid();
+            }
+            return amountPaid < bill.getPurchasePrice();
+        } else
+            return false;
+    }
+
     public SimpleResponseDTO cancelPayment(int idPayment) {
         try {
             Payment payment = verifyPayment(idPayment);

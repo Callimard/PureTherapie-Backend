@@ -1,6 +1,7 @@
 package puretherapie.crm.data.product.aesthetic.care;
 
 import lombok.*;
+import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.AestheticCareProvisionDTO;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.technician.Technician;
@@ -40,4 +41,15 @@ public class AestheticCareProvision {
     @ManyToOne(optional = false)
     @JoinColumn(name = "idAestheticCare", nullable = false)
     private AestheticCare aestheticCare;
+
+    public AestheticCareProvisionDTO transform() {
+        return AestheticCareProvisionDTO.builder()
+                .idAestheticCareProvision(idAestheticCareProvision)
+                .date(date != null ? date.toString() : null)
+                .client(client != null ? client.transform() : null)
+                .appointment(appointment != null ? appointment.transform() : null)
+                .technician(technician != null ? technician.transform() : null)
+                .aestheticCare(aestheticCare != null ? aestheticCare.transform() : null)
+                .build();
+    }
 }

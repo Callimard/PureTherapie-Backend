@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.AestheticCareDTO;
 import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.SessionPurchaseDTO;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.PurchaseSessionService;
+import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.SessionPurchase;
@@ -22,23 +23,27 @@ import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 @Slf4j
 @AllArgsConstructor
 @RestController
-@RequestMapping(AestheticCareController.AESTHETIC_CARE_URL)
+@RequestMapping(AestheticCareController.AESTHETIC_CARES_URL)
 public class AestheticCareController {
 
     // Constants.
 
-    public static final String AESTHETIC_CARE_URL = API_V1_URL + "/aesthetic_cares";
+    public static final String AESTHETIC_CARES_URL = API_V1_URL + "/aesthetic_cares";
 
     public static final String AESTHETIC_CARE_PURCHASE = "/purchase";
-    public static final String AESTHETIC_CARE_PURCHASE_URL = AESTHETIC_CARE_URL + AESTHETIC_CARE_PURCHASE;
+    public static final String AESTHETIC_CARE_PURCHASE_URL = AESTHETIC_CARES_URL + AESTHETIC_CARE_PURCHASE;
 
     public static final String CLIENT_ALL_SESSION_PURCHASES = "/purchases";
-    public static final String CLIENT_ALL_SESSION_PURCHASES_URL = AESTHETIC_CARE_URL + CLIENT_ALL_SESSION_PURCHASES;
+    public static final String CLIENT_ALL_SESSION_PURCHASES_URL = AESTHETIC_CARES_URL + CLIENT_ALL_SESSION_PURCHASES;
+
+    public static final String UNPAID_AESTHETIC_CARE_PURCHASES = CLIENT_ALL_SESSION_PURCHASES + "/unpaid";
+    public static final String UNPAID_AESTHETIC_CARE_PURCHASES_URL = AESTHETIC_CARES_URL + UNPAID_AESTHETIC_CARE_PURCHASES;
 
     // Variables.
 
     private final AestheticCareRepository aestheticCareRepository;
     private final PurchaseSessionService purchaseSessionService;
+    private final PaymentService paymentService;
 
     // Methods.
 
@@ -69,6 +74,15 @@ public class AestheticCareController {
     @GetMapping(CLIENT_ALL_SESSION_PURCHASES)
     public List<SessionPurchaseDTO> getAllClientSessionPurchases(@RequestParam(name = "idClient") int idClient) {
         List<SessionPurchase> sessionPurchases = purchaseSessionService.getAllSessionPurchases(idClient);
+        return sessionPurchases.stream().map(SessionPurchase::transform).toList();
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(UNPAID_AESTHETIC_CARE_PURCHASES)
+    public List<SessionPurchaseDTO> getAllUnpaidSessionPurchases(@RequestParam(name = "idClient") int idClient) {
+        List<SessionPurchase> sessionPurchases = purchaseSessionService.getAllSessionPurchases(idClient);
+        sessionPurchases = sessionPurchases.stream().filter(sP -> paymentService.billNotTotallyPaid(sP.getBill())).toList();
         return sessionPurchases.stream().map(SessionPurchase::transform).toList();
     }
 }

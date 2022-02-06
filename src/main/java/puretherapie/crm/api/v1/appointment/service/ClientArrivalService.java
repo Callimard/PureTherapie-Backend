@@ -60,8 +60,7 @@ public class ClientArrivalService {
             placeClientInWaitingRoom(client, appointment);
             return SimpleResponseDTO.generateSuccess("Success client arrive");
         } catch (Exception e) {
-            log.error("Exception", e);
-            log.debug("Fail client arrival, error message: {}", e.getMessage());
+            log.error("Fail client arrival, error message: {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return SimpleResponseDTO.generateFail(e.getMessage());
         }

@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.AestheticCareDTO;
 import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.SessionPurchaseDTO;
+import puretherapie.crm.api.v1.product.aesthetic.care.service.AestheticCareStockService;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.PurchaseSessionService;
 import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
@@ -39,13 +40,30 @@ public class AestheticCareController {
     public static final String UNPAID_AESTHETIC_CARE_PURCHASES = CLIENT_ALL_SESSION_PURCHASES + "/unpaid";
     public static final String UNPAID_AESTHETIC_CARE_PURCHASES_URL = AESTHETIC_CARES_URL + UNPAID_AESTHETIC_CARE_PURCHASES;
 
+    public static final String CLIENT_AC_STOCK = "/{idClient}/stock/{idAestheticCare}";
+    public static final String CLIENT_AC_STOCK_URL = AESTHETIC_CARES_URL + CLIENT_AC_STOCK;
+
     // Variables.
 
     private final AestheticCareRepository aestheticCareRepository;
     private final PurchaseSessionService purchaseSessionService;
     private final PaymentService paymentService;
+    private final AestheticCareStockService aestheticCareStockService;
 
     // Methods.
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(CLIENT_AC_STOCK)
+    public ResponseEntity<Integer> getACStockOfClient(@PathVariable(name = "idClient") int idClient,
+                                                      @PathVariable(name = "idAestheticCare") int idAestheticCare) {
+        try {
+            return ResponseEntity.ok(aestheticCareStockService.getACStockOfClient(idClient, idAestheticCare));
+        } catch (Exception e) {
+            log.error("Error during get the ac stock of client, Err msg = {}", e.getMessage());
+            return ResponseEntity.badRequest().body(-1);
+        }
+    }
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping

@@ -7,6 +7,7 @@ import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.StockDTO;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Builder
 @Getter
@@ -55,6 +56,10 @@ public class Stock {
                                                                                               getRemainingQuantity() - reduceQuantity));
         else
             setRemainingQuantity(getRemainingQuantity() - reduceQuantity);
+    }
+
+    public boolean isAssociatedTo(AestheticCare aestheticCare) {
+        return Objects.equals(this.aestheticCare.getIdAestheticCare(), aestheticCare.getIdAestheticCare());
     }
 
     public StockDTO transform() {

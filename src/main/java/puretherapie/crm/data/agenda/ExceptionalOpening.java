@@ -1,6 +1,7 @@
 package puretherapie.crm.data.agenda;
 
 import lombok.*;
+import puretherapie.crm.api.v1.agenda.controller.dto.ExceptionalOpeningDTO;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -37,5 +38,14 @@ public class ExceptionalOpening implements Opening {
     @Override
     public LocalTime closeTime() {
         return closeTime;
+    }
+
+    public ExceptionalOpeningDTO transform() {
+        return ExceptionalOpeningDTO.builder()
+                .idExceptionalOpening(idExceptionalOpening)
+                .day(day != null ? day.toString() : null)
+                .openingTime(openingTime != null ? openingTime.toString() : null)
+                .closeTime(closeTime != null ? closeTime.toString() : null)
+                .build();
     }
 }

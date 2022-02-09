@@ -17,11 +17,12 @@ import java.util.*;
 
 import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
+import static puretherapie.crm.api.v1.agenda.controller.AgendaController.AGENDA_URL;
 
 @Slf4j
 @AllArgsConstructor
 @RestController
-@RequestMapping(AgendaController.AGENDA_URL)
+@RequestMapping(AGENDA_URL)
 public class AgendaController {
 
     // Constants.

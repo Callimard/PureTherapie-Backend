@@ -10,4 +10,6 @@ public interface ExceptionalOpeningRepository extends JpaRepository<ExceptionalO
 
     List<ExceptionalOpening> findByDay(LocalDate day);
 
+    List<ExceptionalOpening> findAll();
+
 }

@@ -1,6 +1,7 @@
 package puretherapie.crm.data.agenda;
 
 import lombok.*;
+import puretherapie.crm.api.v1.agenda.controller.dto.ExceptionalCloseDTO;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -21,4 +22,11 @@ public class ExceptionalClose {
 
     @Column(name = "day", nullable = false)
     private LocalDate day;
+
+    public ExceptionalCloseDTO transform() {
+        return ExceptionalCloseDTO.builder()
+                .idExceptionalClose(idExceptionalClose)
+                .day(day != null ? day.toString() : null)
+                .build();
+    }
 }

@@ -9,4 +9,6 @@ public interface GlobalOpeningTimeRepository extends JpaRepository<GlobalOpening
 
     List<GlobalOpeningTime> findByDay(Integer day);
 
+    List<GlobalOpeningTime> findAll();
+
 }

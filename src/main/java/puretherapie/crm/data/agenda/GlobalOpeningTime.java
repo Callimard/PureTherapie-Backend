@@ -1,6 +1,7 @@
 package puretherapie.crm.data.agenda;
 
 import lombok.*;
+import puretherapie.crm.api.v1.agenda.controller.dto.GlobalOpeningTimeDTO;
 
 import javax.persistence.*;
 import java.time.LocalTime;
@@ -39,5 +40,14 @@ public class GlobalOpeningTime implements Opening {
     @Override
     public LocalTime closeTime() {
         return getCloseTime();
+    }
+
+    public GlobalOpeningTimeDTO transform() {
+        return GlobalOpeningTimeDTO.builder()
+                .idGlobalOpeningTime(idGlobalOpeningTime)
+                .day(day)
+                .openingTime(openingTime != null ? openingTime.toString() : null)
+                .closeTime(closeTime != null ? closeTime.toString() : null)
+                .build();
     }
 }

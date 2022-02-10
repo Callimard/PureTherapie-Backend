@@ -92,6 +92,17 @@ public class BundleController {
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(CLIENT_ALL_BUNDLE_PURCHASES + "/{idBundlePurchase}")
+    public BundlePurchaseDTO getClientBundlePurchase(@PathVariable(name = "idBundlePurchase") int idBundlePurchase) {
+        BundlePurchase bundlePurchase = bundlePurchaseRepository.findByIdBundlePurchase(idBundlePurchase);
+        if (bundlePurchase != null)
+            return bundlePurchase.transform();
+        else
+            return null;
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(UNPAID_BUNDLE_PURCHASES)
     public List<BundlePurchaseDTO> getAllUnpaidClientBundlePurchase(@RequestParam(name = "idClient") int idClient) {
         List<BundlePurchase> bundlePurchases = bundlePurchaseService.getAllClientBundlePurchases(idClient);

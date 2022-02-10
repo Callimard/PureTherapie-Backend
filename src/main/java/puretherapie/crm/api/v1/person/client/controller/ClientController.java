@@ -43,6 +43,9 @@ public class ClientController {
     public static final String CLIENT_SEARCH_WITH_EMAIL = "/searchWithEmail";
     public static final String CLIENT_SEARCH_WITH_EMAIL_URL = CLIENT_URL + CLIENT_SEARCH_WITH_EMAIL;
 
+    public static final String CLIENT_SEARCH_WITH_PHONE = "/searchWithPhone";
+    public static final String CLIENT_SEARCH_WITH_PHONE_URL = CLIENT_URL + CLIENT_SEARCH_WITH_PHONE;
+
     public static final String PERSON_ORIGINS = "/person_origins";
     public static final String PERSON_ORIGINS_URL = CLIENT_URL + PERSON_ORIGINS;
 
@@ -121,12 +124,27 @@ public class ClientController {
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping(CLIENT_SEARCH_WITH_EMAIL)
-    public SimpleClientInfoDTO getClientByEmail(@RequestParam(value = "email") String clientEmail) {
+    public SimpleClientInfoDTO getClientWithEmail(@RequestParam(value = "email") String clientEmail) {
         Client client = clientRepository.findByEmail(clientEmail);
         if (client != null)
             return client.transformSimple();
         else
             return null;
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @GetMapping(CLIENT_SEARCH_WITH_PHONE)
+    public ResponseEntity<SimpleClientInfoDTO> getClientWithPhone(@RequestParam(value = "phone") String clientPhone) {
+        try {
+            Client client = clientRepository.findByPhone(formatPhone(clientPhone));
+            if (client != null)
+                return ResponseEntity.ok(client.transformSimple());
+            else
+                return ResponseEntity.ok(null);
+        } catch (Exception e) {
+            log.error("Fail to get client with phone, Err msg = {}", e.getMessage());
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 
 

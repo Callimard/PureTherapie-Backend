@@ -11,6 +11,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 
 import static puretherapie.crm.WebConfiguration.IMAGES_URL;
@@ -19,7 +21,8 @@ import static puretherapie.crm.api.v1.appointment.controller.AppointmentControll
 import static puretherapie.crm.api.v1.person.client.controller.ClientController.*;
 import static puretherapie.crm.api.v1.person.technician.controller.TechnicianController.TECHNICIANS_URL;
 import static puretherapie.crm.api.v1.product.aesthetic.care.controller.AestheticCareController.AESTHETIC_CARES_URL;
-import static puretherapie.crm.api.v1.user.controller.UserController.*;
+import static puretherapie.crm.api.v1.user.controller.UserController.USER_LOGIN_URL;
+import static puretherapie.crm.api.v1.user.controller.UserController.USER_LOGOUT_URL;
 
 @Configuration
 @EnableGlobalMethodSecurity(
@@ -30,7 +33,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     // Constants.
 
-    public static final String FRONT_END_ORIGIN = "http://localhost:4200";
+    public static final String FRONT_END_ORIGIN = "http://62.35.81.203:4200";
 
     // Methods.
 
@@ -47,7 +50,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers(USER_LOGIN_URL, USER_LOGOUT_URL, CLIENT_URL, APPOINTMENT_URL);
+                .ignoringAntMatchers(USER_LOGIN_URL, USER_LOGOUT_URL, CLIENT_URL, APPOINTMENT_URL, IMAGES_URL);
     }
 
     private void configureSession(HttpSecurity http) throws Exception {
@@ -81,6 +84,16 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping(IMAGES_URL).allowCredentials(true).allowedOrigins(FRONT_END_ORIGIN).allowedMethods("*");
+            }
+        };
     }
 
 }

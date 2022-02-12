@@ -132,7 +132,7 @@ public class ClientDTO extends PersonDTO {
                 .lastName(lastName != null ? lastName.toLowerCase() : null)
                 .email(email != null ? email.toLowerCase() : null)
                 .gender(gender)
-                .birthday(birthday != null ? LocalDate.parse(birthday) : null)
+                .birthday(birthday != null && !birthday.isBlank() ? LocalDate.parse(birthday) : null)
                 .phone(phone)
                 .creationDate(LocalDateTime.now())
                 .personOrigin(getPersonOrigin(personOriginRepository))

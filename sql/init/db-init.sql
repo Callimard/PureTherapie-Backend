@@ -1,7 +1,7 @@
 /* Payment types */
 INSERT INTO puretherapie.PaymentType (puretherapie.PaymentType.name, puretherapie.PaymentType.description)
-VALUES ('ONT_TIME', 'Payment en une fois'),
-       ('THREE_TIMES', 'Payement en trois fois');
+VALUES ('ONT_TIME', 'Paiement en une fois'),
+       ('THREE_TIMES', 'Paiement en trois fois');
 
 /* Means of Payments */
 INSERT INTO puretherapie.MeansOfPayment (puretherapie.MeansOfPayment.name, puretherapie.MeansOfPayment.description)
@@ -11,87 +11,45 @@ VALUES ('Carte bancaire', 'Paiement par catre bancaire'),
 
 /* TS atom */
 INSERT INTO puretherapie.TimeSlotAtom (puretherapie.TimeSlotAtom.numberOfMinutes, puretherapie.TimeSlotAtom.effectiveDate)
-VALUES (30, NOW());
+VALUES (40, NOW());
 
 /* Global Opening */
 INSERT INTO puretherapie.GlobalOpeningTime (puretherapie.GlobalOpeningTime.day, puretherapie.GlobalOpeningTime.openingTime,
                                             puretherapie.GlobalOpeningTime.closeTime)
-VALUES (1, '10:00:00', '21:00:00'),
-       (2, '10:00:00', '21:00:00'),
-       (3, '10:00:00', '21:00:00'),
-       (4, '10:00:00', '21:00:00'),
-       (5, '10:00:00', '21:00:00'),
-       (6, '10:00:00', '21:00:00');
+VALUES (2, '9:00:00', '21:00:00'),
+       (3, '9:00:00', '21:00:00'),
+       (4, '9:00:00', '21:00:00'),
+       (5, '9:00:00', '21:00:00'),
+       (6, '9:00:00', '21:00:00');
 
 /* Aesthetic Cares */
 INSERT INTO puretherapie.AestheticCare (puretherapie.AestheticCare.name, puretherapie.AestheticCare.price, puretherapie.AestheticCare.timeExecution)
-VALUES ('Le petit soin', 39.99, 30);
-
-INSERT INTO puretherapie.AestheticCare (puretherapie.AestheticCare.name, puretherapie.AestheticCare.price, puretherapie.AestheticCare.timeExecution)
-VALUES ('Le soin expert', 80.50, 45);
-
-INSERT INTO puretherapie.AestheticCare (puretherapie.AestheticCare.name, puretherapie.AestheticCare.price, puretherapie.AestheticCare.timeExecution)
-VALUES ('Le soin primordial', 120.33, 60);
+VALUES ('Soin découverte', 39.90, 40);
 
 /* Aesthetic Care Packages */
 SELECT puretherapie.AestheticCare.idAestheticCare INTO @petit_soin
 FROM puretherapie.AestheticCare
-WHERE name = 'Le petit soin';
-
-SELECT puretherapie.AestheticCare.idAestheticCare INTO @expert_soin
-FROM puretherapie.AestheticCare
-WHERE puretherapie.AestheticCare.name = 'Le soin expert';
-
-SELECT AestheticCare.idAestheticCare INTO @primordial_soin
-FROM puretherapie.AestheticCare
-WHERE puretherapie.AestheticCare.name = 'Le soin primordial';
+WHERE name = 'Soin découverte';
 
 INSERT INTO AestheticCarePackage (AestheticCarePackage.idAestheticCare, AestheticCarePackage.name, AestheticCarePackage.numberAestheticCare)
-VALUES (@petit_soin, 'La semaine de petit soin', 7),
-       (@expert_soin, 'La semaine de soin expert', 7),
-       (@primordial_soin, 'La semaine de soin primordial', 7);
+VALUES (@petit_soin, 'Package', 5);
 
 /* Bundle */
 SELECT @petit := AestheticCarePackage.idAestheticCarePackage
 FROM puretherapie.AestheticCarePackage
-WHERE name = 'La semaine de petit soin';
-
-SELECT @moyen := AestheticCarePackage.idAestheticCarePackage
-FROM puretherapie.AestheticCarePackage
-WHERE name = 'La semaine de soin expert';
-
-SELECT @grand := AestheticCarePackage.idAestheticCarePackage
-FROM puretherapie.AestheticCarePackage
-WHERE name = 'La semaine de soin primordial';
+WHERE name = 'Package';
 
 INSERT INTO puretherapie.Bundle (puretherapie.Bundle.name, puretherapie.Bundle.price)
-VALUES ('Petit bundle', 250);
+VALUES ('Package', 380);
 SET @b_petit = LAST_INSERT_ID();
-
-INSERT INTO puretherapie.Bundle (puretherapie.Bundle.name, puretherapie.Bundle.price)
-VALUES ('Moyen bundle', 500);
-SET @b_moyen = LAST_INSERT_ID();
-
-INSERT INTO puretherapie.Bundle (puretherapie.Bundle.name, puretherapie.Bundle.price)
-VALUES ('Grand bundle', 700);
-SET @b_grand = LAST_INSERT_ID();
-
-INSERT INTO puretherapie.Bundle (puretherapie.Bundle.name, puretherapie.Bundle.price)
-VALUES ('THE SUPER bundle', 1200);
-SET @b_super = LAST_INSERT_ID();
 
 INSERT INTO puretherapie.AssociationBundleAestheticCarePackage (puretherapie.AssociationBundleAestheticCarePackage.idBundle,
                                                                 puretherapie.AssociationBundleAestheticCarePackage.idAestheticCarePackage)
-VALUES (@b_petit, @petit),
-       (@b_moyen, @moyen),
-       (@b_grand, @grand),
-       (@b_super, @petit),
-       (@b_super, @moyen),
-       (@b_super, @grand);
+VALUES (@b_petit, @petit);
 
 /* Person Origins */
 INSERT IGNORE INTO puretherapie.PersonOrigin (puretherapie.PersonOrigin.type)
-VALUES ('Aucune'),
+VALUES ('Autre'),
        ('Facebook'),
        ('Groupon'),
        ('Ami');
@@ -163,7 +121,7 @@ VALUES (@boss_role_id, @boss_secretary_mamy_technician_level),
        (@technician_role_id, @boss_secretary_mamy_technician_level);
 
 /* Users */
-SELECT @none_person_origin_id := PersonOrigin.idPersonOrigin FROM puretherapie.PersonOrigin WHERE type = 'Aucune';
+SELECT @none_person_origin_id := PersonOrigin.idPersonOrigin FROM puretherapie.PersonOrigin WHERE type = 'Autre';
 
 INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Person.firstname, puretherapie.Person.lastname,
                                  puretherapie.Person.email, puretherapie.Person.gender,
@@ -224,12 +182,12 @@ VALUES (@boss_id, @boss_role_id),
        (@technician_id, @technician_role_id);
 
 /* Technicians */
-SELECT @none_person_origin_id := PersonOrigin.idPersonOrigin FROM puretherapie.PersonOrigin WHERE type = 'Aucune';
+SELECT @none_person_origin_id := PersonOrigin.idPersonOrigin FROM puretherapie.PersonOrigin WHERE type = 'Autre';
 
 INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Person.firstname, puretherapie.Person.lastname,
                                  puretherapie.Person.email, puretherapie.Person.gender,
                                  puretherapie.Person.phone, puretherapie.Person.creationdate, puretherapie.Person.idPersonOrigin)
-VALUES ('T', 'sabine', 'deloute', 'sabine.delout@puretherapie.fr', 0, '+33 6 06 06 07 00', NOW(), @none_person_origin_id);
+VALUES ('T', 'Rié', '', 'sabine.delout@puretherapie.fr', 0, '+33 6 06 06 07 00', NOW(), @none_person_origin_id);
 SET @tech_id = LAST_INSERT_ID();
 
 INSERT INTO puretherapie.Technician (puretherapie.Technician.idPerson)
@@ -238,7 +196,7 @@ VALUES (@tech_id);
 INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Person.firstname, puretherapie.Person.lastname,
                                  puretherapie.Person.email, puretherapie.Person.gender,
                                  puretherapie.Person.phone, puretherapie.Person.creationdate, puretherapie.Person.idPersonOrigin)
-VALUES ('T', 'marine', 'courtenay', 'marine.courtenay@puretherapie.fr', 0, '+33 6 06 06 77 00', NOW(), @none_person_origin_id);
+VALUES ('T', 'Kurumi', '', 'marine.courtenay@puretherapie.fr', 0, '+33 6 06 06 77 00', NOW(), @none_person_origin_id);
 SET @tech_id = LAST_INSERT_ID();
 
 INSERT INTO puretherapie.Technician (puretherapie.Technician.idPerson)
@@ -247,7 +205,7 @@ VALUES (@tech_id);
 INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Person.firstname, puretherapie.Person.lastname,
                                  puretherapie.Person.email, puretherapie.Person.gender,
                                  puretherapie.Person.phone, puretherapie.Person.creationdate, puretherapie.Person.idPersonOrigin)
-VALUES ('T', 'charlotte', 'zigwer', 'romane.boucer@puretherapie.fr', 0, '+33 6 66 66 77 00', NOW(), @none_person_origin_id);
+VALUES ('T', 'Ayono', '', 'romane.boucer@puretherapie.fr', 0, '+33 6 66 66 77 00', NOW(), @none_person_origin_id);
 SET @tech_id = LAST_INSERT_ID();
 
 INSERT INTO puretherapie.Technician (puretherapie.Technician.idPerson)
@@ -256,7 +214,7 @@ VALUES (@tech_id);
 INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Person.firstname, puretherapie.Person.lastname,
                                  puretherapie.Person.email, puretherapie.Person.gender,
                                  puretherapie.Person.phone, puretherapie.Person.creationdate, puretherapie.Person.idPersonOrigin)
-VALUES ('T', 'charelene', 'blanche', 'charelene.blanche@puretherapie.fr', 0, '+33 6 76 96 07 00', NOW(), @none_person_origin_id);
+VALUES ('T', 'Naida', '', 'charelene.blanche@puretherapie.fr', 0, '+33 6 76 96 07 00', NOW(), @none_person_origin_id);
 SET @tech_id = LAST_INSERT_ID();
 
 INSERT INTO puretherapie.Technician (puretherapie.Technician.idPerson)

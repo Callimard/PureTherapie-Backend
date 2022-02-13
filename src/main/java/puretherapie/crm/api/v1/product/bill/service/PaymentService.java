@@ -53,6 +53,10 @@ public class PaymentService {
         return false;
     }
 
+    public List<Bill> allBills(Client client) {
+        return billRepository.findByClient(client);
+    }
+
     public List<Bill> allBillNotTotallyPaid(Client client) {
         List<Bill> bills = billRepository.findByClient(client);
         return bills.stream().filter(this::billNotTotallyPaid).toList();
@@ -64,7 +68,7 @@ public class PaymentService {
 
     public List<Payment> paymentDoneToday(Client client) {
         List<Payment> paymentDoneToday = new ArrayList<>();
-        for (Bill bill : allBillNotTotallyPaid(client)) {
+        for (Bill bill : allBills(client)) {
             List<Payment> billPayments = bill.getPayments();
             paymentDoneToday.addAll(
                     billPayments.stream().filter(payment -> LocalDateTime.now().toLocalDate().equals(payment.getPaymentDate().toLocalDate()))

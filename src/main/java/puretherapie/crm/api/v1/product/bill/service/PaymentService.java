@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
+import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.product.bill.Bill;
 import puretherapie.crm.data.product.bill.MeansOfPayment;
 import puretherapie.crm.data.product.bill.Payment;
@@ -12,6 +13,7 @@ import puretherapie.crm.data.product.bill.repository.MeansOfPaymentRepository;
 import puretherapie.crm.data.product.bill.repository.PaymentRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -35,6 +37,42 @@ public class PaymentService {
     private final BillRepository billRepository;
 
     // Methods.
+
+    /**
+     * @param client the client
+     *
+     * @return true if the client has totally paid all his {@link Bill}.
+     */
+    public boolean hasRemainingPayment(Client client) {
+        List<Bill> bills = billRepository.findByClient(client);
+
+        for (Bill bill : bills)
+            if (billNotTotallyPaid(bill))
+                return true;
+
+        return false;
+    }
+
+    public List<Bill> allBillNotTotallyPaid(Client client) {
+        List<Bill> bills = billRepository.findByClient(client);
+        return bills.stream().filter(this::billNotTotallyPaid).toList();
+    }
+
+    public boolean hasDonePaymentToday(Client client) {
+        return !paymentDoneToday(client).isEmpty();
+    }
+
+    public List<Payment> paymentDoneToday(Client client) {
+        List<Payment> paymentDoneToday = new ArrayList<>();
+        for (Bill bill : allBillNotTotallyPaid(client)) {
+            List<Payment> billPayments = bill.getPayments();
+            paymentDoneToday.addAll(
+                    billPayments.stream().filter(payment -> LocalDateTime.now().toLocalDate().equals(payment.getPaymentDate().toLocalDate()))
+                            .toList());
+        }
+
+        return paymentDoneToday;
+    }
 
     public boolean billNotTotallyPaid(Bill bill) {
         if (bill.getPayments() != null) {

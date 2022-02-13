@@ -27,6 +27,7 @@ public class CancelAppointmentService {
 
     public static final String APPOINTMENT_NOT_FOUND_ERROR = "appointment_not_found_error";
     public static final String CLIENT_IS_ARRIVED_ERROR = "client_is_arrived_error";
+    public static final String APPOINTMENT_FINALIZED_ERROR = "appointment_is_finalized_error";
     public static final String REMOVE_FROM_WR_ERROR = "remove_from_wr_error";
 
     // Variables.
@@ -42,6 +43,7 @@ public class CancelAppointmentService {
         try {
             Appointment appointment = verifyAppointment(idAppointment);
             verifyClientIsNotArrived(appointment);
+            verifyAppointmentNotFinalized(appointment);
             if (!appointment.isCanceled()) {
                 setAppointmentCanceled(appointment);
                 updateAllAppointmentTimeSlots(appointment);
@@ -68,6 +70,11 @@ public class CancelAppointmentService {
     private void verifyClientIsNotArrived(Appointment appointment) {
         if (appointment.getClientArrival() != null)
             throw new CancelAppointmentException(CLIENT_IS_ARRIVED_ERROR);
+    }
+
+    private void verifyAppointmentNotFinalized(Appointment appointment) {
+        if (appointment.isFinalized())
+            throw new CancelAppointmentException(APPOINTMENT_FINALIZED_ERROR);
     }
 
     private void setAppointmentCanceled(Appointment appointment) {

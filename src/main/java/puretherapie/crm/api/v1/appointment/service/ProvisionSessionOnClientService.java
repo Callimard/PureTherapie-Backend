@@ -69,7 +69,7 @@ public class ProvisionSessionOnClientService {
     // Methods.
 
     /**
-     * Try to terminate the client. The client must be in the waiting room and had an appointment.
+     * Provision the client. The client must be in the waiting room and had an appointment.
      *
      * @param idClient id client to terminate
      *
@@ -85,7 +85,7 @@ public class ProvisionSessionOnClientService {
             removeFromWaitingRoom(waitingRoom);
             saveAestheticCareProvision(client, appointment, appointment.getTechnician(), appointment.getAestheticCare());
             updateClientACStock(client, appointment.getAestheticCare());
-            return SimpleResponseDTO.generateSuccess("Success to terminate client");
+            return SimpleResponseDTO.generateSuccess("Success to provision client");
         } catch (Exception e) {
             log.debug("Fail to provision the client with appointment, error message: {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

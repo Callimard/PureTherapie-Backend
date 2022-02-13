@@ -24,6 +24,7 @@ public class AppointmentDTO {
     private boolean canceled;
     private String day;
     private String time;
+    private boolean finalized;
     private List<TimeSlotDTO> timeSlots;
 
 }

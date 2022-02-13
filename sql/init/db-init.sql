@@ -7,7 +7,8 @@ VALUES ('ONT_TIME', 'Paiement en une fois'),
 INSERT INTO puretherapie.MeansOfPayment (puretherapie.MeansOfPayment.name, puretherapie.MeansOfPayment.description)
 VALUES ('Carte bancaire', 'Paiement par catre bancaire'),
        ('Espèce', 'Paiement en espèce'),
-       ('Chèque', 'Paiemetn par chèque');
+       ('Chèque', 'Paiement par chèque'),
+       ('Groupon', 'Paiement avec code groupon');
 
 /* TS atom */
 INSERT INTO puretherapie.TimeSlotAtom (puretherapie.TimeSlotAtom.numberOfMinutes, puretherapie.TimeSlotAtom.effectiveDate)

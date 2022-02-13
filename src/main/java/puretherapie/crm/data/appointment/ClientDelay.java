@@ -16,6 +16,7 @@ import javax.persistence.*;
 public class ClientDelay {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idClientDelay", nullable = false)
     private Integer idClientDelay;
 

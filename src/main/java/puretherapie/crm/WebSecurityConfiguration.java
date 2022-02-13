@@ -68,6 +68,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, PERSON_ORIGINS_URL).permitAll()
                 .antMatchers(HttpMethod.POST, CLIENT_URL).permitAll()
                 .antMatchers(HttpMethod.GET, CLIENT_SEARCH_WITH_EMAIL_URL).permitAll()
+                .antMatchers(HttpMethod.GET, CLIENT_SEARCH_WITH_PHONE_URL).permitAll()
                 .antMatchers(HttpMethod.POST, APPOINTMENT_URL).permitAll()
                 .antMatchers(HttpMethod.GET, TECHNICIANS_URL).permitAll()
                 .antMatchers(HttpMethod.GET, AESTHETIC_CARES_URL).permitAll()

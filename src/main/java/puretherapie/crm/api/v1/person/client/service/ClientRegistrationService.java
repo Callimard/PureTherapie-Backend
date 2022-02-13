@@ -7,11 +7,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationFailDTO;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationResponseDTO;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationSuccessDTO;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
@@ -51,10 +51,14 @@ public class ClientRegistrationService {
             notifyClientRegistration(client);
             return generateSuccessResponse(client);
         } catch (ClientFieldException e) {
-            return e.buildFailResponse();
+            ClientRegistrationFailDTO fail = e.buildFailResponse();
+            log.error("Client field error, Err = {}", fail);
+            return fail;
         } catch (ClientDoubloonException e) {
+            log.error("Client double error, Err = {}", e.getMessage());
             return ClientRegistrationFailDTO.builder().doubloons(e.getDoubloonList()).build();
         } catch (DataIntegrityViolationException e) {
+            log.error("Client data integrity error, Err = {}", e.getMessage());
             return generateDataIntegrityFailResponse(e);
         }
     }

@@ -109,7 +109,7 @@ public class PaymentService {
             if (amountToPaid != 0.0d)
                 throw new PaymentServiceException(GROUPON_AMOUNT_PAYMENT_NOT_EQUAL_TO_ZERO);
         } else {
-            if (amountToPaid < 0.0d)
+            if (amountToPaid <= 0.0d)
                 throw new PaymentServiceException(AMOUNT_TO_PAID_NEGATIVE_ERROR);
         }
     }

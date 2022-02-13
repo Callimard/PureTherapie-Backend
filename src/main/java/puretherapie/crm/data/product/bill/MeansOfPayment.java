@@ -14,6 +14,13 @@ import javax.persistence.*;
 @Entity
 @Table(name = "MeansOfPayment")
 public class MeansOfPayment {
+
+    // Constants.
+
+    public static final String GROUPON_PAYMENT = "Groupon";
+
+    // Variables.
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idMeansOfPayment", nullable = false)
@@ -31,5 +38,9 @@ public class MeansOfPayment {
                 .name(name)
                 .description(description)
                 .build();
+    }
+
+    public boolean isGrouponPayment() {
+        return name.equals(GROUPON_PAYMENT);
     }
 }

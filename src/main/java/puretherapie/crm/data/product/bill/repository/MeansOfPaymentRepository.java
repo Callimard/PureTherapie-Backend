@@ -11,6 +11,12 @@ public interface MeansOfPaymentRepository extends JpaRepository<MeansOfPayment, 
 
     MeansOfPayment findByIdMeansOfPayment(int idMeansOfPayment);
 
+    MeansOfPayment findByName(String name);
+
     List<MeansOfPayment> findAll();
+
+    default MeansOfPayment getGrouponPayment() {
+        return findByName(MeansOfPayment.GROUPON_PAYMENT);
+    }
 
 }

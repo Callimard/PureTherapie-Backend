@@ -80,7 +80,7 @@ public class PaymentService {
             for (Payment payment : bill.getPayments()) {
                 if (!payment.isCanceled()) {
                     if (payment.getMeansOfPayment().isGrouponPayment()) {
-                        return true;
+                        return false;
                     } else {
                         amountPaid += payment.getAmountPaid();
                     }

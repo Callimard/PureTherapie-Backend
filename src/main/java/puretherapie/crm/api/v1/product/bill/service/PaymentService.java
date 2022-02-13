@@ -24,6 +24,7 @@ public class PaymentService {
     public static final String PAYMENT_NOT_FOUND_ERROR = "payment_not_found_error";
     public static final String BILL_NOT_FOUND_ERROR = "bill_not_found_error";
     public static final String AMOUNT_TO_PAID_NEGATIVE_ERROR = "amount_to_paid_negative_error";
+    public static final String GROUPON_AMOUNT_PAYMENT_NOT_EQUAL_TO_ZERO = "groupon_amount_payment_not_equal_to_zero";
     public static final String MEANS_OF_PAYMENT_NOT_FOUND_ERROR = "means_of_payment_not_found_error";
     public static final String TOO_MUCH_PAID_ERROR = "too_much_paid_error";
 
@@ -39,8 +40,13 @@ public class PaymentService {
         if (bill.getPayments() != null) {
             double amountPaid = 0.d;
             for (Payment payment : bill.getPayments()) {
-                if (!payment.isCanceled())
-                    amountPaid += payment.getAmountPaid();
+                if (!payment.isCanceled()) {
+                    if (payment.getMeansOfPayment().isGrouponPayment()) {
+                        return true;
+                    } else {
+                        amountPaid += payment.getAmountPaid();
+                    }
+                }
             }
             return amountPaid < bill.getPurchasePrice();
         } else
@@ -78,8 +84,8 @@ public class PaymentService {
     public SimpleResponseDTO pay(int idBill, double amountToPaid, int idMeansOfPayment) {
         try {
             Bill bill = verifyBill(idBill);
-            verifyAmountPaid(amountToPaid);
             MeansOfPayment meansOfPayment = verifyMeansOfPayment(idMeansOfPayment);
+            verifyAmountPaid(amountToPaid, meansOfPayment);
             verifyNotTooMuch(bill, amountToPaid);
             Payment payment = createPayment(amountToPaid, meansOfPayment, bill);
             savePayment(payment);
@@ -98,9 +104,14 @@ public class PaymentService {
         return bill;
     }
 
-    private void verifyAmountPaid(double amountToPaid) {
-        if (amountToPaid < 0.0d)
-            throw new PaymentServiceException(AMOUNT_TO_PAID_NEGATIVE_ERROR);
+    private void verifyAmountPaid(double amountToPaid, MeansOfPayment meansOfPayment) {
+        if (meansOfPayment.isGrouponPayment()) {
+            if (amountToPaid != 0.0d)
+                throw new PaymentServiceException(GROUPON_AMOUNT_PAYMENT_NOT_EQUAL_TO_ZERO);
+        } else {
+            if (amountToPaid < 0.0d)
+                throw new PaymentServiceException(AMOUNT_TO_PAID_NEGATIVE_ERROR);
+        }
     }
 
     private MeansOfPayment verifyMeansOfPayment(int idMeansOfPayment) {

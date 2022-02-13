@@ -33,7 +33,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     // Constants.
 
-    public static final String FRONT_END_ORIGIN = "http://62.35.81.203:4200";
+    public static final String FRONT_END_ORIGIN = "http://localhost:4200";
 
     // Methods.
 

@@ -64,9 +64,9 @@ public class TechnicianService {
         Technician technician = verifyTechnician(idTechnician);
         verifyDay(day);
 
-        List<Opening> openingList = openingService.getOpenings(day);
-
         if (openingService.isOpen(day)) {
+            List<Opening> openingList = openingService.getOpenings(day);
+
             List<TimeSlot> existingTS = timeSlotRepository.findByTechnicianAndDay(technician, day);
 
             List<FreeTimeSlotDTO> freeTimeSlotDTOs = new ArrayList<>();

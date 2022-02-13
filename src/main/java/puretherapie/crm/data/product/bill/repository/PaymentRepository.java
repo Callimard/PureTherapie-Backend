@@ -8,5 +8,4 @@ import puretherapie.crm.data.product.bill.Payment;
 public interface PaymentRepository extends JpaRepository<Payment, Integer> {
 
     Payment findByIdPayment(int idPayment);
-
 }

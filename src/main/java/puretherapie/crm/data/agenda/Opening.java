@@ -13,13 +13,13 @@ public interface Opening {
     static List<LocalTime> correctTimeSlotTime(Opening opening, int tsaNumberOfMinutes) {
         if (!opening.openingTime().equals(opening.closeTime()) && !opening.openingTime().isBefore(opening.closeTime()))
             throw new IllegalArgumentException("OpeningTime not before CloseTime");
-        
+
         List<LocalTime> correctTimeSlotTimes = new ArrayList<>();
         LocalTime timeSlot = opening.openingTime();
         do {
             correctTimeSlotTimes.add(timeSlot);
             timeSlot = timeSlot.plusMinutes(tsaNumberOfMinutes);
-        } while (!timeSlot.equals(opening.closeTime()));
+        } while (!timeSlot.equals(opening.closeTime()) && timeSlot.isBefore(opening.closeTime()));
         correctTimeSlotTimes.add(timeSlot);
 
         return correctTimeSlotTimes;

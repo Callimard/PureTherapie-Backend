@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.product.bill.controller.dto.BillDTO;
 import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
+import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.product.bill.Bill;
 import puretherapie.crm.data.product.bill.MeansOfPayment;
 import puretherapie.crm.data.product.bill.repository.BillRepository;
@@ -37,13 +38,23 @@ public class BillController {
 
     public static final String MEANS_OF_PAYMENTS = "/means_of_payments";
 
+    private static final String MAKE_PAYMENT_TODAY = "/makePaymentToday";
+
     // Variables.
 
+    private final ClientRepository clientRepository;
     private final BillRepository billRepository;
     private final MeansOfPaymentRepository meansOfPaymentRepository;
     private final PaymentService paymentService;
 
     // Methods.
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping("/{idClient}" + MAKE_PAYMENT_TODAY)
+    public boolean clientHasMakePaymentToday(@PathVariable(name = "idClient") int idClient) {
+        return paymentService.hasDonePaymentToday(clientRepository.findByIdPerson(idClient));
+    }
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")

@@ -52,6 +52,9 @@ public class Appointment {
     @Column(name = "time", nullable = false)
     private LocalTime time;
 
+    @Column(name = "finalized", nullable = false)
+    private boolean finalized;
+
     @OneToMany(targetEntity = TimeSlot.class, mappedBy = "appointment")
     @ToString.Exclude
     private List<TimeSlot> timeSlots;
@@ -66,6 +69,7 @@ public class Appointment {
                 .canceled(canceled)
                 .day(day != null ? day.toString() : null)
                 .time(time != null ? time.toString() : null)
+                .finalized(finalized)
                 .timeSlots(timeSlots != null ? timeSlots.stream().map(TimeSlot::transformWithoutAppointment).toList() : null)
                 .build();
     }

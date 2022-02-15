@@ -18,6 +18,7 @@ import puretherapie.crm.data.person.user.User;
 import puretherapie.crm.data.person.user.repository.RoleRepository;
 import puretherapie.crm.data.person.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,6 +103,7 @@ public class NotificationCreationService {
                 .text(text)
                 .type(isAnAlert)
                 .notificationLevel(notificationLevel)
+                .creationDate(LocalDateTime.now())
                 .build();
     }
 

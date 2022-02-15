@@ -46,6 +46,24 @@ public class PhoneTool {
 
     // Tool methods.
 
+    public static String permissiveFormatPhone(String phone) throws NotPhoneNumberException, UnSupportedPhoneNumberException,
+                                                                    FailToFormatPhoneNumber {
+        if (!isAcceptedString(phone))
+            throw new NotPhoneNumberException();
+
+        phone = extractDigit(phone);
+        if (phone.isBlank())
+            throw new NotPhoneNumberException();
+
+        for (PhoneFormatter pFormatter : PHONE_TOOL.phoneFormatterMap.values()) {
+            if (pFormatter.support(phone))
+                return pFormatter.permissiveFormat(phone);
+        }
+
+        log.debug("No PhoneFormatter find for the phone number -> {}", phone);
+        throw new UnSupportedPhoneNumberException("The phone number is not supported");
+    }
+
     /**
      * Try to find a {@link PhoneTool.PhoneFormatter} which support the phone number. The first {@code PhoneTool.PhoneFormatter} find which support
      * the phone number will try to format it. If the formation success, returns the formatted phone number, else return null.
@@ -114,6 +132,15 @@ public class PhoneTool {
          */
         public final boolean support(String phone) {
             return isAcceptedString(phone) && beginWithCorrectCode(phone);
+        }
+
+        private String permissiveFormat(String phone) throws FailToFormatPhoneNumber {
+            try {
+                return valueToString(phone);
+            } catch (ParseException e) {
+                logIfParseException(phone);
+                throw new FailToFormatPhoneNumber(e);
+            }
         }
 
         /**

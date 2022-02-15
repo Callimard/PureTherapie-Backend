@@ -10,7 +10,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
@@ -63,6 +65,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
         http
+                .addFilterBefore(new ForwardedHeaderFilter(), ChannelProcessingFilter.class)
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers(HttpMethod.GET, PERSON_ORIGINS_URL).permitAll()

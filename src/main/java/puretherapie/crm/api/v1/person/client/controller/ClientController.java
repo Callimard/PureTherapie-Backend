@@ -22,6 +22,7 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import puretherapie.crm.tool.PhoneTool;
+import puretherapie.crm.tool.StringTool;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -103,7 +104,7 @@ public class ClientController {
     @GetMapping
     public ResponseEntity<List<ClientDTO>> getClientWithFilter(@RequestParam("filter") String filter,
                                                                @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-                                                               @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize) {
+                                                               @RequestParam(value = "pageSize", required = false, defaultValue = "40") int pageSize) {
         try {
             Pageable pageable = PageRequest.of(page, pageSize);
             List<Client> clients = new ClientSearchFilter(filter).search(clientRepository, pageable);
@@ -224,7 +225,7 @@ public class ClientController {
         public void setPhone(String phone) {
             if (correctValue(phone)) {
                 try {
-                    this.phone = removeSpacesToTheRight(PhoneTool.permissiveFormatPhone(phone));
+                    this.phone = StringTool.removeRemainingSpaces(PhoneTool.permissiveFormatPhone(phone));
                 } catch (PhoneTool.UnSupportedPhoneNumberException | PhoneTool.NotPhoneNumberException | PhoneTool.FailToFormatPhoneNumber e) {
                     this.phone = null;
                 }
@@ -233,22 +234,6 @@ public class ClientController {
 
         private boolean correctValue(String value) {
             return value != null && !value.isBlank();
-        }
-
-        private String removeSpacesToTheRight(String s) {
-            if (s != null) {
-                char[] chars = s.toCharArray();
-                int lastIndex = chars.length - 1;
-                for (int i = chars.length - 1; i >= 0; i--) {
-                    if (Character.isWhitespace(chars[i])) {
-                        lastIndex--;
-                    } else {
-                        return s.substring(0, lastIndex + 1);
-                    }
-                }
-                return s.substring(0, lastIndex + 1);
-            } else
-                return null;
         }
 
         private List<Client> search(ClientRepository clientRepository, Pageable pageable) {

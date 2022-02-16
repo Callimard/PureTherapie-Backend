@@ -28,7 +28,8 @@ INSERT INTO puretherapie.AestheticCare (puretherapie.AestheticCare.name, purethe
 VALUES ('Soin découverte', 39.90, 40);
 
 /* Aesthetic Care Packages */
-SELECT puretherapie.AestheticCare.idAestheticCare INTO @petit_soin
+SELECT puretherapie.AestheticCare.idAestheticCare
+INTO @petit_soin
 FROM puretherapie.AestheticCare
 WHERE name = 'Soin découverte';
 
@@ -122,7 +123,9 @@ VALUES (@boss_role_id, @boss_secretary_mamy_technician_level),
        (@technician_role_id, @boss_secretary_mamy_technician_level);
 
 /* Users */
-SELECT @none_person_origin_id := PersonOrigin.idPersonOrigin FROM puretherapie.PersonOrigin WHERE type = 'Autre';
+SELECT @none_person_origin_id := PersonOrigin.idPersonOrigin
+FROM puretherapie.PersonOrigin
+WHERE type = 'Autre';
 
 INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Person.firstname, puretherapie.Person.lastname,
                                  puretherapie.Person.email, puretherapie.Person.gender,
@@ -183,7 +186,9 @@ VALUES (@boss_id, @boss_role_id),
        (@technician_id, @technician_role_id);
 
 /* Technicians */
-SELECT @none_person_origin_id := PersonOrigin.idPersonOrigin FROM puretherapie.PersonOrigin WHERE type = 'Autre';
+SELECT @none_person_origin_id := PersonOrigin.idPersonOrigin
+FROM puretherapie.PersonOrigin
+WHERE type = 'Autre';
 
 INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Person.firstname, puretherapie.Person.lastname,
                                  puretherapie.Person.email, puretherapie.Person.gender,
@@ -220,3 +225,12 @@ SET @tech_id = LAST_INSERT_ID();
 
 INSERT INTO puretherapie.Technician (puretherapie.Technician.idPerson)
 VALUES (@tech_id);
+
+INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Person.firstname, puretherapie.Person.lastname,
+                                 puretherapie.Person.email, puretherapie.Person.gender,
+                                 puretherapie.Person.phone, puretherapie.Person.creationdate, puretherapie.Person.idPersonOrigin)
+VALUES ('T', 'default', 'default', 'default@default.fr', 0, '+33 1 00 00 00 00', NOW(), @none_person_origin_id);
+SET @tech_id = LAST_INSERT_ID();
+
+INSERT INTO puretherapie.Technician (puretherapie.Technician.idPerson, puretherapie.Technician.isActive)
+VALUES (@tech_id, 0);

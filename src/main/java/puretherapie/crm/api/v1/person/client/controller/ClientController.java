@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -20,6 +22,7 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
 import puretherapie.crm.tool.PhoneTool;
+import puretherapie.crm.tool.StringTool;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -99,15 +102,13 @@ public class ClientController {
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping
-    public ResponseEntity<List<ClientDTO>> getClientWithFilter(@RequestParam("filter") String filter, @RequestParam(value = "all",
-            defaultValue = "false") boolean all) {
+    public ResponseEntity<List<ClientDTO>> getClientWithFilter(@RequestParam("filter") String filter,
+                                                               @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                                                               @RequestParam(value = "pageSize", required = false, defaultValue = "40") int pageSize) {
         try {
-            if (!all) {
-                List<Client> clients = new ClientSearchFilter(filter).search(clientRepository);
-                return ResponseEntity.ok(clients.stream().map(Client::transform).toList());
-            } else {
-                return ResponseEntity.ok(clientRepository.findAll().stream().map(Client::transform).toList());
-            }
+            Pageable pageable = PageRequest.of(page, pageSize);
+            List<Client> clients = new ClientSearchFilter(filter).search(clientRepository, pageable);
+            return ResponseEntity.ok(clients.stream().map(Client::transform).toList());
         } catch (IllegalArgumentException e) {
             log.debug("Wrong filter format => {}", e.getMessage());
             return ResponseEntity.badRequest().body(Collections.emptyList());
@@ -224,9 +225,9 @@ public class ClientController {
         public void setPhone(String phone) {
             if (correctValue(phone)) {
                 try {
-                    this.phone = formatPhone(phone);
+                    this.phone = StringTool.removeRemainingSpaces(PhoneTool.permissiveFormatPhone(phone));
                 } catch (PhoneTool.UnSupportedPhoneNumberException | PhoneTool.NotPhoneNumberException | PhoneTool.FailToFormatPhoneNumber e) {
-                    throw new IllegalArgumentException("Wrong phone format for " + phone + ". Erreur msg => " + e.getMessage());
+                    this.phone = null;
                 }
             }
         }
@@ -235,42 +236,14 @@ public class ClientController {
             return value != null && !value.isBlank();
         }
 
-        private List<Client> search(ClientRepository clientRepository) {
-            // ORDER IMPORTANT
-            if (firstName != null && lastName != null && email != null && phone != null) {
-                return clientRepository.findByFirstNameAndLastNameAndEmailAndPhone(firstName, lastName, email, phone);
-            } else if (firstName != null && lastName != null && email != null) {
-                return clientRepository.findByFirstNameAndLastNameAndEmail(firstName, lastName, email);
-            } else if (firstName != null && lastName != null && phone != null) {
-                return clientRepository.findByFirstNameAndLastNameAndPhone(firstName, lastName, phone);
-            } else if (firstName != null && email != null && phone != null) {
-                return clientRepository.findByFirstNameAndEmailAndPhone(firstName, email, phone);
-            } else if (firstName != null && lastName != null) {
-                return clientRepository.findByFirstNameAndLastName(firstName, lastName);
-            } else if (firstName != null && email != null) {
-                return clientRepository.findByFirstNameAndEmail(firstName, email);
-            } else if (firstName != null && phone != null) {
-                return clientRepository.findByFirstNameAndPhone(firstName, phone);
-            } else if (lastName != null && email != null && phone != null) {
-                return clientRepository.findByLastNameAndEmailAndPhone(lastName, email, phone);
-            } else if (lastName != null && email != null) {
-                return clientRepository.findByLastNameAndEmail(lastName, email);
-            } else if (lastName != null && phone != null) {
-                return clientRepository.findByLastNameAndPhone(lastName, phone);
-            } else if (email != null && phone != null) {
-                return clientRepository.findByEmailAndPhone(email, phone);
-            } else if (firstName != null) {
-                return clientRepository.findByFirstName(firstName);
-            } else if (lastName != null) {
-                return clientRepository.findByLastName(lastName);
-            } else if (email != null) {
-                return Collections.singletonList(clientRepository.findByEmail(email));
-            } else if (phone != null) {
-                return Collections.singletonList(clientRepository.findByPhone(phone));
-            } else {
-                log.error("BIG ISSUE, must never append, Search Client Filter case not manage.");
-                return Collections.emptyList();
-            }
+        private List<Client> search(ClientRepository clientRepository, Pageable pageable) {
+            String firstNameFilter = firstName != null && !firstName.isBlank() ? firstName + "%" : "%";
+            String lastNameFilter = lastName != null && !lastName.isBlank() ? lastName + "%" : "%";
+            String emailFilter = email != null && !email.isBlank() ? email + "%" : "%";
+            String phoneFilter = phone != null && !phone.isBlank() ? phone + "%" : "%";
+
+            return clientRepository.findByFirstNameLikeAndLastNameLikeAndEmailLikeAndPhoneLike(firstNameFilter, lastNameFilter, emailFilter,
+                                                                                               phoneFilter, pageable);
         }
     }
 }

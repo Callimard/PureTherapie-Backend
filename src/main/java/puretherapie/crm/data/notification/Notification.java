@@ -3,6 +3,7 @@ package puretherapie.crm.data.notification;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Builder
 @Getter
@@ -26,6 +27,9 @@ public class Notification {
 
     @Column(name = "text", nullable = false)
     private String text;
+
+    @Column(name = "creationDate", nullable = false)
+    private LocalDateTime creationDate;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idNotificationLevel", nullable = false)

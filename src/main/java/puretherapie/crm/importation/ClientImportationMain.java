@@ -3,10 +3,9 @@ package puretherapie.crm.importation;
 import puretherapie.crm.tool.PhoneTool;
 import puretherapie.crm.tool.StringTool;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,6 +37,14 @@ public class ClientImportationMain {
 
     public static void main(String[] args) {
         String[] files = new String[]{CLIENTS_RESOURCES_PATH + "/bd-agenda1.csv", CLIENTS_RESOURCES_PATH + "/bd-agenda2.csv"};
+
+        if (Files.exists(Path.of(CLIENTS_IMPORTATION_SQL_PATH))) {
+            try {
+                Files.deleteIfExists(Path.of(CLIENTS_IMPORTATION_SQL_PATH));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(CLIENTS_IMPORTATION_SQL_PATH, true))) {
             writer.write(selectDefaultTechnician());
@@ -72,7 +79,7 @@ public class ClientImportationMain {
                         if (split.length >= 4)
                             date = verifyFirstAppointmentDate(split[3]);
                         else
-                            date = verifyFirstAppointmentDate(null);
+                            date = null;
 
                         writer.write(generatePerson(firstName, lastName, phone, date));
                         writer.newLine();
@@ -136,7 +143,7 @@ public class ClientImportationMain {
 
     private static String verifyFirstAppointmentDate(String date) {
         if (date == null || date.isBlank()) {
-            return DEFAULT_CLIENT_FIRST_DATE;
+            return null;
         }
 
         date = date.replace("/", "-");
@@ -154,7 +161,9 @@ public class ClientImportationMain {
     }
 
     private static String generatePerson(String firstName, String lastName, String phone, String date) {
-        return """
+        int currentClientCounter = clientCounter++;
+
+        String clientCreation = """
                 INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Person.firstname, puretherapie.Person.lastname,
                                                  puretherapie.Person.email, puretherapie.Person.gender,
                                                  puretherapie.Person.phone, puretherapie.Person.creationdate, puretherapie.Person.idPersonOrigin)
@@ -162,14 +171,20 @@ public class ClientImportationMain {
                 SET @person_%s = LAST_INSERT_ID();
                 INSERT INTO puretherapie.Client (puretherapie.Client.idPerson)
                 VALUES (@person_%s);
-                                
-                                
-                INSERT INTO puretherapie.Appointment (puretherapie.Appointment.idAestheticCare, puretherapie.Appointment.idClient,
-                                                      puretherapie.Appointment.idTechnician, puretherapie.Appointment.day, puretherapie.Appointment.time,
-                                                      puretherapie.Appointment.finalized)
-                VALUES (1, @person_%s, %s, '%s', '09:00:00', 1);
-                """.formatted(firstName, lastName, generateEmail(), phone, clientCounter, clientCounter, clientCounter++,
-                              DEFAULT_TECHNICIAN_VARIABLE, date);
+                """.formatted(firstName, lastName, generateEmail(), phone, currentClientCounter, currentClientCounter);
+
+        String firstApp;
+        if (date != null) {
+            firstApp = """
+                    INSERT INTO puretherapie.Appointment (puretherapie.Appointment.idAestheticCare, puretherapie.Appointment.idClient,
+                                                          puretherapie.Appointment.idTechnician, puretherapie.Appointment.day, puretherapie.Appointment.time,
+                                                          puretherapie.Appointment.finalized)
+                    VALUES (1, @person_%s, %s, '%s', '09:00:00', 1);
+                    """.formatted(currentClientCounter, DEFAULT_TECHNICIAN_VARIABLE, date);
+            return clientCreation + firstApp;
+        } else {
+            return clientCreation;
+        }
     }
 
     private static String generateEmail() {

@@ -15,6 +15,7 @@ import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationResponseDTO;
 import puretherapie.crm.api.v1.person.client.controller.dto.SimpleClientInfoDTO;
 import puretherapie.crm.api.v1.person.client.service.ClientRegistrationService;
+import puretherapie.crm.api.v1.person.client.service.ClientService;
 import puretherapie.crm.api.v1.person.client.service.ClientUpdateService;
 import puretherapie.crm.api.v1.user.controller.dto.PersonOriginDTO;
 import puretherapie.crm.data.person.PersonOrigin;
@@ -30,40 +31,52 @@ import java.util.List;
 
 import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
-import static puretherapie.crm.api.v1.person.client.controller.ClientController.CLIENT_URL;
+import static puretherapie.crm.api.v1.person.client.controller.ClientController.CLIENTS_URL;
 import static puretherapie.crm.tool.PhoneTool.formatPhone;
 
 @Slf4j
 @AllArgsConstructor
 @RestController
-@RequestMapping(CLIENT_URL)
+@RequestMapping(CLIENTS_URL)
 public class ClientController {
 
     // Constants.
 
-    public static final String CLIENT_URL = API_V1_URL + "/clients";
-
-    public static final String CLIENT_SEARCH_WITH_EMAIL = "/searchWithEmail";
-    public static final String CLIENT_SEARCH_WITH_EMAIL_URL = CLIENT_URL + CLIENT_SEARCH_WITH_EMAIL;
-
-    public static final String CLIENT_SEARCH_WITH_PHONE = "/searchWithPhone";
-    public static final String CLIENT_SEARCH_WITH_PHONE_URL = CLIENT_URL + CLIENT_SEARCH_WITH_PHONE;
-
-    public static final String PERSON_ORIGINS = "/person_origins";
-    public static final String PERSON_ORIGINS_URL = CLIENT_URL + PERSON_ORIGINS;
-
-    public static final String PARAM_DOUBLOON_VERIFICATION = "doubloonVerification";
+    public static final String CLIENTS_URL = API_V1_URL + "/clients";
 
     private static final int SEARCH_CLIENT_FILTER_SPLIT_ARRAY_SIZE = 4;
 
+
+    public static final String CLIENT_SEARCH_WITH_EMAIL = "/searchWithEmail";
+    public static final String CLIENT_SEARCH_WITH_EMAIL_URL = CLIENTS_URL + CLIENT_SEARCH_WITH_EMAIL;
+
+    public static final String CLIENT_SEARCH_WITH_PHONE = "/searchWithPhone";
+    public static final String CLIENT_SEARCH_WITH_PHONE_URL = CLIENTS_URL + CLIENT_SEARCH_WITH_PHONE;
+
+    public static final String PERSON_ORIGINS = "/person_origins";
+    public static final String PERSON_ORIGINS_URL = CLIENTS_URL + PERSON_ORIGINS;
+
+    public static final String PARAM_DOUBLOON_VERIFICATION = "doubloonVerification";
+
+    public static final String CLIENT_IS_NEW = "/isNew";
+    public static final String CLIENT_IS_NEW_URL = CLIENTS_URL + CLIENT_IS_NEW;
+
     // Variables.
 
+    private final ClientService clientService;
     private final ClientRegistrationService clientRegistrationService;
     private final ClientUpdateService clientUpdateService;
     private final ClientRepository clientRepository;
     private final PersonOriginRepository personOriginRepository;
 
     // Methods.
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(CLIENT_IS_NEW)
+    public Boolean clientIsNew(@RequestParam(name = "idClient") int idClient) {
+        return clientService.isNew(idClient);
+    }
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PostMapping

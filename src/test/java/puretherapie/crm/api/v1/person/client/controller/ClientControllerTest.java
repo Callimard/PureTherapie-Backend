@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static puretherapie.crm.api.v1.person.client.controller.ClientController.CLIENT_URL;
+import static puretherapie.crm.api.v1.person.client.controller.ClientController.CLIENTS_URL;
 import static puretherapie.crm.api.v1.person.client.controller.ClientController.PARAM_DOUBLOON_VERIFICATION;
 import static util.RequestTool.basicAuthorization;
 import static util.RequestTool.httpPostJson;
@@ -59,7 +59,7 @@ public class ClientControllerTest {
         @Test
         @DisplayName("Test client registration with empty body send an 500 http response")
         void testClientRegistrationWithEmptyBody() throws Exception {
-            mockMvc.perform(httpPostJson(CLIENT_URL).param(PARAM_DOUBLOON_VERIFICATION, "true"))
+            mockMvc.perform(httpPostJson(CLIENTS_URL).param(PARAM_DOUBLOON_VERIFICATION, "true"))
                     .andExpect(status().isInternalServerError());
         }
 
@@ -67,7 +67,7 @@ public class ClientControllerTest {
         @DisplayName("Test client registration without request param but with correct body (no already existing client) send an 200 http response")
         void testClientRegistrationWithoutRequestParamAndNoClientDoubloon() throws Exception {
             prepareRegistrationSuccess();
-            mockMvc.perform(httpPostJson(CLIENT_URL).content(bodyCorrectClientInfo())).andExpect(status().isOk());
+            mockMvc.perform(httpPostJson(CLIENTS_URL).content(bodyCorrectClientInfo())).andExpect(status().isOk());
         }
 
         @Test
@@ -76,8 +76,8 @@ public class ClientControllerTest {
             prepareRegistrationSuccess();
             prepareUsernameFind();
 
-            mockMvc.perform(httpPostJson(CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization(USERNAME,
-                                                                                                                                 PASSWORD)))
+            mockMvc.perform(httpPostJson(CLIENTS_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization(USERNAME,
+                                                                                                                                  PASSWORD)))
                     .andExpect(status().isOk());
         }
 
@@ -87,8 +87,8 @@ public class ClientControllerTest {
             prepareRegistrationSuccess();
             prepareUsernameNotFound();
 
-            mockMvc.perform(httpPostJson(CLIENT_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization(USERNAME,
-                                                                                                                                 PASSWORD)))
+            mockMvc.perform(httpPostJson(CLIENTS_URL).content(bodyCorrectClientInfo()).header("Authorization", basicAuthorization(USERNAME,
+                                                                                                                                  PASSWORD)))
                     .andExpect(status().isUnauthorized());
         }
 

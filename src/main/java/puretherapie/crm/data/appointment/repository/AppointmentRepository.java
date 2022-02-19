@@ -11,6 +11,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     Appointment findByIdAppointment(Integer idAppointment);
 
+    List<Appointment> findByClient(Client client);
+
     List<Appointment> findByClientAndDay(Client client, LocalDate day);
 
     List<Appointment> findByDay(LocalDate day);

@@ -35,7 +35,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     // Constants.
 
-    public static final String FRONT_END_ORIGIN = "https://rdvfaceup.com:8080";
+    public static final String FRONT_END_ORIGIN = "https://rdvfaceup.com";
 
     // Methods.
 

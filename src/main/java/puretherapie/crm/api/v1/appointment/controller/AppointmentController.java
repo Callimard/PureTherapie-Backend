@@ -57,6 +57,8 @@ public class AppointmentController {
     public static final String FINALIZE_APPOINTMENT = "/finalize/{idAppointment}";
     public static final String FINALIZE_APPOINTMENT_URL = APPOINTMENT_URL + FINALIZE_APPOINTMENT;
 
+    public static final String IS_FIRST_APPOINTMENT = "/isFirstAppointment";
+
     public static final String NOTIFICATION_SUR_BOOKING_TITLE = "Sur booking fait lors de la prise d'un rendez-vous";
     public static final String NOTIFICATION_SUR_BOOKING_TEXT = "Sur booking de %s minutes pour le rendez-vous du client %s avec le technicien %s " +
             "le %s à %s";
@@ -70,8 +72,16 @@ public class AppointmentController {
     private final ProvisionSessionOnClientService provisionSessionOnClientService;
     private final AppointmentRepository appointmentRepository;
     private final ClientRepository clientRepository;
+    private final AppointmentService appointmentService;
 
     // Methods.
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping("/{idAppointment}" + IS_FIRST_APPOINTMENT)
+    public boolean isFirstAppointment(@PathVariable(name = "idAppointment") int idAppointment) {
+        return appointmentService.isFirstAppointment(idAppointment);
+    }
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")

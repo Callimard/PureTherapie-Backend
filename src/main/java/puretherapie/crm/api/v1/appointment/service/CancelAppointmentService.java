@@ -6,14 +6,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.api.v1.waitingroom.service.RemoveFromWaitingRoomService;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
+import puretherapie.crm.data.person.client.Client;
+import puretherapie.crm.data.person.technician.Technician;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+
+import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -21,6 +28,9 @@ import java.util.List;
 public class CancelAppointmentService {
 
     // Constants.
+
+    private static final String APPOINTMENT_CANCELED_TITLE = "Annulation RDV";
+    private static final String APPOINTMENT_CANCELED_TEXT = "Le RDV du client %s le %s à %s avec le/la technicien(ne) %s a été annulé";
 
     public static final String CANCEL_APPOINTMENT_SUCCESS = "cancel_appointment_success";
     public static final String CANCEL_APPOINTMENT_FAIL = "cancel_appointment_fail";
@@ -35,6 +45,7 @@ public class CancelAppointmentService {
     private final RemoveFromWaitingRoomService removeFromWaitingRoomService;
     private final AppointmentRepository appointmentRepository;
     private final TimeSlotRepository timeSlotRepository;
+    private final NotificationCreationService notificationCreationService;
 
     // Methods.
 
@@ -48,6 +59,7 @@ public class CancelAppointmentService {
                 setAppointmentCanceled(appointment);
                 updateAllAppointmentTimeSlots(appointment);
                 removeClientFromWR(appointment);
+                notifyAppointmentCanceled(appointment.getClient(), appointment.getDay(), appointment.getTime(), appointment.getTechnician());
             } else
                 log.debug("Already canceled appointment, nothing has been done");
 
@@ -100,6 +112,16 @@ public class CancelAppointmentService {
         SimpleResponseDTO res = removeFromWaitingRoomService.removeClient(appointment.getClient().getIdPerson());
         if (!res.success())
             throw new CancelAppointmentException(REMOVE_FROM_WR_ERROR);
+    }
+
+    private void notifyAppointmentCanceled(Client client, LocalDate day, LocalTime time, Technician technician) {
+        boolean success = notificationCreationService.createNotification(APPOINTMENT_CANCELED_TITLE,
+                                                                         APPOINTMENT_CANCELED_TEXT.formatted(client.simplyIdentifier(), day, time,
+                                                                                                             technician.simplyIdentifier()),
+                                                                         BOSS_LEVEL, true);
+
+        if (!success)
+            log.error("Fail to create appointment cancellation notification");
     }
 
     // Exceptions.

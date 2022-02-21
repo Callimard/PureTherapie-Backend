@@ -1,6 +1,7 @@
 package puretherapie.crm.data.notification;
 
 import lombok.*;
+import puretherapie.crm.api.v1.notification.controller.dto.NotificationViewDTO;
 import puretherapie.crm.data.person.user.User;
 
 import javax.persistence.*;
@@ -30,4 +31,12 @@ public class NotificationView {
     @ManyToOne(optional = false)
     @JoinColumn(name = "idUser", nullable = false)
     private User user;
+
+    public NotificationViewDTO transform() {
+        return NotificationViewDTO.builder()
+                .idNotificationView(idNotificationView)
+                .viewed(viewed)
+                .notification(notification != null ? notification.transform() : null)
+                .build();
+    }
 }

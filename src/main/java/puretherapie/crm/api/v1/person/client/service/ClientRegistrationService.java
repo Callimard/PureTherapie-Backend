@@ -31,8 +31,8 @@ public class ClientRegistrationService {
 
     // Constants.
 
-    private static final String NOTIFICATION_CLIENT_REGISTRATION_TITLE = "Registration of the client %s";
-    private static final String NOTIFICATION_CLIENT_REGISTRATION_TEXT = "The client %s has been register";
+    private static final String NOTIFICATION_CLIENT_REGISTRATION_TITLE = "Enregistrement client";
+    private static final String NOTIFICATION_CLIENT_REGISTRATION_TEXT = "Le/la client(e) %s vient d'être enregistré(e)";
 
     // Variables.
 
@@ -65,7 +65,7 @@ public class ClientRegistrationService {
 
     private void notifyClientRegistration(Client client) {
         boolean success =
-                notificationCreationService.createNotification(NOTIFICATION_CLIENT_REGISTRATION_TITLE.formatted(client.simplyIdentifier()),
+                notificationCreationService.createNotification(NOTIFICATION_CLIENT_REGISTRATION_TITLE,
                                                                NOTIFICATION_CLIENT_REGISTRATION_TEXT.formatted(client.simplyIdentifier()),
                                                                BOSS_SECRETARY_LEVEL,
                                                                false);

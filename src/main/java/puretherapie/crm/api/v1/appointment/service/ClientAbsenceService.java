@@ -5,16 +5,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientAbsence;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.appointment.repository.ClientAbsenceRepository;
+import puretherapie.crm.data.person.client.Client;
+import puretherapie.crm.data.person.technician.Technician;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.isTooMuchLateFromNow;
+import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
 import static puretherapie.crm.tool.TimeTool.today;
 
 @Slf4j
@@ -23,6 +28,9 @@ import static puretherapie.crm.tool.TimeTool.today;
 public class ClientAbsenceService {
 
     // Constants.
+
+    private static final String CREATE_ABSENCE_TITLE = "Absence";
+    private static final String CREATE_ABSENCE_TEXT = "Le client %s a été absent pour son RDV du %s à %s avec le/la technicien(ne) %s";
 
     /**
      * In minutes.
@@ -33,6 +41,7 @@ public class ClientAbsenceService {
 
     private final AppointmentRepository appointmentRepository;
     private final ClientAbsenceRepository clientAbsenceRepository;
+    private final NotificationCreationService notificationCreationService;
 
     // Schedule methods.
 
@@ -46,6 +55,7 @@ public class ClientAbsenceService {
                 if (!appointment.isCanceled() && appointment.getClientArrival() == null && isTooMuchLateFromNow(appointment.getTime())) {
                     saveClientAbsence(appointment);
                     cancelAppointment(appointment);
+                    notifyAbsenceCreate(appointment.getClient(), appointment.getDay(), appointment.getTime(), appointment.getTechnician());
                     log.info("Create Client absence for client {} for the appointment {} {}", appointment.getClient().simplyIdentifier(),
                              appointment.getDay(), appointment.getTime());
                 }
@@ -56,7 +66,7 @@ public class ClientAbsenceService {
     private void saveClientAbsence(Appointment appointment) {
         ClientAbsence clientAbsence = buildClientAbsence(appointment);
         clientAbsence = clientAbsenceRepository.save(clientAbsence);
-        log.debug("Save ClientAbsence {}", clientAbsence);
+        log.info("Save ClientAbsence {}", clientAbsence);
     }
 
     private ClientAbsence buildClientAbsence(Appointment appointment) {
@@ -70,7 +80,16 @@ public class ClientAbsenceService {
     private void cancelAppointment(Appointment appointment) {
         appointment.setCanceled(true);
         appointment = appointmentRepository.save(appointment);
-        log.debug("Update appointment (set it to canceled) -> {}", appointment);
+        log.info("Update appointment (set it to canceled) -> {}", appointment);
+    }
+
+    private void notifyAbsenceCreate(Client client, LocalDate day, LocalTime time, Technician technician) {
+        boolean success = notificationCreationService.createNotification(CREATE_ABSENCE_TITLE,
+                                                                         CREATE_ABSENCE_TEXT.formatted(client.simplyIdentifier(), day, time,
+                                                                                                       technician.simplyIdentifier()),
+                                                                         BOSS_LEVEL, true);
+        if (!success)
+            log.error("Fail to create notification for the absence");
     }
 
     // Enum.

@@ -3,10 +3,7 @@ package puretherapie.crm.api.v1.agenda.controller;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.agenda.controller.dto.ExceptionalCloseDTO;
 import puretherapie.crm.api.v1.agenda.controller.dto.ExceptionalOpeningDTO;
 import puretherapie.crm.api.v1.agenda.controller.dto.GlobalOpeningTimeDTO;
@@ -66,6 +63,30 @@ public class OpeningAndCloseController {
     @GetMapping(EXCEPTIONAL_CLOSINGS)
     public List<ExceptionalCloseDTO> getAllExceptionalCloses() {
         return exceptionalCloseRepository.findAll().stream().map(ExceptionalClose::transform).toList();
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PostMapping
+    public void addGlobalOpeningTime(@RequestBody GlobalOpeningTimeDTO globalOpeningTimeDTO) {
+        GlobalOpeningTime globalOpeningTime = globalOpeningTimeDTO.transform();
+        globalOpeningTimeRepository.save(globalOpeningTime);
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PostMapping(EXCEPTIONAL_OPENINGS)
+    public void addExceptionalOpeningTime(@RequestBody ExceptionalOpeningDTO exceptionalOpeningDTO) {
+        ExceptionalOpening exceptionalOpening = exceptionalOpeningDTO.transform();
+        exceptionalOpeningRepository.save(exceptionalOpening);
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PostMapping(EXCEPTIONAL_CLOSINGS)
+    public void addExceptionalOpeningTime(@RequestBody ExceptionalCloseDTO exceptionalCloseDTO) {
+        ExceptionalClose exceptionalClose = exceptionalCloseDTO.transform();
+        exceptionalCloseRepository.save(exceptionalClose);
     }
 
 }

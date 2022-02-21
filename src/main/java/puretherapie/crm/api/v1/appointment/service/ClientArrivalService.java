@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
@@ -17,8 +18,10 @@ import puretherapie.crm.data.person.client.repository.ClientRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.*;
+import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -27,8 +30,8 @@ public class ClientArrivalService {
 
     // Constants.
 
-    public static final String CLIENT_ARRIVAL_SUCCESS = "client_arrival_success";
-    public static final String CLIENT_ARRIVAL_FAIL = "client_arrival_fail";
+    public static final String CLIENT_ARRIVAL_TITLE = "Arrivée client";
+    public static final String CLIENT_ARRIVAL_TEXT = "Le client %s est arrivé pour son RDV de %s";
 
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found_error";
     public static final String APPOINTMENT_NOT_FOR_TODAY_ERROR = "appointment_not_for_today_error";
@@ -42,6 +45,7 @@ public class ClientArrivalService {
     private final ClientArrivalRepository clientArrivalRepository;
     private final ClientDelayService clientDelayService;
     private final PlaceInWaitingRoomService placeInWaitingRoomService;
+    private final NotificationCreationService notificationCreationService;
 
     // Methods.
 
@@ -56,6 +60,7 @@ public class ClientArrivalService {
                 verifyAppointmentIsForToday(appointment);
                 verifyClientDelay(appointment);
                 appointment = linkAppointmentAndClientArrival(appointment, clientArrival);
+                notifyClientArrival(client, appointment.getTime());
             }
             placeClientInWaitingRoom(client, appointment);
             return SimpleResponseDTO.generateSuccess("Success client arrive");
@@ -124,6 +129,14 @@ public class ClientArrivalService {
             log.debug("Fail to place client in waiting room");
             throw new ClientArrivalException(WAITING_ROOM_ERROR);
         }
+    }
+
+    private void notifyClientArrival(Client client, LocalTime time) {
+        boolean success = notificationCreationService.createNotification(CLIENT_ARRIVAL_TITLE,
+                                                                         CLIENT_ARRIVAL_TEXT.formatted(client.simplyIdentifier(), time),
+                                                                         BOSS_SECRETARY_LEVEL, false);
+        if (!success)
+            log.error("Fail to create client arrival notification");
     }
 
     // Exception.

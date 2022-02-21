@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
@@ -24,12 +25,17 @@ import puretherapie.crm.data.product.bill.repository.PaymentTypeRepository;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
+
 @Slf4j
 @AllArgsConstructor
 @Service
 public class BundlePurchaseService {
 
     // Constants.
+
+    private static final String BUNDLE_PURCHASE_TITLE = "Achat de Package";
+    private static final String BUNDLE_PURCHASE_TEXT = "Le package %s a été acheté par le client %s";
 
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found_error";
     public static final String BUNDLE_NOT_FOUND_ERROR = "bundle_not_found_error";
@@ -44,6 +50,7 @@ public class BundlePurchaseService {
     private final BillRepository billRepository;
     private final BundlePurchaseRepository bundlePurchaseRepository;
     private final StockRepository stockRepository;
+    private final NotificationCreationService notificationCreationService;
 
     // Methods.
 
@@ -75,6 +82,7 @@ public class BundlePurchaseService {
             Bill bill = saveBill(client, paymentType, bundle.getPrice(), customPrice);
             BundlePurchase bundlePurchase = saveBundlePurchase(client, bundle, bill);
             saveAllStocks(bundle, bundlePurchase, acPackageCustomizations);
+            notifyBundlePurchase(bundle, client);
             return generateSuccessRes(client.simplyIdentifier(), bundle.getName());
         } catch (Exception e) {
             log.debug("Fail to purchase a bundle, error message: {}", e.getMessage());
@@ -201,6 +209,14 @@ public class BundlePurchaseService {
                 .aestheticCare(acPackage.getAestheticCare())
                 .remainingQuantity(acPackage.getNumberAestheticCare())
                 .build();
+    }
+
+    private void notifyBundlePurchase(Bundle bundle, Client client) {
+        boolean success = notificationCreationService.createNotification(BUNDLE_PURCHASE_TITLE,
+                                                                         BUNDLE_PURCHASE_TEXT.formatted(bundle.getName(), client.simplyIdentifier()),
+                                                                         BOSS_SECRETARY_LEVEL, false);
+        if (!success)
+            log.error("Fail to create bundle purchase notification");
     }
 
     // Inner class.

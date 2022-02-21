@@ -45,8 +45,8 @@ public class TakeAppointmentService {
 
     // Constants.
 
-    private static final String NOTIFICATION_APPOINTMENT_CREATION_TITLE = "New appointment for client %s";
-    private static final String NOTIFICATION_APPOINTMENT_CREATION_TEXT = "New appointment at %s for the client %s with the technician %s";
+    private static final String NOTIFICATION_APPOINTMENT_CREATION_TITLE = "Nouveau RDV";
+    private static final String NOTIFICATION_APPOINTMENT_CREATION_TEXT = "Nouveau RDV le %s à %s pour le client %s et le/la technicien(ne) %s";
 
     // Success fields.
 
@@ -111,7 +111,7 @@ public class TakeAppointmentService {
             Appointment appointment = buildAppointment(client, technician, aestheticCare, day, beginTime);
             appointment = saveAppointment(appointment);
             saveAllTimeSlot(allTimeSlots, appointment);
-            notifyAppointmentCreate(client, technician, beginTime);
+            notifyAppointmentCreate(client, technician, day, beginTime);
             return takeAppointmentSuccess(client, technician, aestheticCare, day, beginTime);
         } catch (Exception e) {
             log.error("Fail to take appointment, error message: {}", e.getMessage());
@@ -365,9 +365,9 @@ public class TakeAppointmentService {
         return a;
     }
 
-    private void notifyAppointmentCreate(Client client, Technician technician, LocalTime beginTime) {
-        boolean success = notificationCreationService.createNotification(NOTIFICATION_APPOINTMENT_CREATION_TITLE.formatted(client.simplyIdentifier()),
-                                                                         NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(beginTime,
+    private void notifyAppointmentCreate(Client client, Technician technician, LocalDate day, LocalTime beginTime) {
+        boolean success = notificationCreationService.createNotification(NOTIFICATION_APPOINTMENT_CREATION_TITLE,
+                                                                         NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(day, beginTime,
                                                                                                                           client.simplyIdentifier(),
                                                                                                                           technician.simplyIdentifier()),
                                                                          BOSS_SECRETARY_LEVEL, false);

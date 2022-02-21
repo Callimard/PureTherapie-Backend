@@ -6,11 +6,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.person.client.Client;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -18,6 +24,9 @@ import puretherapie.crm.data.person.client.Client;
 public class FinalizeAppointmentService {
 
     // Constants.
+
+    private static final String APPOINTMENT_FINALIZED_TITLE = "RDV finalizé";
+    private static final String APPOINTMENT_FINALIZED_TEXT = "RDV du %s à %s finalizé pour le client %s";
 
     public static final String APPOINTMENT_NOT_FOUND_ERROR = "appointment_not_found_error";
     public static final String APPOINTMENT_CANCELED_ERROR = "appointment_canceled_error";
@@ -28,6 +37,7 @@ public class FinalizeAppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final PaymentService paymentService;
+    private final NotificationCreationService notificationCreationService;
 
     // Methods.
 
@@ -39,6 +49,7 @@ public class FinalizeAppointmentService {
             verifyAppointmentNotFinalized(appointment);
             verifyClientHasDoneAtLeastOnePaymentToday(appointment.getClient());
             updateAppointment(appointment);
+            notifyAppointmentFinalized(appointment.getClient(), appointment.getDay(), appointment.getTime());
             return SimpleResponseDTO.generateSuccess("Success to finalize appointment");
         } catch (Exception e) {
             log.debug("Fail to finalize appointment, error message: {}", e.getMessage());
@@ -68,7 +79,7 @@ public class FinalizeAppointmentService {
 
     private void verifyClientHasDoneAtLeastOnePaymentToday(Client client) {
         if (paymentService.hasRemainingPayment(client) && !paymentService.hasDonePaymentToday(client)) {
-                throw new FinalizeAppointmentException(CLIENT_HAS_NOT_PAID_TODAY_ERROR);
+            throw new FinalizeAppointmentException(CLIENT_HAS_NOT_PAID_TODAY_ERROR);
         }
     }
 
@@ -76,6 +87,14 @@ public class FinalizeAppointmentService {
         appointment.setFinalized(true);
         appointment = appointmentRepository.save(appointment);
         log.info("Update appointment and set it finalized, appointment : {}", appointment);
+    }
+
+    private void notifyAppointmentFinalized(Client client, LocalDate day, LocalTime time) {
+        boolean success = notificationCreationService.createNotification(APPOINTMENT_FINALIZED_TITLE,
+                                                                         APPOINTMENT_FINALIZED_TEXT.formatted(client.simplyIdentifier(), day, time),
+                                                                         BOSS_SECRETARY_LEVEL, false);
+        if (!success)
+            log.error("Fail to create appointment finalization notification");
     }
 
     // Exceptions.

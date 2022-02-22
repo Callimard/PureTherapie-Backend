@@ -32,7 +32,8 @@ public class OpeningService {
     }
 
     public boolean isOpen(LocalDate day) {
-        return !eoRepository.findByDay(day).isEmpty() || !gotRepository.findByDay(day.getDayOfWeek().getValue()).isEmpty();
+        return ecRepository.findByDay(day) == null &&
+                (!eoRepository.findByDay(day).isEmpty() || !gotRepository.findByDay(day.getDayOfWeek().getValue()).isEmpty());
     }
 
     public List<Opening> getOpenings(LocalDate day) {

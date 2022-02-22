@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.person.client.controller.ClientController.CLIENTS_URL;
 import static puretherapie.crm.tool.PhoneTool.formatPhone;
@@ -71,14 +70,12 @@ public class ClientController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_IS_NEW)
     public Boolean clientIsNew(@RequestParam(name = "idClient") int idClient) {
         return clientService.isNew(idClient);
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PostMapping
     public ResponseEntity<ClientRegistrationResponseDTO> clientRegistration(@RequestParam(value = PARAM_DOUBLOON_VERIFICATION, required = false,
             defaultValue = "true") boolean doubloonVerification, @RequestBody ClientDTO clientDTO,
@@ -93,7 +90,6 @@ public class ClientController {
             return ResponseEntity.ok(responseDTO);
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping("/{clientId}")
     public ResponseEntity<ClientDTO> updateClient(@PathVariable(name = "clientId") int clientId, @RequestBody ClientDTO clientDTO) {
@@ -112,7 +108,6 @@ public class ClientController {
         return ResponseEntity.ok(client);
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping
     public ResponseEntity<List<ClientDTO>> getClientWithFilter(@RequestParam("filter") String filter,
@@ -136,7 +131,6 @@ public class ClientController {
         return doubloonVerification;
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping(CLIENT_SEARCH_WITH_EMAIL)
     public SimpleClientInfoDTO getClientWithEmail(@RequestParam(value = "email") String clientEmail) {
         Client client = clientRepository.findByEmail(clientEmail);
@@ -146,7 +140,6 @@ public class ClientController {
             return null;
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping(CLIENT_SEARCH_WITH_PHONE)
     public ResponseEntity<SimpleClientInfoDTO> getClientWithPhone(@RequestParam(value = "phone") String clientPhone) {
         try {
@@ -161,8 +154,6 @@ public class ClientController {
         }
     }
 
-
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping(PERSON_ORIGINS)
     public ResponseEntity<List<PersonOriginDTO>> getAllPersonOrigin() {
         List<PersonOrigin> personOrigins = personOriginRepository.findAll();

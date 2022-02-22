@@ -22,7 +22,6 @@ import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENT_URL;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
@@ -76,14 +75,12 @@ public class AppointmentController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping("/{idAppointment}" + IS_FIRST_APPOINTMENT)
     public boolean isFirstAppointment(@PathVariable(name = "idAppointment") int idAppointment) {
         return appointmentService.isFirstAppointment(idAppointment);
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping("/{idAppointment}")
     public AppointmentDTO getAppointment(@PathVariable(name = "idAppointment") int idAppointment) {
@@ -94,14 +91,12 @@ public class AppointmentController {
             return null;
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PutMapping(FINALIZE_APPOINTMENT)
     public ResponseEntity<SimpleResponseDTO> finalizeAppointment(@PathVariable(name = "idAppointment") int idAppointment) {
         return SimpleResponseDTO.generateResponse(finalizeAppointmentService.finalizeAppointment(idAppointment));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping(PROVISION_CLIENT_WITHOUT_APPOINTMENT)
     public ResponseEntity<SimpleResponseDTO> provisionClientWithoutAppointment(@RequestParam(name = "idClient") int idClient,
@@ -111,14 +106,12 @@ public class AppointmentController {
                 provisionSessionOnClientService.provisionWithoutAppointment(idClient, idTechnician, idAestheticCare));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping(PROVISION_CLIENT_WITH_APPOINTMENT)
     public ResponseEntity<SimpleResponseDTO> provisionClientWithAppointment(@RequestParam(name = "idClient") int idClient) {
         return SimpleResponseDTO.generateResponse(provisionSessionOnClientService.provisionWithAppointment(idClient));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_APPOINTMENT)
     public ResponseEntity<AppointmentDTO> getClientAppointment(@PathVariable(name = "idClient") int idClient,
@@ -133,14 +126,12 @@ public class AppointmentController {
         }
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping(APPOINTMENT_CANCELLATION)
     public ResponseEntity<SimpleResponseDTO> cancelAppointment(@RequestParam("idAppointment") int idAppointment) {
         return SimpleResponseDTO.generateResponse(cancelAppointmentService.cancelAppointment(idAppointment));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PostMapping
     public ResponseEntity<TakeAppointmentResponseDTO> takeAnAppointment(@RequestBody TakeAppointmentDTO aInfo, Authentication authentication) {
         TakeAppointmentResponseDTO responseDTO;
@@ -182,7 +173,6 @@ public class AppointmentController {
         }
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PostMapping(CLIENT_ARRIVE)
     public ResponseEntity<SimpleResponseDTO> clientArrive(@RequestParam(name = "idClient") int idClient,
                                                           @RequestParam(name = "idAppointment", required = false, defaultValue = "-1") int idAppointment) {

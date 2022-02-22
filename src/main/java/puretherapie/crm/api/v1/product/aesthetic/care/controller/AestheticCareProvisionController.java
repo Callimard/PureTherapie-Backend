@@ -4,13 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.AestheticCareProvisionDTO;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareProvisionRepository;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.product.aesthetic.care.controller.AestheticCareProvisionController.AESTHETIC_CARE_PROVISIONS_URL;
 
 @Slf4j
@@ -34,7 +36,6 @@ public class AestheticCareProvisionController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(AESTHETIC_CARE_PROVISIONS_BY_APPOINTMENT + "/{idAppointment}")
     public ResponseEntity<AestheticCareProvisionDTO> getACProvisionForAppointment(@PathVariable(name = "idAppointment") int idAppointment) {

@@ -16,7 +16,6 @@ import puretherapie.crm.data.product.bill.repository.MeansOfPaymentRepository;
 
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.product.bill.controller.BillController.BILL_URL;
 
@@ -49,14 +48,12 @@ public class BillController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping("/{idClient}" + MAKE_PAYMENT_TODAY)
     public boolean clientHasMakePaymentToday(@PathVariable(name = "idClient") int idClient) {
         return paymentService.hasDonePaymentToday(clientRepository.findByIdPerson(idClient));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping("/{idBill}")
     public ResponseEntity<BillDTO> getBill(@PathVariable(name = "idBill") int idBill) {
@@ -68,14 +65,12 @@ public class BillController {
         }
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(MEANS_OF_PAYMENTS)
     public List<MeansOfPayment> getAllMeansOfPayments() {
         return meansOfPaymentRepository.findAll();
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping(PAY)
     public ResponseEntity<SimpleResponseDTO> payBill(@PathVariable(name = "idBill") int idBill,
@@ -84,7 +79,6 @@ public class BillController {
         return SimpleResponseDTO.generateResponse(paymentService.pay(idBill, amountToPaid, idMeansOfPayment));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @DeleteMapping(PAYMENTS + "/{idPayment}")
     public ResponseEntity<SimpleResponseDTO> cancelPayment(@PathVariable(name = "idPayment") int idPayment) {

@@ -11,10 +11,8 @@ import puretherapie.crm.api.v1.waitingroom.service.RemoveFromWaitingRoomService;
 import puretherapie.crm.data.waitingroom.WaitingRoom;
 import puretherapie.crm.data.waitingroom.repository.WaitingRoomRepository;
 
-import java.awt.event.WindowFocusListener;
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.waitingroom.controller.WaitingRoomController.WAITING_ROOM_URL;
 
@@ -35,7 +33,6 @@ public class WaitingRoomController {
 
     // Methods
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY', 'ROLE_TECHNICIAN')")
     @GetMapping
     public List<WaitingRoomDTO> getAllWaitingRoomRow() {
@@ -43,7 +40,6 @@ public class WaitingRoomController {
         return wr.stream().map(WaitingRoom::transform).toList();
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @DeleteMapping("/{idClient}")
     public ResponseEntity<SimpleResponseDTO> removeClientFromWaitingRoom(@PathVariable(name = "idClient") int idClient) {

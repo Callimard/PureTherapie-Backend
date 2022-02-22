@@ -70,15 +70,48 @@ public class OpeningAndCloseController {
     @PostMapping
     public void addGlobalOpeningTime(@RequestBody GlobalOpeningTimeDTO globalOpeningTimeDTO) {
         GlobalOpeningTime globalOpeningTime = globalOpeningTimeDTO.transform();
+        globalOpeningTime.setIdGlobalOpeningTime(0);
         globalOpeningTimeRepository.save(globalOpeningTime);
     }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PutMapping
+    public void updateGlobalOpeningTime(@RequestBody GlobalOpeningTimeDTO globalOpeningTimeDTO) {
+        GlobalOpeningTime globalOpeningTime = globalOpeningTimeDTO.transform();
+        globalOpeningTimeRepository.save(globalOpeningTime);
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @DeleteMapping("/{idGlobalOpeningTime}")
+    public void deleteGlobalOpeningTime(@PathVariable(name = "idGlobalOpeningTime") int idGlobalOpeningTime) {
+        globalOpeningTimeRepository.deleteById(idGlobalOpeningTime);
+    }
+
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @PostMapping(EXCEPTIONAL_OPENINGS)
     public void addExceptionalOpeningTime(@RequestBody ExceptionalOpeningDTO exceptionalOpeningDTO) {
         ExceptionalOpening exceptionalOpening = exceptionalOpeningDTO.transform();
+        exceptionalOpening.setIdExceptionalOpening(0);
         exceptionalOpeningRepository.save(exceptionalOpening);
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PutMapping(EXCEPTIONAL_OPENINGS)
+    public void updateExceptionalOpeningTime(@RequestBody ExceptionalOpeningDTO exceptionalOpeningDTO) {
+        ExceptionalOpening exceptionalOpening = exceptionalOpeningDTO.transform();
+        exceptionalOpeningRepository.save(exceptionalOpening);
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @DeleteMapping(EXCEPTIONAL_OPENINGS + "/{idExceptionalOpening}")
+    public void deleteExceptionalOpeningTime(@PathVariable(name = "idExceptionalOpening") int idExceptionalOpening) {
+        exceptionalOpeningRepository.deleteById(idExceptionalOpening);
     }
 
     @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
@@ -86,7 +119,23 @@ public class OpeningAndCloseController {
     @PostMapping(EXCEPTIONAL_CLOSINGS)
     public void addExceptionalOpeningTime(@RequestBody ExceptionalCloseDTO exceptionalCloseDTO) {
         ExceptionalClose exceptionalClose = exceptionalCloseDTO.transform();
+        exceptionalClose.setIdExceptionalClose(0);
         exceptionalCloseRepository.save(exceptionalClose);
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PutMapping(EXCEPTIONAL_CLOSINGS)
+    public void updateExceptionalOpeningTime(@RequestBody ExceptionalCloseDTO exceptionalCloseDTO) {
+        ExceptionalClose exceptionalClose = exceptionalCloseDTO.transform();
+        exceptionalCloseRepository.save(exceptionalClose);
+    }
+
+    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @DeleteMapping(EXCEPTIONAL_CLOSINGS + "/{idExceptionalClose}")
+    public void updateExceptionalOpeningTime(@PathVariable(name = "idExceptionalClose") int idExceptionalClose) {
+        exceptionalCloseRepository.deleteById(idExceptionalClose);
     }
 
 }

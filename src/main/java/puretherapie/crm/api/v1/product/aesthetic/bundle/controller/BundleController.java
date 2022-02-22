@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.product.aesthetic.bundle.controller.BundleController.BUNDLES_URL;
 
@@ -57,7 +56,6 @@ public class BundleController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping
     public List<BundleDTO> getAllBundles() {
@@ -71,7 +69,6 @@ public class BundleController {
         return allBundles;
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping(CLIENT_BUNDLE_PURCHASE)
     public ResponseEntity<SimpleResponseDTO> bundlePurchase(@PathVariable(name = "idBundle") int idBundle,
@@ -82,7 +79,6 @@ public class BundleController {
                 , idPaymentType));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_ALL_BUNDLE_PURCHASES)
     public List<BundlePurchaseDTO> getAllClientBundlePurchases(@RequestParam(name = "idClient") int idClient) {
@@ -90,7 +86,6 @@ public class BundleController {
         return bundlePurchases.stream().map(BundlePurchase::transform).toList();
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_ALL_BUNDLE_PURCHASES + "/{idBundlePurchase}")
     public BundlePurchaseDTO getClientBundlePurchase(@PathVariable(name = "idBundlePurchase") int idBundlePurchase) {
@@ -101,7 +96,6 @@ public class BundleController {
             return null;
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(UNPAID_BUNDLE_PURCHASES)
     public List<BundlePurchaseDTO> getAllUnpaidClientBundlePurchase(@RequestParam(name = "idClient") int idClient) {
@@ -110,7 +104,6 @@ public class BundleController {
         return bundlePurchases.stream().map(BundlePurchase::transform).toList();
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(BUNDLE_PURCHASES_STOCKS)
     public List<StockDTO> getStocks(@PathVariable(name = "idBundlePurchase") int idBundlePurchase) {
@@ -118,7 +111,6 @@ public class BundleController {
         return stocks.stream().map(Stock::transform).toList();
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PutMapping(BUNDLE_PURCHASES_STOCKS)
     public ResponseEntity<SimpleResponseDTO> updateStock(@PathVariable(name = "idBundlePurchase") int idBundlePurchase,

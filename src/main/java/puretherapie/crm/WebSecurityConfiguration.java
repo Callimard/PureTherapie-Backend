@@ -1,5 +1,6 @@
 package puretherapie.crm;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,10 +13,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.ForwardedHeaderFilter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
+
+import java.util.Arrays;
 
 import static puretherapie.crm.WebConfiguration.IMAGES_URL;
 import static puretherapie.crm.api.v1.agenda.controller.AgendaController.TECHNICIAN_FREE_TIME_SLOTS_URL;
@@ -35,7 +39,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     // Constants.
 
-    public static final String FRONT_END_ORIGIN = "http://localhost:4200";
+    @Value("${cors.allowedOrigins}")
+    private String allowedOrigins;
 
     // Methods.
 
@@ -65,6 +70,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private void configureAuthorizeRequests(HttpSecurity http) throws Exception {
         http
+                .cors()
+                .and()
                 .addFilterBefore(new ForwardedHeaderFilter(), ChannelProcessingFilter.class)
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -91,13 +98,15 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping(IMAGES_URL).allowCredentials(true).allowedOrigins(FRONT_END_ORIGIN).allowedMethods("*");
-            }
-        };
+    public CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setAllowedOrigins(Arrays.stream(allowedOrigins.split(",")).toList());
+        corsConfiguration.addAllowedHeader("*");
+        corsConfiguration.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", corsConfiguration);
+        return source;
     }
 
 }

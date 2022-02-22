@@ -3,7 +3,10 @@ package puretherapie.crm.api.v1.agenda.controller;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import puretherapie.crm.api.v1.agenda.controller.dto.FreeTimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.controller.dto.TimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.service.OpeningService;
@@ -15,7 +18,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.agenda.controller.AgendaController.AGENDA_URL;
 
@@ -45,7 +47,6 @@ public class AgendaController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping(TECHNICIAN_FREE_TIME_SLOTS)
     public List<FreeTimeSlotDTO> getTechnicianFreeTimeSlots(@RequestParam(name = "idTechnician") int idTechnician, @RequestParam(name = "day")
             String day, @RequestParam(name = "processDuration") int processDuration) {
@@ -58,7 +59,6 @@ public class AgendaController {
      *
      * @return the list of {@link TimeSlotDTO} of all the date (in function of opening and close time) with technician time slot occupied and free.
      */
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(DAY_ALL_TECHNICIAN_TIME_SLOTS)
     public List<TimeSlotDTO> getAllTechnicianTimeSlots(@RequestParam(name = "idTechnician") int idTechnician,
@@ -109,7 +109,6 @@ public class AgendaController {
         }
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(DAY_ALL_TIME_SLOTS)
     public List<TimeSlotDTO> getAllTimeSlotsOfTheDay(@RequestParam(value = "date") String date) {

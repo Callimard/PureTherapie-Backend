@@ -2,7 +2,10 @@ package puretherapie.crm.api.v1.person.technician.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import puretherapie.crm.api.v1.person.technician.dto.TechnicianDTO;
 import puretherapie.crm.data.person.technician.Technician;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
@@ -10,7 +13,6 @@ import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.person.technician.controller.TechnicianController.TECHNICIANS_URL;
 
@@ -30,7 +32,6 @@ public class TechnicianController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping
     public List<TechnicianDTO> getAllTechnicians(
             @RequestParam(name = "alsoInactivated", required = false, defaultValue = "false") boolean alsoInactivated) {

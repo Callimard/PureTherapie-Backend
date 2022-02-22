@@ -5,18 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 import puretherapie.crm.api.v1.user.service.UserLoginService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 
 import javax.servlet.http.HttpSession;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.user.controller.UserController.API_V1_USER_URL;
 
 @Slf4j
 @AllArgsConstructor
-@CrossOrigin(allowCredentials = "true", allowedHeaders = "*", origins = FRONT_END_ORIGIN, methods = {RequestMethod.POST})
 @RestController
 @RequestMapping(API_V1_USER_URL)
 public class UserController {
@@ -47,7 +48,6 @@ public class UserController {
         return userLoginService.successLogout(session, authentication);
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true", methods = {RequestMethod.HEAD})
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(path = USER_LOGIN, method = RequestMethod.HEAD)
     public ResponseEntity<SimpleResponseDTO> checkLogin() {

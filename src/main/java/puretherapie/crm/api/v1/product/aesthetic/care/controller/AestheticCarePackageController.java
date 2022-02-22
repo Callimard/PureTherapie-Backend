@@ -3,7 +3,6 @@ package puretherapie.crm.api.v1.product.aesthetic.care.controller;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,7 +13,6 @@ import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCarePack
 import java.util.ArrayList;
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.product.aesthetic.care.controller.AestheticCarePackageController.AESTHETIC_CARE_PACKAGES_URL;
 
@@ -34,7 +32,6 @@ public class AestheticCarePackageController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping
     public List<AestheticCarePackageDTO> getAllAestheticCarePackages() {

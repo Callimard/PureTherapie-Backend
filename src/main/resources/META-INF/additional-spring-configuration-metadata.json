@@ -4,5 +4,10 @@
       "name": "dbc.driverClassName",
       "type": "java.lang.String",
       "description": "Description for dbc.driverClassName."
-  }
-] }
+    },
+    {
+      "name": "cors.allowedOrigins",
+      "type": "java.lang.String",
+      "description": "Description for cors.allowedOrigins."
+    }
+  ] }

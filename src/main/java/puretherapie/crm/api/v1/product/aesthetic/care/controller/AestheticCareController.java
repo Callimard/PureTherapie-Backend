@@ -19,7 +19,6 @@ import puretherapie.crm.data.product.aesthetic.care.repository.SessionPurchaseRe
 import java.util.ArrayList;
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 
 @Slf4j
@@ -54,7 +53,6 @@ public class AestheticCareController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_AC_STOCK)
     public ResponseEntity<Integer> getACStockOfClient(@PathVariable(name = "idClient") int idClient,
@@ -67,7 +65,6 @@ public class AestheticCareController {
         }
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping
     public List<AestheticCareDTO> getAllAestheticCares() {
         List<AestheticCare> acList = this.aestheticCareRepository.findAll();
@@ -80,7 +77,6 @@ public class AestheticCareController {
         return allAC;
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping("/{idAc}/" + AESTHETIC_CARE_PURCHASE)
     public ResponseEntity<SimpleResponseDTO> sessionPurchase(@PathVariable(name = "idAc") int idAc, @RequestParam(name = "idClient") int idClient,
@@ -89,7 +85,6 @@ public class AestheticCareController {
         return SimpleResponseDTO.generateResponse(this.purchaseSessionService.purchaseSession(idClient, idAc, customPrice, idPaymentType));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_ALL_SESSION_PURCHASES)
     public List<SessionPurchaseDTO> getAllClientSessionPurchases(@RequestParam(name = "idClient") int idClient) {
@@ -97,7 +92,6 @@ public class AestheticCareController {
         return sessionPurchases.stream().map(SessionPurchase::transform).toList();
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_ALL_SESSION_PURCHASES + "/{idSessionPurchase}")
     public SessionPurchaseDTO getClientSessionPurchase(@PathVariable(name = "idSessionPurchase") int idSessionPurchase) {
@@ -108,7 +102,6 @@ public class AestheticCareController {
             return null;
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(UNPAID_AESTHETIC_CARE_PURCHASES)
     public List<SessionPurchaseDTO> getAllUnpaidSessionPurchases(@RequestParam(name = "idClient") int idClient) {

@@ -36,7 +36,6 @@ sonarqube-check:
   allow_failure: true
   when: on_success
   only:
-    - merge_requests
     - master
 
 deploy-artifact-job:
@@ -49,7 +48,7 @@ deploy-artifact-job:
     - mvn $MAVEN_CLI_OPTS -Dmaven.test.skip=true clean deploy
   only:
     refs:
-      - merge_requests
+      - master
     changes:
       - pom.xml
   when: manual

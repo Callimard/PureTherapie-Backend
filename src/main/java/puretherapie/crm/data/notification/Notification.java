@@ -1,6 +1,7 @@
 package puretherapie.crm.data.notification;
 
 import lombok.*;
+import puretherapie.crm.api.v1.notification.controller.dto.NotificationDTO;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -34,4 +35,14 @@ public class Notification {
     @ManyToOne(optional = false)
     @JoinColumn(name = "idNotificationLevel", nullable = false)
     private NotificationLevel notificationLevel;
+
+    public NotificationDTO transform() {
+        return NotificationDTO.builder()
+                .idNotification(idNotification)
+                .type(type)
+                .notificationTitle(notificationTitle)
+                .text(text)
+                .creationDate(creationDate != null ? creationDate.toString() : null)
+                .build();
+    }
 }

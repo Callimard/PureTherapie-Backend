@@ -3,6 +3,7 @@ package puretherapie.crm.api.v1.product.bill.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.product.bill.Bill;
@@ -16,12 +17,20 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
+
 @Slf4j
 @AllArgsConstructor
 @Service
 public class PaymentService {
 
     // Constants.
+
+    public static final String PAYMENT_DONE_TITLE = "Paiment effectué";
+    public static final String PAYMENT_DONE_TEXT = "Le client %s a effectué un paiement de %s €";
+
+    public static final String PAYMENT_CANCELED_TITLE = "Paiement annulé";
+    public static final String PAYMENT_CANCELED_TEXT = "Un paiement de %s € a été annulé pour le client %s";
 
     public static final String PAYMENT_NOT_FOUND_ERROR = "payment_not_found_error";
     public static final String BILL_NOT_FOUND_ERROR = "bill_not_found_error";
@@ -35,6 +44,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final MeansOfPaymentRepository meansOfPaymentRepository;
     private final BillRepository billRepository;
+    private final NotificationCreationService notificationCreationService;
 
     // Methods.
 
@@ -101,6 +111,7 @@ public class PaymentService {
             if (!payment.isCanceled()) {
                 payment.setCanceled(true);
                 updatePayment(payment);
+                notifyPaymentCanceled(payment.getBill().getClient(), payment.getAmountPaid());
             } else
                 log.info("Payment already canceled");
             return SimpleResponseDTO.generateSuccess("Success to cancel payment");
@@ -131,6 +142,7 @@ public class PaymentService {
             verifyNotTooMuch(bill, amountToPaid);
             Payment payment = createPayment(amountToPaid, meansOfPayment, bill);
             savePayment(payment);
+            notifyPaymentDone(bill.getClient(), payment.getAmountPaid());
             return SimpleResponseDTO.generateSuccess("Success to pay");
         } catch (Exception e) {
             log.error("Fail to paid, Error = {}", e.getMessage());
@@ -190,6 +202,22 @@ public class PaymentService {
     private void savePayment(Payment payment) {
         payment = paymentRepository.save(payment);
         log.info("Save payment = {}", payment);
+    }
+
+    private void notifyPaymentDone(Client client, double amount) {
+        boolean success = notificationCreationService.createNotification(PAYMENT_DONE_TITLE,
+                                                                         PAYMENT_DONE_TEXT.formatted(client.simplyIdentifier(), amount),
+                                                                         BOSS_LEVEL, false);
+        if (!success)
+            log.error("Fail to create payment done notification");
+    }
+
+    private void notifyPaymentCanceled(Client client, double amount) {
+        boolean success = notificationCreationService.createNotification(PAYMENT_CANCELED_TITLE,
+                                                                         PAYMENT_CANCELED_TEXT.formatted(amount, client.simplyIdentifier()),
+                                                                         BOSS_LEVEL, true);
+        if (!success)
+            log.error("Fail to create payment canceled notification");
     }
 
     // Exceptions.

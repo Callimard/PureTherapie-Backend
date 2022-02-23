@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.service.ReduceStockService;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.PurchaseSessionService;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.UseSessionService;
@@ -33,12 +34,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
+
 @Slf4j
 @AllArgsConstructor
 @Service
 public class ProvisionSessionOnClientService {
 
     // Constants.
+
+    private static final String PROVISION_SESSION_TITLE = "Soin pratiqué";
+    private static final String PROVISION_SESSION_TEXT = "Le soin %s a été pratiqué sur le client %s par %s";
 
     public static final String CLIENT_NOT_FOUND_ERROR = "client_not_found_error";
     public static final String TECHNICIAN_ID_NOT_FOUND_ERROR = "technician_id_not_found";
@@ -65,6 +71,7 @@ public class ProvisionSessionOnClientService {
     private final StockRepository stockRepository;
     private final ReduceStockService reduceStockService;
     private final PurchaseSessionService purchaseSessionService;
+    private final NotificationCreationService notificationCreationService;
 
     // Methods.
 
@@ -85,6 +92,7 @@ public class ProvisionSessionOnClientService {
             removeFromWaitingRoom(waitingRoom);
             saveAestheticCareProvision(client, appointment, appointment.getTechnician(), appointment.getAestheticCare());
             updateClientACStock(client, appointment.getAestheticCare());
+            notifyProvisionSession(appointment.getAestheticCare(), client, appointment.getTechnician());
             return SimpleResponseDTO.generateSuccess("Success to provision client");
         } catch (Exception e) {
             log.debug("Fail to provision the client with appointment, error message: {}", e.getMessage());
@@ -229,6 +237,16 @@ public class ProvisionSessionOnClientService {
             log.info("Not found bundle purchase for the client {}", client);
 
         return false;
+    }
+
+    private void notifyProvisionSession(AestheticCare aestheticCare, Client client, Technician technician) {
+        boolean success = notificationCreationService.createNotification(PROVISION_SESSION_TITLE,
+                                                                         PROVISION_SESSION_TEXT.formatted(aestheticCare.getName(),
+                                                                                                          client.simplyIdentifier(),
+                                                                                                          technician.simplyIdentifier()),
+                                                                         BOSS_LEVEL, true);
+        if (!success)
+            log.error("Fail to create provision session notification");
     }
 
     // Exceptions.

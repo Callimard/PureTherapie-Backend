@@ -1,0 +1,3 @@
+FROM openjdk:17-oracle
+COPY puretherapie-crm-*.jar puretherapie-crm-*.jar
+ENTRYPOINT ["java", "-Dconfig.location=./configuration/application.properties","-jar","./puretherapie-crm-*.jar"]

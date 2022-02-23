@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  puretherapie-backend:
+    image: puretherapie:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - puretherapie-logs:/logs/
+      - puretherapie-properties:/configuration/
+volumes:
+  puretherapie-logs:
+    external: true
+  puretherapie-properties:
+    external: true

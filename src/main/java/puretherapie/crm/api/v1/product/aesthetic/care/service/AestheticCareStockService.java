@@ -35,6 +35,37 @@ public class AestheticCareStockService {
     // Methods.
 
     /**
+     * Returns the sum of all stock of the client (session + bundle).
+     *
+     * @param idClient the client
+     *
+     * @return the sum of all stock of the client (session + bundle).
+     */
+    public int getTotalStock(int idClient) {
+        try {
+            Client client = verifyClient(idClient);
+            List<SessionPurchase> sessionPurchases = sessionPurchaseRepository.findByClient(client);
+            List<BundlePurchase> bundlePurchases = bundlePurchaseRepository.findByClient(client);
+
+            int sumStock = 0;
+            for (SessionPurchase sessionPurchase : sessionPurchases) {
+                if (!sessionPurchase.isUsed())
+                    sumStock++;
+            }
+            for (BundlePurchase bundlePurchase : bundlePurchases) {
+                if (bundlePurchase.notTotallyUsed()) {
+                    sumStock += bundlePurchase.totalRemainingStock();
+                }
+            }
+
+            return sumStock;
+        } catch (Exception e) {
+            log.error("Fail to get total stock of the client. Err msg = {}", e.getMessage());
+            return -1;
+        }
+    }
+
+    /**
      * Search the ac stock of the client of the specified ac.
      * <p>
      * Search in {@link puretherapie.crm.data.product.aesthetic.care.SessionPurchase} not used and {@link

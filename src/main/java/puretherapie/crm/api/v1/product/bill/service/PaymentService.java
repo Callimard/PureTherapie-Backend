@@ -4,8 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.product.bill.controller.dto.PurchaseDTO;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.person.client.Client;
+import puretherapie.crm.data.product.aesthetic.bundle.BundlePurchase;
+import puretherapie.crm.data.product.aesthetic.bundle.repository.BundlePurchaseRepository;
+import puretherapie.crm.data.product.aesthetic.care.SessionPurchase;
+import puretherapie.crm.data.product.aesthetic.care.repository.SessionPurchaseRepository;
 import puretherapie.crm.data.product.bill.Bill;
 import puretherapie.crm.data.product.bill.MeansOfPayment;
 import puretherapie.crm.data.product.bill.Payment;
@@ -45,8 +50,60 @@ public class PaymentService {
     private final MeansOfPaymentRepository meansOfPaymentRepository;
     private final BillRepository billRepository;
     private final NotificationCreationService notificationCreationService;
+    private final BundlePurchaseRepository bundlePurchaseRepository;
+    private final SessionPurchaseRepository sessionPurchaseRepository;
 
     // Methods.
+
+    public List<PurchaseDTO> getAllClientPurchases(Client client) {
+        List<BundlePurchase> clientBundlePurchases = bundlePurchaseRepository.findByClient(client);
+        List<SessionPurchase> clientSessionPurchases = sessionPurchaseRepository.findByClient(client);
+
+        List<PurchaseDTO> allPurchases = new ArrayList<>();
+
+        clientBundlePurchases.forEach(bundlePurchase -> {
+            PurchaseDTO purchase = bundlePurchase.toPurchase();
+            purchase.setTotallyPaid(!billNotTotallyPaid(bundlePurchase.getBill()));
+            allPurchases.add(purchase);
+        });
+
+        clientSessionPurchases.forEach(sessionPurchase -> {
+            PurchaseDTO purchase = sessionPurchase.toPurchase();
+            purchase.setTotallyPaid(!billNotTotallyPaid(sessionPurchase.getBill()));
+            allPurchases.add(purchase);
+        });
+
+        return allPurchases;
+    }
+
+    public double totalLeftToPay(Client client) {
+        List<Bill> bills = billRepository.findByClient(client);
+
+        double leftToPaid = 0.0;
+        for (Bill bill : bills)
+            leftToPaid += bill.getPurchasePrice() - amountPaid(bill);
+
+        return leftToPaid;
+    }
+
+
+    public double amountPaid(Bill bill) {
+        if (billNotTotallyPaid(bill)) {
+            double amountPaid = 0.0d;
+            for (Payment payment : bill.getPayments()) {
+                if (!payment.isCanceled()) {
+                    if (payment.getMeansOfPayment().isGrouponPayment()) {
+                        return bill.getPurchasePrice();
+                    } else {
+                        amountPaid += payment.getAmountPaid();
+                    }
+                }
+            }
+            return amountPaid;
+        } else
+            return bill.getPurchasePrice();
+    }
+
 
     /**
      * @param client the client

@@ -39,7 +39,6 @@ public class Payment {
     @JoinColumn(name = "idBill", nullable = false)
     private Bill bill;
 
-
     public PaymentDTO transform() {
         return PaymentDTO.builder()
                 .idPayment(idPayment)

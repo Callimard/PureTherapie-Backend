@@ -25,7 +25,7 @@ public class Stock {
     private Integer idStock;
 
     @Column(name = "remainingQuantity", nullable = false)
-    private Integer remainingQuantity;
+    private int remainingQuantity;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idAestheticCare", nullable = false)

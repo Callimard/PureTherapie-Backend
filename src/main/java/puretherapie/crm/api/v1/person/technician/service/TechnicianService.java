@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import puretherapie.crm.api.v1.agenda.controller.dto.FreeTimeSlotDTO;
-import puretherapie.crm.api.v1.agenda.controller.dto.TimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.service.OpeningService;
 import puretherapie.crm.api.v1.agenda.service.TimeSlotAtomService;
 import puretherapie.crm.data.agenda.Opening;
@@ -24,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static puretherapie.crm.data.agenda.Opening.correctTimeSlotTime;
-import static puretherapie.crm.tool.TimeTool.isInTZ;
 
 @Slf4j
 @AllArgsConstructor
@@ -33,6 +31,8 @@ public class TechnicianService {
 
     // Variables.
 
+    private final TechnicianAbsenceService technicianAbsenceService;
+
     private final TechnicianRepository technicianRepository;
     private final TechnicianAbsenceRepository technicianAbsenceRepository;
     private final TimeSlotRepository timeSlotRepository;
@@ -40,52 +40,6 @@ public class TechnicianService {
     private final OpeningService openingService;
 
     // Methods.
-
-    /**
-     * Verify if the TS is in a TechnicianAbsence or not
-     *
-     * @param technician the technician
-     * @param day        the day of the ts
-     * @param beginTime  the ts begin time
-     * @param duration   the ts duration
-     *
-     * @return true if the ts is in a technician absence, else false.
-     */
-    public boolean isInTechnicianAbsence(Technician technician, LocalDate day, LocalTime beginTime, int duration) {
-        List<TechnicianAbsence> technicianAbsences = technicianAbsenceRepository.findByTechnicianAndDay(technician, day);
-        if (!technicianAbsences.isEmpty()) {
-            for (TechnicianAbsence technicianAbsence : technicianAbsences)
-                if (isInTechnicianAbsence(technicianAbsence, beginTime, duration))
-                    return true;
-        }
-        return false;
-    }
-
-    public boolean isInTechnicianAbsence(TechnicianAbsence technicianAbsence, LocalTime beginTime, int duration) {
-        return isInTZ(technicianAbsence.getBeginTime(), technicianAbsence.getEndTime(), beginTime, duration);
-    }
-    
-    /**
-     * @param idTechnician the technician id
-     * @param day          the day
-     *
-     * @return the list of all {@link TimeSlotDTO} which are not free and occupied for an appointment with the technician (no TS for absence or launch
-     * break)
-     */
-    public List<TimeSlotDTO> getTechnicianNotFreeTimeSlot(int idTechnician, LocalDate day) {
-        Technician technician = verifyTechnician(idTechnician);
-        verifyDay(day);
-        if (openingService.isOpen(day)) {
-            List<TimeSlot> occupiedTS = timeSlotRepository.findByTechnicianAndDayAndFree(technician, day, false);
-
-            List<TimeSlotDTO> allOccupiedTS = new ArrayList<>();
-            for (TimeSlot ts : occupiedTS)
-                allOccupiedTS.add(ts.transform());
-
-            return allOccupiedTS;
-        } else
-            return Collections.emptyList();
-    }
 
     /**
      * Returns the list of all free Ts of the technician for the specified day and the specified process duration. The list returns will be different
@@ -157,7 +111,8 @@ public class TechnicianService {
 
         return freeTimeSlotDTOList.stream().filter(freeTimeSlot -> {
             for (TechnicianAbsence technicianAbsence : technicianAbsences) {
-                if (isInTechnicianAbsence(technicianAbsence, LocalTime.parse(freeTimeSlot.getBegin()), freeTimeSlot.getDuration())) {
+                if (technicianAbsenceService.isInTechnicianAbsence(technicianAbsence, LocalTime.parse(freeTimeSlot.getBegin()),
+                                                                   freeTimeSlot.getDuration())) {
                     return false;
                 }
             }

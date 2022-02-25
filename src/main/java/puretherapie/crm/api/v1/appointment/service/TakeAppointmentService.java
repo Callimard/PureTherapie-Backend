@@ -12,6 +12,7 @@ import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentFailDTO
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentSuccessDTO;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.person.technician.service.TechnicianAbsenceService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianLaunchBreakService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianService;
 import puretherapie.crm.data.agenda.Opening;
@@ -72,6 +73,7 @@ public class TakeAppointmentService {
     private final LaunchBreakRepository launchBreakRepository;
     private final TechnicianLaunchBreakService technicianLaunchBreakService;
     private final TechnicianService technicianService;
+    private final TechnicianAbsenceService technicianAbsenceService;
     private final NotificationCreationService notificationCreationService;
     private final TimeSlotAtomService tsaService;
     private final OpeningService openingService;
@@ -184,7 +186,7 @@ public class TakeAppointmentService {
     }
 
     private void verifyTechnicianNotAbsent(Technician technician, LocalDate day, LocalTime beginTime, int appointmentDuration) {
-        if (technicianService.isInTechnicianAbsence(technician, day, beginTime, appointmentDuration))
+        if (technicianAbsenceService.isInTechnicianAbsence(technician, day, beginTime, appointmentDuration))
             throw new TakeAppointmentException(DURING_TECHNICIAN_ABSENCE_ERROR);
     }
 

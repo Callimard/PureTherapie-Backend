@@ -3,7 +3,7 @@ package puretherapie.crm.api.v1.product.aesthetic.care.controller.dto;
 import lombok.*;
 import puretherapie.crm.api.v1.appointment.controller.dto.AppointmentDTO;
 import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
-import puretherapie.crm.api.v1.person.technician.dto.TechnicianDTO;
+import puretherapie.crm.api.v1.person.technician.controller.dto.TechnicianDTO;
 
 @Builder
 @Getter

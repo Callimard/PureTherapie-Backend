@@ -2,7 +2,7 @@ package puretherapie.crm.api.v1.agenda.controller.dto;
 
 import lombok.*;
 import puretherapie.crm.api.v1.appointment.controller.dto.AppointmentDTO;
-import puretherapie.crm.api.v1.person.technician.dto.TechnicianDTO;
+import puretherapie.crm.api.v1.person.technician.controller.dto.TechnicianDTO;
 
 import java.time.LocalTime;
 

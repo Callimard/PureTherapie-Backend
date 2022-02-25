@@ -1,7 +1,7 @@
 package puretherapie.crm.data.person.technician;
 
 import lombok.*;
-import puretherapie.crm.api.v1.person.technician.dto.TechnicianDTO;
+import puretherapie.crm.api.v1.person.technician.controller.dto.TechnicianDTO;
 import puretherapie.crm.data.person.Person;
 import puretherapie.crm.data.person.PersonOrigin;
 

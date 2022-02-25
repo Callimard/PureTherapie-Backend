@@ -62,6 +62,8 @@ public class AppointmentController {
     public static final String NOTIFICATION_SUR_BOOKING_TEXT = "Sur booking de %s minutes pour le rendez-vous du client %s avec le technicien %s " +
             "le %s à %s";
 
+    public static final String CLIENT = "/client";
+
     // Variables.
 
     private final TakeAppointmentService takeAppointmentService;
@@ -74,6 +76,18 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     // Methods.
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(CLIENT + "/{idClient}")
+    public List<AppointmentDTO> getAllClientAppointments(@PathVariable(name = "idClient") int idClient) {
+        Client client = clientRepository.findByIdPerson(idClient);
+        if (client != null) {
+            List<Appointment> appointments = appointmentRepository.findByClient(client);
+            return appointments.stream().map(Appointment::transform).toList();
+        } else {
+            throw new IllegalArgumentException("Unknown client id");
+        }
+    }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping("/{idAppointment}" + IS_FIRST_APPOINTMENT)

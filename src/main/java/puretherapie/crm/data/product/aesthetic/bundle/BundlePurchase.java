@@ -2,6 +2,7 @@ package puretherapie.crm.data.product.aesthetic.bundle;
 
 import lombok.*;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.BundlePurchaseDTO;
+import puretherapie.crm.api.v1.product.bill.controller.dto.PurchaseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.product.bill.Bill;
 
@@ -39,12 +40,39 @@ public class BundlePurchase {
     @ToString.Exclude
     private List<Stock> stocks;
 
+    public boolean notTotallyUsed() {
+        for (Stock stock : stocks) {
+            if (stock.hasRemainingQuantity())
+                return true;
+        }
+        return false;
+    }
+
+    public int totalRemainingStock() {
+        int totalStock = 0;
+        for (Stock stock : stocks) {
+            if (stock.hasRemainingQuantity()) {
+                totalStock += stock.getRemainingQuantity();
+            }
+        }
+
+        return totalStock;
+    }
+
     public BundlePurchaseDTO transform() {
         return BundlePurchaseDTO.builder()
                 .idBundlePurchase(idBundlePurchase)
                 .client(client != null ? client.transform() : null)
                 .bundle(bundle != null ? bundle.transform() : null)
                 .bill(bill != null ? bill.transform() : null)
+                .build();
+    }
+
+    public PurchaseDTO toPurchase() {
+        return PurchaseDTO.builder()
+                .type("Package")
+                .date(bill.getCreationDate().toString())
+                .price(bill.getPurchasePrice())
                 .build();
     }
 }

@@ -18,7 +18,7 @@ public class TechnicianAbsence {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idTechnicianAbsence", nullable = false)
-    private Integer id;
+    private Integer idTechnicianAbsence;
 
     @Column(name = "day", nullable = false)
     private LocalDate day;

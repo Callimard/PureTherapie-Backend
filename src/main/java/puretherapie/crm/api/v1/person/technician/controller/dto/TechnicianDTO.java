@@ -1,9 +1,7 @@
-package puretherapie.crm.api.v1.person.technician.dto;
+package puretherapie.crm.api.v1.person.technician.controller.dto;
 
 import lombok.*;
 import puretherapie.crm.api.v1.person.dto.PersonDTO;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter

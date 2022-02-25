@@ -11,6 +11,7 @@ import puretherapie.crm.api.v1.agenda.controller.dto.FreeTimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.controller.dto.TimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.service.OpeningService;
 import puretherapie.crm.api.v1.agenda.service.TimeSlotAtomService;
+import puretherapie.crm.api.v1.person.technician.service.TechnicianAbsenceService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianLaunchBreakService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianService;
 import puretherapie.crm.data.agenda.Opening;
@@ -46,6 +47,7 @@ public class AgendaController {
     // Variables.
 
     private final TechnicianRepository technicianRepository;
+    private final TechnicianAbsenceService technicianAbsenceService;
     private final TechnicianService technicianService;
     private final TechnicianLaunchBreakService technicianLaunchBreakService;
     private final OpeningService openingService;
@@ -76,7 +78,7 @@ public class AgendaController {
 
                 int tsaNumberOfMinutes = timeSlotAtomService.searchCorrectTSA(day).getNumberOfMinutes();
 
-                List<TimeSlotDTO> technicianTS = technicianService.getTechnicianNotFreeTimeSlot(idTechnician, day);
+                List<TimeSlotDTO> technicianTS = technicianAbsenceService.getTechnicianNotFreeTimeSlot(idTechnician, day);
 
                 Set<LocalTime> setCorrectBeginTS = new HashSet<>(technicianTS.stream().map(ts -> LocalTime.parse(ts.getBegin())).toList());
                 List<TimeSlotDTO> allTS = new ArrayList<>(technicianTS);
@@ -96,7 +98,7 @@ public class AgendaController {
                                     .isAbsence(false)
                                     .build();
 
-                            if (technicianService.isInTechnicianAbsence(technician, day, lt, tsaNumberOfMinutes)) {
+                            if (technicianAbsenceService.isInTechnicianAbsence(technician, day, lt, tsaNumberOfMinutes)) {
                                 ts.setAbsence(true);
                             }
 

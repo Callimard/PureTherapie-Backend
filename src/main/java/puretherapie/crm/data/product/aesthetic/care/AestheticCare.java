@@ -18,16 +18,16 @@ public class AestheticCare {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idAestheticCare", nullable = false)
-    private Integer idAestheticCare;
+    private int idAestheticCare;
 
     @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "price", nullable = false)
-    private Double price;
+    private double price;
 
     @Column(name = "timeExecution", nullable = false)
-    private Integer timeExecution;
+    private int timeExecution;
 
     public AestheticCareDTO transform() {
         return AestheticCareDTO.builder()

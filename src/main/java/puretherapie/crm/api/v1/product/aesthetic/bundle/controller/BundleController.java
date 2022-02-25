@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.BundleDTO;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.BundlePurchaseDTO;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.StockDTO;
+import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.parameter.BundleCreationParameter;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.service.BundlePurchaseService;
+import puretherapie.crm.api.v1.product.aesthetic.bundle.service.BundleService;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.service.StockService;
 import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
@@ -18,9 +20,7 @@ import puretherapie.crm.data.product.aesthetic.bundle.Stock;
 import puretherapie.crm.data.product.aesthetic.bundle.repository.BundlePurchaseRepository;
 import puretherapie.crm.data.product.aesthetic.bundle.repository.BundleRepository;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.product.aesthetic.bundle.controller.BundleController.BUNDLES_URL;
@@ -48,6 +48,7 @@ public class BundleController {
 
     // Variables.
 
+    private final BundleService bundleService;
     private final BundleRepository bundleRepository;
     private final BundlePurchaseRepository bundlePurchaseRepository;
     private final BundlePurchaseService bundlePurchaseService;
@@ -55,6 +56,16 @@ public class BundleController {
     private final PaymentService paymentService;
 
     // Methods.
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PostMapping
+    public void createBundle(@RequestBody BundleCreationParameter bundleCreationParameter) {
+        Map<Integer, Integer> mapACStock = new HashMap<>();
+        for (List<Integer> mapEntry : bundleCreationParameter.getMapACStock()) {
+            mapACStock.put(mapEntry.get(0), mapEntry.get(1));
+        }
+        bundleService.createBundle(bundleCreationParameter.getName(), bundleCreationParameter.getPrice(), mapACStock);
+    }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping

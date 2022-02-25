@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static puretherapie.crm.data.agenda.Opening.correctTimeSlotTime;
+import static puretherapie.crm.tool.TimeTool.isInTZ;
 
 @Slf4j
 @AllArgsConstructor
@@ -61,12 +62,9 @@ public class TechnicianService {
     }
 
     public boolean isInTechnicianAbsence(TechnicianAbsence technicianAbsence, LocalTime beginTime, int duration) {
-        LocalTime endTime = beginTime.plusMinutes(duration);
-        return (beginTime.isAfter(technicianAbsence.getBeginTime()) && beginTime.isBefore(technicianAbsence.getEndTime()))
-                || (beginTime.isBefore(technicianAbsence.getBeginTime()) &&
-                (endTime.isAfter(technicianAbsence.getBeginTime()) && endTime.isBefore(technicianAbsence.getEndTime())));
+        return isInTZ(technicianAbsence.getBeginTime(), technicianAbsence.getEndTime(), beginTime, duration);
     }
-
+    
     /**
      * @param idTechnician the technician id
      * @param day          the day

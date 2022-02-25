@@ -44,7 +44,7 @@ public class NotificationCreationService {
 
         NotificationLevel level = notificationLevelRepository.findByNotificationLevelName(levelName);
         if (level == null) {
-            log.debug("Level not found for the level name {}", levelName);
+            log.error("Level not found for the level name {}", levelName);
             return false;
         }
 
@@ -66,11 +66,10 @@ public class NotificationCreationService {
                 createNotificationView(notification, searchUserFromRole(roles));
                 return true;
             } else {
-                log.error("ROLLBACK cause no Roles has been found for the notification level {}", notificationLevel);
                 throw new NoRolesFoundException("No roles find for this notification level %s".formatted(notificationLevel));
             }
         } catch (Exception e) {
-            log.debug("Fail notification creation. ROLLBACK DONE.", e);
+            log.error("Fail notification creation. ROLLBACK DONE. Error msg = {}", e.getMessage());
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return false;
         }
@@ -91,7 +90,7 @@ public class NotificationCreationService {
     private boolean unCorrectArgs(String notificationTitle, String text, String levelName) {
         if ((notificationTitle == null || notificationTitle.isBlank()) || (text == null || text.isBlank()) ||
                 (levelName == null || levelName.isBlank())) {
-            log.debug("Notification title, text or level name must not be null or blank");
+            log.error("Notification title, text or level name must not be null or blank");
             return true;
         }
         return false;
@@ -110,7 +109,6 @@ public class NotificationCreationService {
     private Iterable<User> searchUserFromRole(List<Role> roles) {
         Set<User> users = new HashSet<>();
         roles.forEach(r -> users.addAll(userRepository.findByRoles(r)));
-        log.debug("For roles: {} find users: {}", roles, users);
         return users;
     }
 
@@ -125,7 +123,7 @@ public class NotificationCreationService {
     private void createNotificationView(Notification notification, Iterable<User> users) {
         for (User user : users) {
             NotificationView notificationView = notificationViewRepository.save(buildNotificationView(notification, user));
-            log.info("Create NotificationView {}", notificationView);
+            log.info("Save NotificationView {}", notificationView);
         }
     }
 

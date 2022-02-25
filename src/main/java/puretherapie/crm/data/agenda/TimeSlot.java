@@ -29,8 +29,11 @@ public class TimeSlot {
     @Column(name = "begin", nullable = false)
     private LocalTime begin;
 
+    /**
+     * Duration, in number of minutes.
+     */
     @Column(name = "time", nullable = false)
-    private Integer time;
+    private int time;
 
     @Column(name = "free", nullable = false)
     private boolean free;

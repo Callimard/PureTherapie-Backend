@@ -11,8 +11,10 @@ import puretherapie.crm.api.v1.agenda.controller.dto.FreeTimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.controller.dto.TimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.service.OpeningService;
 import puretherapie.crm.api.v1.agenda.service.TimeSlotAtomService;
+import puretherapie.crm.api.v1.person.technician.service.TechnicianLaunchBreakService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianService;
 import puretherapie.crm.data.agenda.Opening;
+import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.person.technician.Technician;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 
@@ -45,6 +47,7 @@ public class AgendaController {
 
     private final TechnicianRepository technicianRepository;
     private final TechnicianService technicianService;
+    private final TechnicianLaunchBreakService technicianLaunchBreakService;
     private final OpeningService openingService;
     private final TimeSlotAtomService timeSlotAtomService;
 
@@ -97,6 +100,10 @@ public class AgendaController {
                                 ts.setAbsence(true);
                             }
 
+                            if (technicianLaunchBreakService.isDuringTechnicianLaunchBreak(technician, day, lt, tsaNumberOfMinutes)) {
+                                ts.setLaunchBreak(true);
+                            }
+
                             allTS.add(ts);
                         }
                     }
@@ -124,29 +131,7 @@ public class AgendaController {
     public List<TimeSlotDTO> getAllTimeSlotsOfTheDay(@RequestParam(value = "date") String date) {
         LocalDate day = LocalDate.parse(date);
         if (openingService.isOpen(day)) {
-            int tsaNumberOfMinutes = timeSlotAtomService.searchCorrectTSA(day).getNumberOfMinutes();
-
-            List<Opening> openings = openingService.getOpenings(day);
-
-            Set<LocalTime> setCorrectBeginTS = new HashSet<>();
-            for (Opening opening : openings)
-                setCorrectBeginTS.addAll(Opening.correctTimeSlotTime(opening, tsaNumberOfMinutes));
-
-            List<LocalTime> listCorrectBeginTS = new ArrayList<>(setCorrectBeginTS.stream().toList());
-            Collections.sort(listCorrectBeginTS);
-
-            List<TimeSlotDTO> timeSlots = new ArrayList<>();
-            for (LocalTime lt : listCorrectBeginTS) {
-                TimeSlotDTO ts = TimeSlotDTO.builder()
-                        .day(date)
-                        .begin(lt.toString())
-                        .time(tsaNumberOfMinutes)
-                        .free(true)
-                        .isLaunchBreak(false)
-                        .isAbsence(false)
-                        .build();
-                timeSlots.add(ts);
-            }
+            List<TimeSlotDTO> timeSlots = openingService.allTimeSlotOfTheDay(day).stream().map(TimeSlot::transform).toList();
 
             if (timeSlots.isEmpty())
                 log.error("List time slots DTO is empty whereas the institute is opened at the day {}", day);

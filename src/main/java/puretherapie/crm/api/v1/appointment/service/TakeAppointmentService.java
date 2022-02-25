@@ -12,6 +12,7 @@ import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentFailDTO
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentSuccessDTO;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.person.technician.service.TechnicianLaunchBreakService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianService;
 import puretherapie.crm.data.agenda.Opening;
 import puretherapie.crm.data.agenda.TimeSlot;
@@ -23,9 +24,7 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.technician.LaunchBreak;
 import puretherapie.crm.data.person.technician.Technician;
-import puretherapie.crm.data.person.technician.TechnicianAbsence;
 import puretherapie.crm.data.person.technician.repository.LaunchBreakRepository;
-import puretherapie.crm.data.person.technician.repository.TechnicianAbsenceRepository;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
@@ -51,14 +50,6 @@ public class TakeAppointmentService {
     private static final String NOTIFICATION_APPOINTMENT_CREATION_TITLE = "Nouveau RDV";
     private static final String NOTIFICATION_APPOINTMENT_CREATION_TEXT = "Nouveau RDV le %s à %s pour le client %s et le/la technicien(ne) %s";
 
-    // Success fields.
-
-    public static final String APPOINTMENT_CREATION_SUCCESS = "appointment_creation_success";
-
-    // Error fields.
-
-    public static final String APPOINTMENT_CREATION_FAIL = "appointment_creation_fail";
-
     public static final String NULL_DAY_OR_BEGIN_TIME_ERROR = "null_day_begin_time";
     public static final String CLIENT_ID_NOT_FOUND_ERROR = "client_id_not_found";
     public static final String TECHNICIAN_ID_NOT_FOUND_ERROR = "technician_id_not_found";
@@ -78,9 +69,9 @@ public class TakeAppointmentService {
     private final AestheticCareRepository aestheticCareRepository;
     private final AppointmentRepository appointmentRepository;
     private final TimeSlotRepository timeSlotRepository;
-    private final LaunchBreakRepository lbRepository;
+    private final LaunchBreakRepository launchBreakRepository;
+    private final TechnicianLaunchBreakService technicianLaunchBreakService;
     private final TechnicianService technicianService;
-    private final TechnicianAbsenceRepository technicianAbsenceRepository;
     private final NotificationCreationService notificationCreationService;
     private final TimeSlotAtomService tsaService;
     private final OpeningService openingService;
@@ -118,6 +109,7 @@ public class TakeAppointmentService {
             Appointment appointment = buildAppointment(client, technician, aestheticCare, day, beginTime);
             appointment = saveAppointment(appointment);
             saveAllTimeSlot(allTimeSlots, appointment);
+            lockLaunchBreak(technician, day, tsa.getNumberOfMinutes());
             notifyAppointmentCreate(client, technician, day, beginTime);
             return takeAppointmentSuccess(client, technician, aestheticCare, day, beginTime);
         } catch (Exception e) {
@@ -198,22 +190,8 @@ public class TakeAppointmentService {
 
     private void verifyNotDuringLaunchBreak(Technician technician, LocalDate appointmentDay, LocalTime appointmentBeginTime,
                                             int appointmentDuration) {
-        LaunchBreak technicianLaunchBreak = lbRepository.findByTechnicianAndDay(technician, appointmentDay);
-
-        if (technicianLaunchBreak != null) {
-            LocalTime launchBreakBegin = technicianLaunchBreak.getBeginHour();
-            int launchBreakDuration = technicianLaunchBreak.getDuration();
-            if (notInLaunchBreak(appointmentBeginTime, appointmentDuration, launchBreakBegin, launchBreakDuration))
-                return;
-
-            log.info("In launch break of the technician {}, appointment time = {}", technician.simplyIdentifier(), appointmentBeginTime);
+        if (technicianLaunchBreakService.isDuringTechnicianLaunchBreak(technician, appointmentDay, appointmentBeginTime, appointmentDuration))
             throw new TakeAppointmentException(DURING_LAUNCH_BREAK_ERROR);
-        }
-    }
-
-    private boolean notInLaunchBreak(LocalTime appointmentBeginTime, int appointmentDuration, LocalTime launchBreakBegin, int launchBreakDuration) {
-        return (appointmentBeginTime.isBefore(launchBreakBegin) && minuteBetween(appointmentBeginTime, launchBreakBegin) >= appointmentDuration) ||
-                (launchBreakBegin.isBefore(appointmentBeginTime) && minuteBetween(launchBreakBegin, appointmentBeginTime) >= launchBreakDuration);
     }
 
     private int computeAppointmentDuration(int nbTimeSlot, int tsNumberOfMinutes) {
@@ -375,6 +353,67 @@ public class TakeAppointmentService {
         return a;
     }
 
+    /**
+     * Create a launch break for the technician if it needed. The launch break is created only if in the launch break time zone there is only one ts
+     * free.
+     *
+     * @param technician  the technician
+     * @param day         the day
+     * @param tsaDuration ts duration
+     */
+    private void lockLaunchBreak(Technician technician, LocalDate day, int tsaDuration) {
+        LaunchBreak launchBreak = launchBreakRepository.findByTechnicianAndDay(technician, day);
+        if (launchBreak == null) {
+            List<TimeSlot> tsInLaunchBreakTimeZone = getTimeSlotInLaunchBreakTimeZone(technician, day);
+            createLaunchBreakIfNeeded(technician, day, tsaDuration, tsInLaunchBreakTimeZone);
+        }
+    }
+
+    /**
+     * @param technician the technician
+     * @param day        the day
+     *
+     * @return a list which contains only ts associated to the technician not free and in the Launch Break time zone.
+     */
+    private List<TimeSlot> getTimeSlotInLaunchBreakTimeZone(Technician technician, LocalDate day) {
+        List<TimeSlot> techTS = timeSlotRepository.findByTechnicianAndDay(technician, day);
+
+        // Get all not free technician ts in launch break TZ
+        Set<LocalTime> techTsLocalTimeSet = new HashSet<>();
+        List<TimeSlot> techTsInLaunchBreakTZ = techTS.stream().filter(ts -> !ts.isFree())
+                .filter(ts -> technicianLaunchBreakService.isInLaunchBreakTimeZone(ts.getBegin(), ts.getTime())).toList();
+        techTsInLaunchBreakTZ.forEach(ts -> techTsLocalTimeSet.add(ts.getBegin()));
+
+        // Get all global ts in opening time which are in launch break TZ
+        List<TimeSlot> allTsInLaunchBreakTZ = openingService.allTimeSlotOfTheDay(day).stream()
+                .filter(ts -> technicianLaunchBreakService.isInLaunchBreakTimeZone(ts.getBegin(), ts.getTime())).toList();
+
+        // Set not free all global ts which are not free for the technician
+        for (TimeSlot ts : allTsInLaunchBreakTZ) {
+            if (techTsLocalTimeSet.contains(ts.getBegin())) {
+                // Is a technician ts not free.
+                ts.setFree(false);
+            }
+        }
+
+        return allTsInLaunchBreakTZ;
+    }
+
+    private void createLaunchBreakIfNeeded(Technician technician, LocalDate day, int tsaDuration, List<TimeSlot> tsInLaunchBreakTimeZone) {
+        int freeTsCount = 0;
+        TimeSlot firstFree = null;
+        for (TimeSlot timeSlot : tsInLaunchBreakTimeZone) {
+            if (timeSlot.isFree()) {
+                freeTsCount++;
+                if (firstFree == null)
+                    firstFree = timeSlot;
+            }
+        }
+
+        if (freeTsCount == 1)
+            technicianLaunchBreakService.createTechnicianLaunchBreak(technician.getIdPerson(), day, firstFree.getBegin(), tsaDuration);
+    }
+
     private void notifyAppointmentCreate(Client client, Technician technician, LocalDate day, LocalTime beginTime) {
         boolean success = notificationCreationService.createNotification(NOTIFICATION_APPOINTMENT_CREATION_TITLE,
                                                                          NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(day, beginTime,
@@ -385,7 +424,7 @@ public class TakeAppointmentService {
             log.error("Fail to create appointment notification");
     }
 
-    // Exceptions.
+// Exceptions.
 
     private static class TakeAppointmentException extends RuntimeException {
         public TakeAppointmentException(String message) {

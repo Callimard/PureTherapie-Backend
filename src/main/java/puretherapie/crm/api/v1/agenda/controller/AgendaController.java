@@ -13,6 +13,8 @@ import puretherapie.crm.api.v1.agenda.service.OpeningService;
 import puretherapie.crm.api.v1.agenda.service.TimeSlotAtomService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianService;
 import puretherapie.crm.data.agenda.Opening;
+import puretherapie.crm.data.person.technician.Technician;
+import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -41,6 +43,7 @@ public class AgendaController {
 
     // Variables.
 
+    private final TechnicianRepository technicianRepository;
     private final TechnicianService technicianService;
     private final OpeningService openingService;
     private final TimeSlotAtomService timeSlotAtomService;
@@ -66,9 +69,11 @@ public class AgendaController {
         try {
             LocalDate day = LocalDate.parse(date);
             if (openingService.isOpen(day)) {
+                Technician technician = technicianRepository.findByIdPerson(idTechnician);
+
                 int tsaNumberOfMinutes = timeSlotAtomService.searchCorrectTSA(day).getNumberOfMinutes();
 
-                List<TimeSlotDTO> technicianTS = technicianService.getTechnicianOccupiedTimeSlot(idTechnician, day);
+                List<TimeSlotDTO> technicianTS = technicianService.getTechnicianNotFreeTimeSlot(idTechnician, day);
 
                 Set<LocalTime> setCorrectBeginTS = new HashSet<>(technicianTS.stream().map(ts -> LocalTime.parse(ts.getBegin())).toList());
                 List<TimeSlotDTO> allTS = new ArrayList<>(technicianTS);
@@ -87,6 +92,11 @@ public class AgendaController {
                                     .isLaunchBreak(false)
                                     .isAbsence(false)
                                     .build();
+
+                            if (technicianService.isInTechnicianAbsence(technician, day, lt, tsaNumberOfMinutes)) {
+                                ts.setAbsence(true);
+                            }
+
                             allTS.add(ts);
                         }
                     }

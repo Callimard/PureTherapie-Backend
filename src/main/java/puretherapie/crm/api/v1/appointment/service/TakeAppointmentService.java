@@ -12,6 +12,7 @@ import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentFailDTO
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentSuccessDTO;
 import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.person.technician.service.TechnicianService;
 import puretherapie.crm.data.agenda.Opening;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.agenda.TimeSlotAtom;
@@ -78,6 +79,7 @@ public class TakeAppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final TimeSlotRepository timeSlotRepository;
     private final LaunchBreakRepository lbRepository;
+    private final TechnicianService technicianService;
     private final TechnicianAbsenceRepository technicianAbsenceRepository;
     private final NotificationCreationService notificationCreationService;
     private final TimeSlotAtomService tsaService;
@@ -190,22 +192,8 @@ public class TakeAppointmentService {
     }
 
     private void verifyTechnicianNotAbsent(Technician technician, LocalDate day, LocalTime beginTime, int appointmentDuration) {
-        List<TechnicianAbsence> technicianAbsences = technicianAbsenceRepository.findByTechnicianAndDay(technician, day);
-        if (!technicianAbsences.isEmpty()) {
-            for (TechnicianAbsence technicianAbsence : technicianAbsences) {
-                if (appointmentIsInTechnicianAbsence(beginTime, appointmentDuration, technicianAbsence)) {
-                    throw new TakeAppointmentException(DURING_TECHNICIAN_ABSENCE_ERROR);
-                }
-            }
-        }
-    }
-
-    private boolean appointmentIsInTechnicianAbsence(LocalTime appointmentBeginTime, int appointmentDuration, TechnicianAbsence technicianAbsence) {
-        LocalTime appointmentEndTime = appointmentBeginTime.plusMinutes(appointmentDuration);
-
-        return (appointmentBeginTime.isAfter(technicianAbsence.getBeginTime()) && appointmentBeginTime.isBefore(technicianAbsence.getEndTime()))
-                || (appointmentBeginTime.isBefore(technicianAbsence.getBeginTime()) &&
-                (appointmentEndTime.isAfter(technicianAbsence.getBeginTime()) && appointmentEndTime.isBefore(technicianAbsence.getEndTime())));
+        if (technicianService.isInTechnicianAbsence(technician, day, beginTime, appointmentDuration))
+            throw new TakeAppointmentException(DURING_TECHNICIAN_ABSENCE_ERROR);
     }
 
     private void verifyNotDuringLaunchBreak(Technician technician, LocalDate appointmentDay, LocalTime appointmentBeginTime,

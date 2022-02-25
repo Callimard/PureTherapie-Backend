@@ -7,6 +7,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.AestheticCareDTO;
 import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.SessionPurchaseDTO;
+import puretherapie.crm.api.v1.product.aesthetic.care.controller.parameter.AestheticCareCreationParameter;
+import puretherapie.crm.api.v1.product.aesthetic.care.service.AestheticCareService;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.AestheticCareStockService;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.PurchaseSessionService;
 import puretherapie.crm.api.v1.product.bill.service.PaymentService;
@@ -45,6 +47,7 @@ public class AestheticCareController {
 
     // Variables.
 
+    private final AestheticCareService aestheticCareService;
     private final SessionPurchaseRepository sessionPurchaseRepository;
     private final AestheticCareRepository aestheticCareRepository;
     private final PurchaseSessionService purchaseSessionService;
@@ -52,6 +55,13 @@ public class AestheticCareController {
     private final AestheticCareStockService aestheticCareStockService;
 
     // Methods.
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PostMapping
+    public void createAestheticCare(@RequestBody AestheticCareCreationParameter aestheticCareCreationParameter) {
+        aestheticCareService.createAestheticCare(aestheticCareCreationParameter.getName(), aestheticCareCreationParameter.getPrice(),
+                                                 aestheticCareCreationParameter.getExecutionTime());
+    }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_AC_STOCK)

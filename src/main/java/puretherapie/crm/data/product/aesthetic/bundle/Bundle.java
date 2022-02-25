@@ -27,7 +27,7 @@ public class Bundle {
     private String name;
 
     @Column(name = "price", nullable = false)
-    private Double price;
+    private double price;
 
     @ManyToMany
     @JoinTable(name = "AssociationBundleAestheticCarePackage", joinColumns = @JoinColumn(name = "idBundle"), inverseJoinColumns = @JoinColumn(name

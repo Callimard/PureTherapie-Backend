@@ -424,7 +424,7 @@ public class TakeAppointmentService {
             log.error("Fail to create appointment notification");
     }
 
-// Exceptions.
+    // Exceptions.
 
     private static class TakeAppointmentException extends RuntimeException {
         public TakeAppointmentException(String message) {

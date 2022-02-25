@@ -1,0 +1,8 @@
+package puretherapie.crm.data.product.aesthetic.bundle.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import puretherapie.crm.data.product.aesthetic.bundle.AssociationBundleAestheticCarePackage;
+import puretherapie.crm.data.product.aesthetic.bundle.AssociationBundleAestheticCarePackageId;
+
+public interface AssociationBundleAestheticCarePackageRepository extends JpaRepository<AssociationBundleAestheticCarePackage, AssociationBundleAestheticCarePackageId> {
+}

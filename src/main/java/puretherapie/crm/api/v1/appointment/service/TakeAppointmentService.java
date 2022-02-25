@@ -22,7 +22,9 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.technician.LaunchBreak;
 import puretherapie.crm.data.person.technician.Technician;
+import puretherapie.crm.data.person.technician.TechnicianAbsence;
 import puretherapie.crm.data.person.technician.repository.LaunchBreakRepository;
+import puretherapie.crm.data.person.technician.repository.TechnicianAbsenceRepository;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareRepository;
@@ -63,6 +65,7 @@ public class TakeAppointmentService {
     public static final String EXCEPTIONAL_CLOSE_ERROR = "exceptional_close";
     public static final String NOT_OPEN_ERROR = "not_open";
     public static final String NOT_IN_OPENING_TIME_ERROR = "not_in_opening_time";
+    public static final String DURING_TECHNICIAN_ABSENCE_ERROR = "during_technician_absence_error";
     public static final String DURING_LAUNCH_BREAK_ERROR = "during_launch_break";
     public static final String INCOMPATIBLE_TIME_SLOT_TIME_ERROR = "incompatible_time_slot_time";
     public static final String OVERLAP_ERROR = "overlap_detect";
@@ -75,6 +78,7 @@ public class TakeAppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final TimeSlotRepository timeSlotRepository;
     private final LaunchBreakRepository lbRepository;
+    private final TechnicianAbsenceRepository technicianAbsenceRepository;
     private final NotificationCreationService notificationCreationService;
     private final TimeSlotAtomService tsaService;
     private final OpeningService openingService;
@@ -104,6 +108,7 @@ public class TakeAppointmentService {
             verifyExceptionalClose(day);
             verifyInstituteIsOpen(openingList);
             verifyInOpeningTime(beginTime, openingList, appointmentDuration);
+            verifyTechnicianNotAbsent(technician, day, beginTime, appointmentDuration);
             verifyNotDuringLaunchBreak(technician, day, beginTime, appointmentDuration);
             verifyIsCompatibleTimeSlotTime(beginTime, openingList, tsa.getNumberOfMinutes());
             List<TimeSlot> allTimeSlots = generateAllTimeSlots(technician, day, beginTime, tsa.getNumberOfMinutes(), nbTimeSlot);
@@ -184,6 +189,25 @@ public class TakeAppointmentService {
         return correctTimeSlotTimes;
     }
 
+    private void verifyTechnicianNotAbsent(Technician technician, LocalDate day, LocalTime beginTime, int appointmentDuration) {
+        List<TechnicianAbsence> technicianAbsences = technicianAbsenceRepository.findByTechnicianAndDay(technician, day);
+        if (!technicianAbsences.isEmpty()) {
+            for (TechnicianAbsence technicianAbsence : technicianAbsences) {
+                if (appointmentIsInTechnicianAbsence(beginTime, appointmentDuration, technicianAbsence)) {
+                    throw new TakeAppointmentException(DURING_TECHNICIAN_ABSENCE_ERROR);
+                }
+            }
+        }
+    }
+
+    private boolean appointmentIsInTechnicianAbsence(LocalTime appointmentBeginTime, int appointmentDuration, TechnicianAbsence technicianAbsence) {
+        LocalTime appointmentEndTime = appointmentBeginTime.plusMinutes(appointmentDuration);
+
+        return (appointmentBeginTime.isAfter(technicianAbsence.getBeginTime()) && appointmentBeginTime.isBefore(technicianAbsence.getEndTime()))
+                || (appointmentBeginTime.isBefore(technicianAbsence.getBeginTime()) &&
+                (appointmentEndTime.isAfter(technicianAbsence.getBeginTime()) && appointmentEndTime.isBefore(technicianAbsence.getEndTime())));
+    }
+
     private void verifyNotDuringLaunchBreak(Technician technician, LocalDate appointmentDay, LocalTime appointmentBeginTime,
                                             int appointmentDuration) {
         LaunchBreak technicianLaunchBreak = lbRepository.findByTechnicianAndDay(technician, appointmentDay);
@@ -194,10 +218,8 @@ public class TakeAppointmentService {
             if (notInLaunchBreak(appointmentBeginTime, appointmentDuration, launchBreakBegin, launchBreakDuration))
                 return;
 
-            log.error("In launch break of the technician {}, appointment time = {}", technician.simplyIdentifier(), appointmentBeginTime);
+            log.info("In launch break of the technician {}, appointment time = {}", technician.simplyIdentifier(), appointmentBeginTime);
             throw new TakeAppointmentException(DURING_LAUNCH_BREAK_ERROR);
-        } else {
-            log.info("No launch break for the technician {} at the day {}", technician.simplyIdentifier(), appointmentDay);
         }
     }
 

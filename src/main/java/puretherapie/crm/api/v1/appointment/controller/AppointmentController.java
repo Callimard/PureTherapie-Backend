@@ -150,14 +150,12 @@ public class AppointmentController {
     public ResponseEntity<TakeAppointmentResponseDTO> takeAnAppointment(@RequestBody TakeAppointmentDTO aInfo, Authentication authentication) {
         TakeAppointmentResponseDTO responseDTO;
         if (canAuthorizeOverlap(authentication)) {
-            log.debug("Authorize to had overlap between appointment");
             responseDTO = takeAppointmentService.takeAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(),
                                                                  aInfo.getIdAestheticCare(),
                                                                  LocalDate.parse(aInfo.getDay()),
                                                                  LocalTime.parse(aInfo.getBeginTime()),
                                                                  aInfo.isOverlapAuthorized());
         } else {
-            log.debug("Not authorize to had overlap between appointment");
             responseDTO = takeAppointmentService.takeAppointment(aInfo.getIdClient(),
                                                                  aInfo.getIdTechnician(),
                                                                  aInfo.getIdAestheticCare(),

@@ -63,6 +63,14 @@ public class AestheticCareController {
                                                  aestheticCareCreationParameter.getExecutionTime());
     }
 
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PutMapping("/{idAestheticCare}")
+    public void updateAestheticCare(@PathVariable(name = "idAestheticCare") int idAestheticCare,
+                                    @RequestBody AestheticCareCreationParameter aestheticCareCreationParameter) {
+        aestheticCareService.updateAestheticCare(idAestheticCare, aestheticCareCreationParameter.getName(), aestheticCareCreationParameter.getPrice(),
+                                                 aestheticCareCreationParameter.getExecutionTime());
+    }
+
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_AC_STOCK)
     public ResponseEntity<Integer> getACStockOfClient(@PathVariable(name = "idClient") int idClient,

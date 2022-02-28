@@ -67,6 +67,12 @@ public class BundleController {
         bundleService.createBundle(bundleCreationParameter.getName(), bundleCreationParameter.getPrice(), mapACStock);
     }
 
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PutMapping("/{idBundle}")
+    public void updateBundle(@PathVariable(name = "idBundle") int idBundle, @RequestBody BundleDTO bundle) {
+        bundleService.updateBundle(bundle);
+    }
+
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping
     public List<BundleDTO> getAllBundles() {

@@ -122,7 +122,7 @@ public class ClientDTO extends PersonDTO {
     }
 
 
-    public Client buildClient(PersonOriginRepository personOriginRepository) {
+    public Client transform(PersonOriginRepository personOriginRepository) {
         return Client.builder()
                 .idPerson(idPerson)
                 .photo(photo)
@@ -136,6 +136,22 @@ public class ClientDTO extends PersonDTO {
                 .phone(phone)
                 .creationDate(LocalDateTime.now())
                 .personOrigin(getPersonOrigin(personOriginRepository))
+                .build();
+    }
+
+    public Client transform() {
+        return Client.builder()
+                .idPerson(idPerson)
+                .photo(photo)
+                .comment(comment)
+                .technicalComment(technicalComment)
+                .firstName(firstName != null ? firstName.toLowerCase() : null)
+                .lastName(lastName != null ? lastName.toLowerCase() : null)
+                .email(email != null ? email.toLowerCase() : null)
+                .gender(gender)
+                .birthday(birthday != null && !birthday.isBlank() ? LocalDate.parse(birthday) : null)
+                .phone(phone)
+                .creationDate(LocalDateTime.now())
                 .build();
     }
 

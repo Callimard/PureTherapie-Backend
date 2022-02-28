@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import puretherapie.crm.api.v1.product.aesthetic.bundle.controller.dto.BundleDTO;
 import puretherapie.crm.data.product.aesthetic.bundle.AssociationBundleAestheticCarePackage;
 import puretherapie.crm.data.product.aesthetic.bundle.AssociationBundleAestheticCarePackageId;
 import puretherapie.crm.data.product.aesthetic.bundle.Bundle;
@@ -40,6 +41,26 @@ public class BundleService {
         } else
             throw new BundleServiceException("Map AC stock must be not null and not empty");
     }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateBundle(BundleDTO bundle) {
+        Bundle b = bundle.transform();
+        updateBundle(b);
+        updateAllBundleACP(b);
+    }
+
+    private void updateBundle(Bundle b) {
+        Bundle bSaved = bundleRepository.save(b);
+        log.info("Update bundle => {}", bSaved);
+    }
+
+    private void updateAllBundleACP(Bundle b) {
+        for (AestheticCarePackage acP : b.getAestheticCarePackages()) {
+            acP = aestheticCarePackageRepository.save(acP);
+            log.info("Update ACP => {}", acP);
+        }
+    }
+
 
     private Bundle buildBundle(String bundleName, double price) {
         return Bundle.builder()

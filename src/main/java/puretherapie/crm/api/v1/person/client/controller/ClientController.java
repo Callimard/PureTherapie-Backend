@@ -109,7 +109,7 @@ public class ClientController {
             if (!appointments.isEmpty()) {
                 return new ClientBasicAppointmentDTO(appointments.get(0).transform(), appointments.get(appointments.size() - 1).transform());
             } else {
-                return new ClientBasicAppointmentDTO();
+                return null;
             }
         } else
             throw new IllegalArgumentException(UNKNOWN_CLIENT);

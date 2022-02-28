@@ -55,7 +55,7 @@ public class AestheticCareService {
 
     private void saveAC(String acName, double price, int executionTime) {
         AestheticCare aestheticCare = aestheticCareRepository.save(buildAC(acName, price, executionTime));
-        log.info("Dave new AC => {}", aestheticCare);
+        log.info("Save new AC => {}", aestheticCare);
     }
 
     private AestheticCare buildAC(String acName, double price, int executionTime) {

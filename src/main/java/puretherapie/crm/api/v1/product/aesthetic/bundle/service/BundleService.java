@@ -97,6 +97,8 @@ public class BundleService {
     private AssociationBundleAestheticCarePackage buildBundleACPackageAssociation(Bundle bundle, AestheticCarePackage aestheticCarePackage) {
         return AssociationBundleAestheticCarePackage.builder()
                 .id(buildBundleACPackageId(bundle, aestheticCarePackage))
+                .bundle(bundle)
+                .aestheticCarePackage(aestheticCarePackage)
                 .build();
     }
 

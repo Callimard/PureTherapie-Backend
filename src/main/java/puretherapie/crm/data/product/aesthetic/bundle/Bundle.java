@@ -29,6 +29,9 @@ public class Bundle {
     @Column(name = "price", nullable = false)
     private double price;
 
+    @Column(name = "active", nullable = false)
+    private boolean active;
+
     @ManyToMany
     @JoinTable(name = "AssociationBundleAestheticCarePackage", joinColumns = @JoinColumn(name = "idBundle"), inverseJoinColumns = @JoinColumn(name
             = "idAestheticCarePackage"))
@@ -40,6 +43,7 @@ public class Bundle {
                 .idBundle(idBundle)
                 .name(name)
                 .price(price)
+                .active(active)
                 .aestheticCarePackageList(
                         aestheticCarePackages != null ? aestheticCarePackages.stream().map(AestheticCarePackage::transform).toList() :
                                 Collections.emptyList())

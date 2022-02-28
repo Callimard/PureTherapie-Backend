@@ -35,12 +35,12 @@ public class OpeningService {
 
     public boolean isOpen(LocalDate day) {
         return ecRepository.findByDay(day) == null &&
-                (!eoRepository.findByDay(day).isEmpty() || !gotRepository.findByDay(day.getDayOfWeek().getValue()).isEmpty());
+                (!eoRepository.findByDay(day).isEmpty() || !gotRepository.findByDayNumber(day.getDayOfWeek().getValue()).isEmpty());
     }
 
     public List<Opening> getOpenings(LocalDate day) {
         List<ExceptionalOpening> eoList = eoRepository.findByDay(day);
-        List<GlobalOpeningTime> gotList = gotRepository.findByDay(day.getDayOfWeek().getValue());
+        List<GlobalOpeningTime> gotList = gotRepository.findByDayNumber(day.getDayOfWeek().getValue());
 
         List<Opening> openingList = new ArrayList<>();
         openingList.addAll(eoList);
@@ -61,7 +61,7 @@ public class OpeningService {
             List<LocalTime> listCorrectBeginTS = new ArrayList<>(setCorrectBeginTS.stream().toList());
             Collections.sort(listCorrectBeginTS);
 
-            return listCorrectBeginTS.stream().map(localTime -> TimeSlot.builder().day(day).begin(localTime).time(tsaNumberOfMinutes).free(true).build())
+            return listCorrectBeginTS.stream().map(localTime -> TimeSlot.builder().day(day).begin(localTime).duration(tsaNumberOfMinutes).free(true).build())
                     .toList();
         } else
             return Collections.emptyList();

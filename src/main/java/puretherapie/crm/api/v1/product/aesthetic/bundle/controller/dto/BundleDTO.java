@@ -17,6 +17,7 @@ public class BundleDTO {
     private int idBundle;
     private String name;
     private double price;
+    private boolean active;
     private List<AestheticCarePackageDTO> aestheticCarePackageList;
 
     public Bundle transform() {
@@ -24,6 +25,7 @@ public class BundleDTO {
                 .idBundle(idBundle)
                 .name(name)
                 .price(price)
+                .active(active)
                 .aestheticCarePackages(aestheticCarePackageList.stream().map(AestheticCarePackageDTO::transform).toList())
                 .build();
     }

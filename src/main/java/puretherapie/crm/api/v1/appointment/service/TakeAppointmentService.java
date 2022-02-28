@@ -201,7 +201,7 @@ public class TakeAppointmentService {
     }
 
     private int getNbTimeSlot(AestheticCare aestheticCare, int tsNumberOfMinutes, boolean authorizedOverlap) {
-        int acExecutionTime = aestheticCare.getTimeExecution();
+        int acExecutionTime = aestheticCare.getExecutionTime();
         int nbTimeSlot = 1;
         int rest = 0;
 
@@ -279,7 +279,7 @@ public class TakeAppointmentService {
         List<TimeSlot> tsOfTheDay = timeSlotRepository.findByTechnicianAndDay(ts.getTechnician(), ts.getDay());
         if (tsOfTheDay != null)
             for (TimeSlot timeSlot : tsOfTheDay)
-                if (hasOverlap(timeSlot, ts.getBegin(), ts.getTime()))
+                if (hasOverlap(timeSlot, ts.getBegin(), ts.getDuration()))
                     return true;
 
         return false;
@@ -287,7 +287,7 @@ public class TakeAppointmentService {
 
     private boolean hasOverlap(TimeSlot existingTS, LocalTime beginTime, int lockTime) {
         LocalTime existingBeginTime = existingTS.getBegin();
-        int existingLockTime = existingTS.getTime();
+        int existingLockTime = existingTS.getDuration();
 
         if (!existingTS.isFree()) {
             if (existingBeginTime.isBefore(beginTime)) {
@@ -328,11 +328,11 @@ public class TakeAppointmentService {
         return false;
     }
 
-    private TimeSlot buildTimeSlotWithoutAppointment(Technician technician, LocalDate day, LocalTime beginTime, int timeExecution) {
+    private TimeSlot buildTimeSlotWithoutAppointment(Technician technician, LocalDate day, LocalTime beginTime, int duration) {
         return TimeSlot.builder()
                 .day(day)
                 .begin(beginTime)
-                .time(timeExecution)
+                .duration(duration)
                 .free(false)
                 .technician(technician)
                 .build();
@@ -383,12 +383,12 @@ public class TakeAppointmentService {
         // Get all not free technician ts in launch break TZ
         Set<LocalTime> techTsLocalTimeSet = new HashSet<>();
         List<TimeSlot> techTsInLaunchBreakTZ = techTS.stream().filter(ts -> !ts.isFree())
-                .filter(ts -> technicianLaunchBreakService.isInLaunchBreakTimeZone(ts.getBegin(), ts.getTime())).toList();
+                .filter(ts -> technicianLaunchBreakService.isInLaunchBreakTimeZone(ts.getBegin(), ts.getDuration())).toList();
         techTsInLaunchBreakTZ.forEach(ts -> techTsLocalTimeSet.add(ts.getBegin()));
 
         // Get all global ts in opening time which are in launch break TZ
         List<TimeSlot> allTsInLaunchBreakTZ = openingService.allTimeSlotOfTheDay(day).stream()
-                .filter(ts -> technicianLaunchBreakService.isInLaunchBreakTimeZone(ts.getBegin(), ts.getTime())).toList();
+                .filter(ts -> technicianLaunchBreakService.isInLaunchBreakTimeZone(ts.getBegin(), ts.getDuration())).toList();
 
         // Set not free all global ts which are not free for the technician
         for (TimeSlot ts : allTsInLaunchBreakTZ) {

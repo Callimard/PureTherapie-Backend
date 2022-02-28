@@ -13,14 +13,16 @@ public class AestheticCareDTO {
     private int idAestheticCare;
     private String name;
     private double price;
-    private int timeExecution;
+    private int executionTime;
+    private boolean active;
 
     public AestheticCare transform() {
         return AestheticCare.builder()
                 .idAestheticCare(idAestheticCare)
                 .name(name)
                 .price(price)
-                .timeExecution(timeExecution)
+                .executionTime(executionTime)
+                .active(active)
                 .build();
     }
 }

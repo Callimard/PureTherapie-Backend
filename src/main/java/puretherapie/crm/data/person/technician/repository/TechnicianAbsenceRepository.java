@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface TechnicianAbsenceRepository extends JpaRepository<TechnicianAbsence, Integer> {
 
+    List<TechnicianAbsence> findByTechnician(Technician technician);
+
     List<TechnicianAbsence> findByTechnicianAndDay(Technician technician, LocalDate day);
 
 }

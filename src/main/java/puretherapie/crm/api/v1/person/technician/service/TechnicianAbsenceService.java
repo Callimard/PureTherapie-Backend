@@ -34,6 +34,11 @@ public class TechnicianAbsenceService {
 
     // Methods.
 
+    public List<TechnicianAbsence> getAllTechnicianAbsences(int idTechnician) {
+        Technician technician = technicianRepository.findByIdPerson(idTechnician);
+        return technicianAbsenceRepository.findByTechnician(technician);
+    }
+
     public void createTechnicianAbsence(int idTechnician, LocalDate day, LocalTime beginTime, LocalTime endTime) {
         Technician technician = technicianRepository.findByIdPerson(idTechnician);
 

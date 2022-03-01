@@ -3,8 +3,6 @@ package puretherapie.crm.api.v1.appointment.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.data.appointment.Surbooking;
 import puretherapie.crm.data.appointment.repository.SurbookingRepository;
@@ -70,22 +68,9 @@ public class SurbookingService {
         log.info("Cancel surbooking => {}", surbooking);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public void clientArrive(int idSurbooking) {
         Surbooking surbooking = surbookingRepository.findByIdSurbooking(idSurbooking);
-        verifySurbookingIsForToday(surbooking);
-        verifyClientNotAlreadyArrived(surbooking);
-        clientArrivalService.clientArrive(surbooking.getClient().getIdPerson(), -1);
-    }
-
-    private void verifySurbookingIsForToday(Surbooking surbooking) {
-        if (!surbooking.getDay().equals(LocalDate.now()))
-            throw new SurbookingException("Surbooking is not for today, cannot create client arrival");
-    }
-
-    private void verifyClientNotAlreadyArrived(Surbooking surbooking) {
-        if (surbooking.getClientArrival() != null)
-            throw new SurbookingException("Client already arrived for the surbooking");
+        clientArrivalService.clientArriveForSurbooking(surbooking.getClient().getIdPerson(), surbooking.getIdSurbooking());
     }
 
     public void finalizedSurbooking(int idSurbooking) {

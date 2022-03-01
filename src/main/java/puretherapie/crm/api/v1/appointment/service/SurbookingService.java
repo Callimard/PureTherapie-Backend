@@ -56,10 +56,10 @@ public class SurbookingService {
 
     public void cancelSurbooking(int idSurbooking) {
         Surbooking surbooking = surbookingRepository.findByIdSurbooking(idSurbooking);
-        if (!surbooking.isCanceled()) {
+        if (!surbooking.isCanceled() && !surbooking.isFinalized()) {
             cancelSurbooking(surbooking);
         } else
-            log.info("Surbooking already canceled");
+            log.info("Surbooking already canceled or finalized");
     }
 
     private void cancelSurbooking(Surbooking surbooking) {

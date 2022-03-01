@@ -164,13 +164,13 @@ public class ProvisionSessionOnClientService {
     private void saveAestheticCareProvision(Client client, Appointment appointment, Technician technician, AestheticCare aestheticCare) {
         AestheticCareProvision acProvision = buildACProvision(client, appointment, technician, aestheticCare);
 
-        AestheticCareProvision acProvisionDoneForAppointment = aestheticCareProvisionRepository.findByAppointment(appointment);
-        if (acProvisionDoneForAppointment != null)
-            throw new ProvisionSessionOnClientException(AC_PROVISION_ALREADY_DONE_ON_CLIENT_FOR_APPOINTMENT_ERROR);
-
-
+        if (appointment != null) {
+            AestheticCareProvision acProvisionDoneForAppointment = aestheticCareProvisionRepository.findByClientAndAppointment(client, appointment);
+            if (acProvisionDoneForAppointment != null)
+                throw new ProvisionSessionOnClientException(AC_PROVISION_ALREADY_DONE_ON_CLIENT_FOR_APPOINTMENT_ERROR);
+        }
         acProvision = aestheticCareProvisionRepository.save(acProvision);
-        log.debug("Save ACProvision {}", acProvision);
+        log.info("Save ACProvision => {}", acProvision);
     }
 
     private AestheticCareProvision buildACProvision(Client client, Appointment appointment, Technician technician, AestheticCare aestheticCare) {

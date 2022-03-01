@@ -30,4 +30,27 @@ public class TimeTool {
         return LocalDate.now();
     }
 
+    /**
+     * Verify if the beginning time + the duration is not in the specified TZ
+     *
+     * @param tzStart  tz start
+     * @param tzEnd    tz end
+     * @param begin    begin
+     * @param duration duration
+     *
+     * @return true if the beginning time associated to the duration is in the TZ, else false.
+     */
+    public static boolean isInTZ(LocalTime tzStart, LocalTime tzEnd, LocalTime begin, int duration) {
+        return beginInTZ(tzStart, tzEnd, begin) || overlapsTZ(tzStart, begin, duration);
+    }
+
+    public static boolean beginInTZ(LocalTime tzStart, LocalTime tzEnd, LocalTime begin) {
+        return (begin.equals(tzStart) || begin.isAfter(tzStart)) && begin.isBefore(tzEnd);
+    }
+
+    public static boolean overlapsTZ(LocalTime tzStart, LocalTime begin, int duration) {
+        LocalTime tsEnd = begin.plusMinutes(duration);
+        return begin.isBefore(tzStart) && tsEnd.isAfter(tzStart);
+    }
+
 }

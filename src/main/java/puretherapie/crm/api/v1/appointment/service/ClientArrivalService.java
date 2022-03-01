@@ -11,8 +11,10 @@ import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientArrival;
+import puretherapie.crm.data.appointment.Surbooking;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.appointment.repository.ClientArrivalRepository;
+import puretherapie.crm.data.appointment.repository.SurbookingRepository;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 
@@ -46,8 +48,41 @@ public class ClientArrivalService {
     private final ClientDelayService clientDelayService;
     private final PlaceInWaitingRoomService placeInWaitingRoomService;
     private final NotificationCreationService notificationCreationService;
+    private final SurbookingRepository surbookingRepository;
 
     // Methods.
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public SimpleResponseDTO clientArriveForSurbooking(int idClient, int idSurbooking) {
+        try {
+            Client client = verifyClient(idClient);
+            ClientArrival clientArrival = buildClientArrival(client);
+            clientArrival = saveClientArrival(clientArrival);
+            Surbooking surbooking = surbookingRepository.findByIdSurbooking(idSurbooking);
+            if (surbooking != null) {
+                verifySurbookingIsForToday(surbooking);
+                verifyClientNotAlreadyArrived(surbooking);
+                surbooking = linkAppointmentAndClientArrival(surbooking, clientArrival);
+                notifyClientArrival(client, surbooking.getTime());
+            }
+            placeClientInWaitingRoom(client, null);
+            return SimpleResponseDTO.generateSuccess("Success client arrive");
+        } catch (Exception e) {
+            log.error("Fail client arrival for surbooking, error message: {}", e.getMessage());
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return SimpleResponseDTO.generateFail(e.getMessage());
+        }
+    }
+
+    private void verifySurbookingIsForToday(Surbooking surbooking) {
+        if (!surbooking.getDay().equals(LocalDate.now()))
+            throw new SurbookingService.SurbookingException("Surbooking is not for today, cannot create client arrival");
+    }
+
+    private void verifyClientNotAlreadyArrived(Surbooking surbooking) {
+        if (surbooking.getClientArrival() != null)
+            throw new SurbookingService.SurbookingException("Client already arrived for the surbooking");
+    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public SimpleResponseDTO clientArrive(int idClient, int idAppointment) {
@@ -119,8 +154,15 @@ public class ClientArrivalService {
     private Appointment linkAppointmentAndClientArrival(Appointment appointment, ClientArrival clientArrival) {
         appointment.setClientArrival(clientArrival);
         appointment = appointmentRepository.save(appointment);
-        log.debug("Link appointment and client arrival -> Appointment: {}", appointment);
+        log.info("Link appointment and client arrival => {}", appointment);
         return appointment;
+    }
+
+    private Surbooking linkAppointmentAndClientArrival(Surbooking surbooking, ClientArrival clientArrival) {
+        surbooking.setClientArrival(clientArrival);
+        surbooking = surbookingRepository.save(surbooking);
+        log.info("Link surbooking and client arrival => {}", surbooking);
+        return surbooking;
     }
 
     private void placeClientInWaitingRoom(Client client, Appointment appointment) {

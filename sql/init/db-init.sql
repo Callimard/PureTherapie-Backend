@@ -15,7 +15,7 @@ INSERT INTO puretherapie.TimeSlotAtom (puretherapie.TimeSlotAtom.numberOfMinutes
 VALUES (40, NOW());
 
 /* Global Opening */
-INSERT INTO puretherapie.GlobalOpeningTime (puretherapie.GlobalOpeningTime.day, puretherapie.GlobalOpeningTime.openingTime,
+INSERT INTO puretherapie.GlobalOpeningTime (puretherapie.GlobalOpeningTime.dayNumber, puretherapie.GlobalOpeningTime.openingTime,
                                             puretherapie.GlobalOpeningTime.closeTime)
 VALUES (2, '9:00:00', '21:00:00'),
        (3, '9:00:00', '21:00:00'),
@@ -24,7 +24,7 @@ VALUES (2, '9:00:00', '21:00:00'),
        (6, '9:00:00', '21:00:00');
 
 /* Aesthetic Cares */
-INSERT INTO puretherapie.AestheticCare (puretherapie.AestheticCare.name, puretherapie.AestheticCare.price, puretherapie.AestheticCare.timeExecution)
+INSERT INTO puretherapie.AestheticCare (puretherapie.AestheticCare.name, puretherapie.AestheticCare.price, puretherapie.AestheticCare.executionTime)
 VALUES ('Soin découverte', 39.90, 40);
 
 /* Aesthetic Care Packages */
@@ -232,5 +232,5 @@ INSERT INTO puretherapie.Person (puretherapie.Person.persontype, puretherapie.Pe
 VALUES ('T', 'default', 'default', 'default@default.fr', 0, '+33 1 00 00 00 00', NOW(), @none_person_origin_id);
 SET @tech_id = LAST_INSERT_ID();
 
-INSERT INTO puretherapie.Technician (puretherapie.Technician.idPerson, puretherapie.Technician.isActive)
+INSERT INTO puretherapie.Technician (puretherapie.Technician.idPerson, puretherapie.Technician.active)
 VALUES (@tech_id, 0);

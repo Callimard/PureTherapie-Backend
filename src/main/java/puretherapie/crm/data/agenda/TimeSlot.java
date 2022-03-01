@@ -29,8 +29,11 @@ public class TimeSlot {
     @Column(name = "begin", nullable = false)
     private LocalTime begin;
 
-    @Column(name = "time", nullable = false)
-    private Integer time;
+    /**
+     * Duration, in number of minutes.
+     */
+    @Column(name = "duration", nullable = false)
+    private int duration;
 
     @Column(name = "free", nullable = false)
     private boolean free;
@@ -48,7 +51,7 @@ public class TimeSlot {
                 .idTimeSlot(idTimeSlot)
                 .day(day != null ? day.toString() : null)
                 .begin(begin != null ? begin.toString() : null)
-                .time(time)
+                .duration(duration)
                 .free(free)
                 .isLaunchBreak(false)
                 .isAbsence(false)
@@ -62,7 +65,7 @@ public class TimeSlot {
                 .idTimeSlot(idTimeSlot)
                 .day(day != null ? day.toString() : null)
                 .begin(begin != null ? begin.toString() : null)
-                .time(time)
+                .duration(duration)
                 .free(free)
                 .isLaunchBreak(false)
                 .isAbsence(false)

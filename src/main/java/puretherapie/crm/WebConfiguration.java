@@ -11,7 +11,8 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
 
     @Override
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String userDir = System.getProperty("user.dir");
         registry.addResourceHandler(IMAGES_URL)
-                .addResourceLocations("classpath:/META-INF/images/");
+                .addResourceLocations("file:" + userDir + "/images/");
     }
 }

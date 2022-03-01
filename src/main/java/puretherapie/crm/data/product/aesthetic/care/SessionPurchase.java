@@ -2,6 +2,7 @@ package puretherapie.crm.data.product.aesthetic.care;
 
 import lombok.*;
 import puretherapie.crm.api.v1.product.aesthetic.care.controller.dto.SessionPurchaseDTO;
+import puretherapie.crm.api.v1.product.bill.controller.dto.PurchaseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.product.bill.Bill;
 
@@ -43,6 +44,14 @@ public class SessionPurchase {
                 .aestheticCare(aestheticCare != null ? aestheticCare.transform() : null)
                 .client(client != null ? client.transform() : null)
                 .bill(bill != null ? bill.transform() : null)
+                .build();
+    }
+
+    public PurchaseDTO toPurchase() {
+        return PurchaseDTO.builder()
+                .type("Soin")
+                .date(bill.getCreationDate().toString())
+                .price(bill.getPurchasePrice())
                 .build();
     }
 

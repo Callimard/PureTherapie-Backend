@@ -18,23 +18,27 @@ public class AestheticCare {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idAestheticCare", nullable = false)
-    private Integer idAestheticCare;
+    private int idAestheticCare;
 
     @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "price", nullable = false)
-    private Double price;
+    private double price;
 
-    @Column(name = "timeExecution", nullable = false)
-    private Integer timeExecution;
+    @Column(name = "executionTime", nullable = false)
+    private int executionTime;
+
+    @Column(name = "active", nullable = false)
+    private boolean active;
 
     public AestheticCareDTO transform() {
         return AestheticCareDTO.builder()
                 .idAestheticCare(idAestheticCare)
                 .name(name)
                 .price(price)
-                .timeExecution(timeExecution)
+                .executionTime(executionTime)
+                .active(active)
                 .build();
     }
 }

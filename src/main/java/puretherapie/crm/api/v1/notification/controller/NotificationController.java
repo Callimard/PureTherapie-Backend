@@ -13,7 +13,6 @@ import puretherapie.crm.data.person.user.User;
 
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.notification.controller.NotificationController.NOTIFICATIONS_URL;
 
@@ -36,7 +35,6 @@ public class NotificationController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping
     public List<NotificationViewDTO> getNotificationViews(@RequestParam(name = "filter", required = false, defaultValue = "0") int filter,
@@ -56,7 +54,6 @@ public class NotificationController {
         }
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PutMapping("/{idNotificationView}" + SET_NOTIFICATION_VIEWED)
     public void setNotificationViewed(@PathVariable(name = "idNotificationView") int idNotificationView) {

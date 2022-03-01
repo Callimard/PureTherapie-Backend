@@ -22,46 +22,47 @@ import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
-import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENT_URL;
+import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENTS_URL;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
 import static puretherapie.crm.data.person.user.Role.SECRETARY_ROLE;
 
 @Slf4j
 @AllArgsConstructor
 @RestController
-@RequestMapping(APPOINTMENT_URL)
+@RequestMapping(APPOINTMENTS_URL)
 public class AppointmentController {
 
     // Constants.
 
     public static final String APPOINTMENTS = "/appointments";
-    public static final String APPOINTMENT_URL = API_V1_URL + APPOINTMENTS;
+    public static final String APPOINTMENTS_URL = API_V1_URL + APPOINTMENTS;
 
     public static final String CLIENT_APPOINTMENT = "/clients/{idClient}";
-    public static final String CLIENT_APPOINTMENT_URL = APPOINTMENT_URL + CLIENT_APPOINTMENT;
+    public static final String CLIENT_APPOINTMENT_URL = APPOINTMENTS_URL + CLIENT_APPOINTMENT;
 
     public static final String APPOINTMENT_CANCELLATION = "/cancel";
     public static final String APPOINTMENT_CANCELLATION_URL = API_V1_URL + APPOINTMENT_CANCELLATION;
 
     public static final String CLIENT_ARRIVE = "/client_arrive";
-    public static final String CLIENT_ARRIVE_URL = APPOINTMENT_URL + CLIENT_ARRIVE;
+    public static final String CLIENT_ARRIVE_URL = APPOINTMENTS_URL + CLIENT_ARRIVE;
 
     public static final String PROVISION_CLIENT_WITH_APPOINTMENT = "/provision_client_with_appointment";
-    public static final String PROVISION_CLIENT_WITH_APPOINTMENT_URL = APPOINTMENT_URL + PROVISION_CLIENT_WITH_APPOINTMENT;
+    public static final String PROVISION_CLIENT_WITH_APPOINTMENT_URL = APPOINTMENTS_URL + PROVISION_CLIENT_WITH_APPOINTMENT;
 
     public static final String PROVISION_CLIENT_WITHOUT_APPOINTMENT = "/provision_client_without_appointment";
-    public static final String PROVISION_CLIENT_WITHOUT_APPOINTMENT_URL = APPOINTMENT_URL + PROVISION_CLIENT_WITHOUT_APPOINTMENT;
+    public static final String PROVISION_CLIENT_WITHOUT_APPOINTMENT_URL = APPOINTMENTS_URL + PROVISION_CLIENT_WITHOUT_APPOINTMENT;
 
     public static final String FINALIZE_APPOINTMENT = "/finalize/{idAppointment}";
-    public static final String FINALIZE_APPOINTMENT_URL = APPOINTMENT_URL + FINALIZE_APPOINTMENT;
+    public static final String FINALIZE_APPOINTMENT_URL = APPOINTMENTS_URL + FINALIZE_APPOINTMENT;
 
     public static final String IS_FIRST_APPOINTMENT = "/isFirstAppointment";
 
     public static final String NOTIFICATION_SUR_BOOKING_TITLE = "Sur booking fait lors de la prise d'un rendez-vous";
     public static final String NOTIFICATION_SUR_BOOKING_TEXT = "Sur booking de %s minutes pour le rendez-vous du client %s avec le technicien %s " +
             "le %s à %s";
+
+    public static final String CLIENT = "/client";
 
     // Variables.
 
@@ -76,14 +77,24 @@ public class AppointmentController {
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(CLIENT + "/{idClient}")
+    public List<AppointmentDTO> getAllClientAppointments(@PathVariable(name = "idClient") int idClient) {
+        Client client = clientRepository.findByIdPerson(idClient);
+        if (client != null) {
+            List<Appointment> appointments = appointmentRepository.findByClient(client);
+            return appointments.stream().map(Appointment::transform).toList();
+        } else {
+            throw new IllegalArgumentException("Unknown client id");
+        }
+    }
+
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping("/{idAppointment}" + IS_FIRST_APPOINTMENT)
     public boolean isFirstAppointment(@PathVariable(name = "idAppointment") int idAppointment) {
         return appointmentService.isFirstAppointment(idAppointment);
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping("/{idAppointment}")
     public AppointmentDTO getAppointment(@PathVariable(name = "idAppointment") int idAppointment) {
@@ -94,14 +105,12 @@ public class AppointmentController {
             return null;
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PutMapping(FINALIZE_APPOINTMENT)
     public ResponseEntity<SimpleResponseDTO> finalizeAppointment(@PathVariable(name = "idAppointment") int idAppointment) {
         return SimpleResponseDTO.generateResponse(finalizeAppointmentService.finalizeAppointment(idAppointment));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping(PROVISION_CLIENT_WITHOUT_APPOINTMENT)
     public ResponseEntity<SimpleResponseDTO> provisionClientWithoutAppointment(@RequestParam(name = "idClient") int idClient,
@@ -111,14 +120,12 @@ public class AppointmentController {
                 provisionSessionOnClientService.provisionWithoutAppointment(idClient, idTechnician, idAestheticCare));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping(PROVISION_CLIENT_WITH_APPOINTMENT)
     public ResponseEntity<SimpleResponseDTO> provisionClientWithAppointment(@RequestParam(name = "idClient") int idClient) {
         return SimpleResponseDTO.generateResponse(provisionSessionOnClientService.provisionWithAppointment(idClient));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_APPOINTMENT)
     public ResponseEntity<AppointmentDTO> getClientAppointment(@PathVariable(name = "idClient") int idClient,
@@ -133,26 +140,22 @@ public class AppointmentController {
         }
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping(APPOINTMENT_CANCELLATION)
     public ResponseEntity<SimpleResponseDTO> cancelAppointment(@RequestParam("idAppointment") int idAppointment) {
         return SimpleResponseDTO.generateResponse(cancelAppointmentService.cancelAppointment(idAppointment));
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PostMapping
     public ResponseEntity<TakeAppointmentResponseDTO> takeAnAppointment(@RequestBody TakeAppointmentDTO aInfo, Authentication authentication) {
         TakeAppointmentResponseDTO responseDTO;
         if (canAuthorizeOverlap(authentication)) {
-            log.debug("Authorize to had overlap between appointment");
             responseDTO = takeAppointmentService.takeAppointment(aInfo.getIdClient(), aInfo.getIdTechnician(),
                                                                  aInfo.getIdAestheticCare(),
                                                                  LocalDate.parse(aInfo.getDay()),
                                                                  LocalTime.parse(aInfo.getBeginTime()),
                                                                  aInfo.isOverlapAuthorized());
         } else {
-            log.debug("Not authorize to had overlap between appointment");
             responseDTO = takeAppointmentService.takeAppointment(aInfo.getIdClient(),
                                                                  aInfo.getIdTechnician(),
                                                                  aInfo.getIdAestheticCare(),
@@ -182,7 +185,6 @@ public class AppointmentController {
         }
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PostMapping(CLIENT_ARRIVE)
     public ResponseEntity<SimpleResponseDTO> clientArrive(@RequestParam(name = "idClient") int idClient,
                                                           @RequestParam(name = "idAppointment", required = false, defaultValue = "-1") int idAppointment) {

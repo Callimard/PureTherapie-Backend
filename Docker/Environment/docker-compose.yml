@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: "puretherapie"
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: "puretherapie-admin"
+      # You can use whatever password you like
+      MYSQL_PASSWORD: "5gQ60AsRB9QbL5rA"
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: "t1KEMbMEWX8urV1K"
+    ports:
+      - "3306:3306"
+    volumes:
+      - puretherapie-mysql:/var/lib/mysql
+volumes:
+  puretherapie-mysql:
+    external: true

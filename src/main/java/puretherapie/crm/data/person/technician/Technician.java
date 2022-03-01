@@ -1,7 +1,7 @@
 package puretherapie.crm.data.person.technician;
 
 import lombok.*;
-import puretherapie.crm.api.v1.person.technician.dto.TechnicianDTO;
+import puretherapie.crm.api.v1.person.technician.controller.dto.TechnicianDTO;
 import puretherapie.crm.data.person.Person;
 import puretherapie.crm.data.person.PersonOrigin;
 
@@ -25,15 +25,15 @@ public class Technician extends Person {
     @Column(name = "speciality")
     private String speciality;
 
-    @Column(name = "isActive")
-    private boolean isActive;
+    @Column(name = "active")
+    private boolean active;
 
     @Builder
     public Technician(Integer idPerson, String firstName, String lastName, String mail, boolean gender, LocalDate birthday, String phone,
-                      LocalDateTime creationDate, PersonOrigin personOrigin, String speciality, boolean isActive) {
+                      LocalDateTime creationDate, PersonOrigin personOrigin, String speciality, boolean active) {
         super(idPerson, firstName, lastName, mail, gender, birthday, phone, creationDate, personOrigin);
         this.speciality = speciality;
-        this.isActive = isActive;
+        this.active = active;
     }
 
     public TechnicianDTO transform() {
@@ -47,7 +47,7 @@ public class Technician extends Person {
                 .phone(getPhone())
                 .idPersonOrigin(getPersonOrigin().getIdPersonOrigin())
                 .speciality(speciality)
-                .isActive(isActive)
+                .active(active)
                 .build();
     }
 }

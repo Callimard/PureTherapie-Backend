@@ -3,19 +3,26 @@ package puretherapie.crm.api.v1.agenda.controller;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import puretherapie.crm.api.v1.agenda.controller.dto.FreeTimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.controller.dto.TimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.service.OpeningService;
 import puretherapie.crm.api.v1.agenda.service.TimeSlotAtomService;
+import puretherapie.crm.api.v1.person.technician.service.TechnicianAbsenceService;
+import puretherapie.crm.api.v1.person.technician.service.TechnicianLaunchBreakService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianService;
 import puretherapie.crm.data.agenda.Opening;
+import puretherapie.crm.data.agenda.TimeSlot;
+import puretherapie.crm.data.person.technician.Technician;
+import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.agenda.controller.AgendaController.AGENDA_URL;
 
@@ -39,13 +46,15 @@ public class AgendaController {
 
     // Variables.
 
+    private final TechnicianRepository technicianRepository;
+    private final TechnicianAbsenceService technicianAbsenceService;
     private final TechnicianService technicianService;
+    private final TechnicianLaunchBreakService technicianLaunchBreakService;
     private final OpeningService openingService;
     private final TimeSlotAtomService timeSlotAtomService;
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping(TECHNICIAN_FREE_TIME_SLOTS)
     public List<FreeTimeSlotDTO> getTechnicianFreeTimeSlots(@RequestParam(name = "idTechnician") int idTechnician, @RequestParam(name = "day")
             String day, @RequestParam(name = "processDuration") int processDuration) {
@@ -58,7 +67,6 @@ public class AgendaController {
      *
      * @return the list of {@link TimeSlotDTO} of all the date (in function of opening and close time) with technician time slot occupied and free.
      */
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(DAY_ALL_TECHNICIAN_TIME_SLOTS)
     public List<TimeSlotDTO> getAllTechnicianTimeSlots(@RequestParam(name = "idTechnician") int idTechnician,
@@ -66,9 +74,11 @@ public class AgendaController {
         try {
             LocalDate day = LocalDate.parse(date);
             if (openingService.isOpen(day)) {
+                Technician technician = technicianRepository.findByIdPerson(idTechnician);
+
                 int tsaNumberOfMinutes = timeSlotAtomService.searchCorrectTSA(day).getNumberOfMinutes();
 
-                List<TimeSlotDTO> technicianTS = technicianService.getTechnicianOccupiedTimeSlot(idTechnician, day);
+                List<TimeSlotDTO> technicianTS = technicianAbsenceService.getTechnicianNotFreeTimeSlot(idTechnician, day);
 
                 Set<LocalTime> setCorrectBeginTS = new HashSet<>(technicianTS.stream().map(ts -> LocalTime.parse(ts.getBegin())).toList());
                 List<TimeSlotDTO> allTS = new ArrayList<>(technicianTS);
@@ -82,11 +92,20 @@ public class AgendaController {
                             TimeSlotDTO ts = TimeSlotDTO.builder()
                                     .day(date)
                                     .begin(lt.toString())
-                                    .time(tsaNumberOfMinutes)
+                                    .duration(tsaNumberOfMinutes)
                                     .free(true)
                                     .isLaunchBreak(false)
                                     .isAbsence(false)
                                     .build();
+
+                            if (technicianAbsenceService.isInTechnicianAbsence(technician, day, lt, tsaNumberOfMinutes)) {
+                                ts.setAbsence(true);
+                            }
+
+                            if (technicianLaunchBreakService.isDuringTechnicianLaunchBreak(technician, day, lt, tsaNumberOfMinutes)) {
+                                ts.setLaunchBreak(true);
+                            }
+
                             allTS.add(ts);
                         }
                     }
@@ -109,35 +128,12 @@ public class AgendaController {
         }
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(DAY_ALL_TIME_SLOTS)
     public List<TimeSlotDTO> getAllTimeSlotsOfTheDay(@RequestParam(value = "date") String date) {
         LocalDate day = LocalDate.parse(date);
         if (openingService.isOpen(day)) {
-            int tsaNumberOfMinutes = timeSlotAtomService.searchCorrectTSA(day).getNumberOfMinutes();
-
-            List<Opening> openings = openingService.getOpenings(day);
-
-            Set<LocalTime> setCorrectBeginTS = new HashSet<>();
-            for (Opening opening : openings)
-                setCorrectBeginTS.addAll(Opening.correctTimeSlotTime(opening, tsaNumberOfMinutes));
-
-            List<LocalTime> listCorrectBeginTS = new ArrayList<>(setCorrectBeginTS.stream().toList());
-            Collections.sort(listCorrectBeginTS);
-
-            List<TimeSlotDTO> timeSlots = new ArrayList<>();
-            for (LocalTime lt : listCorrectBeginTS) {
-                TimeSlotDTO ts = TimeSlotDTO.builder()
-                        .day(date)
-                        .begin(lt.toString())
-                        .time(tsaNumberOfMinutes)
-                        .free(true)
-                        .isLaunchBreak(false)
-                        .isAbsence(false)
-                        .build();
-                timeSlots.add(ts);
-            }
+            List<TimeSlotDTO> timeSlots = openingService.allTimeSlotOfTheDay(day).stream().map(TimeSlot::transform).toList();
 
             if (timeSlots.isEmpty())
                 log.error("List time slots DTO is empty whereas the institute is opened at the day {}", day);

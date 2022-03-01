@@ -11,13 +11,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import puretherapie.crm.api.v1.person.client.controller.dto.ClientDTO;
-import puretherapie.crm.api.v1.person.client.controller.dto.ClientRegistrationResponseDTO;
-import puretherapie.crm.api.v1.person.client.controller.dto.SimpleClientInfoDTO;
+import puretherapie.crm.api.v1.person.client.controller.dto.*;
 import puretherapie.crm.api.v1.person.client.service.ClientRegistrationService;
 import puretherapie.crm.api.v1.person.client.service.ClientService;
 import puretherapie.crm.api.v1.person.client.service.ClientUpdateService;
+import puretherapie.crm.api.v1.product.aesthetic.care.service.AestheticCareStockService;
+import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.user.controller.dto.PersonOriginDTO;
+import puretherapie.crm.data.appointment.Appointment;
+import puretherapie.crm.data.appointment.repository.AppointmentRepository;
+import puretherapie.crm.data.appointment.repository.ClientAbsenceRepository;
+import puretherapie.crm.data.appointment.repository.ClientDelayRepository;
 import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
@@ -29,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static puretherapie.crm.WebSecurityConfiguration.FRONT_END_ORIGIN;
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
 import static puretherapie.crm.api.v1.person.client.controller.ClientController.CLIENTS_URL;
 import static puretherapie.crm.tool.PhoneTool.formatPhone;
@@ -41,6 +44,8 @@ import static puretherapie.crm.tool.PhoneTool.formatPhone;
 public class ClientController {
 
     // Constants.
+
+    private static final String UNKNOWN_CLIENT = "Unknown id Client";
 
     public static final String CLIENTS_URL = API_V1_URL + "/clients";
 
@@ -61,6 +66,12 @@ public class ClientController {
     public static final String CLIENT_IS_NEW = "/isNew";
     public static final String CLIENT_IS_NEW_URL = CLIENTS_URL + CLIENT_IS_NEW;
 
+    public static final String CLIENT_ABSENCES_DELAYS = "/absencesDelays";
+
+    public static final String CLIENT_BASIC_APPOINTMENTS = "/basicAppointments";
+
+    public static final String CLIENT_REMAINING_STOCKS_PAY = "/remainingStocksPay";
+
     // Variables.
 
     private final ClientService clientService;
@@ -68,17 +79,60 @@ public class ClientController {
     private final ClientUpdateService clientUpdateService;
     private final ClientRepository clientRepository;
     private final PersonOriginRepository personOriginRepository;
+    private final ClientAbsenceRepository clientAbsenceRepository;
+    private final ClientDelayRepository clientDelayRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final AestheticCareStockService aestheticCareStockService;
+    private final PaymentService paymentService;
 
     // Methods.
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping("/{idClient}" + CLIENT_REMAINING_STOCKS_PAY)
+    public ClientRemainingStockPayDTO getClientRemainingStocksPay(@PathVariable(name = "idClient") int idClient) {
+        Client client = clientRepository.findByIdPerson(idClient);
+        if (client != null) {
+            int totalStock = aestheticCareStockService.getTotalStock(idClient);
+            double remainingToPay = paymentService.totalLeftToPay(client);
+            return new ClientRemainingStockPayDTO(totalStock, remainingToPay);
+        } else
+            throw new IllegalArgumentException(UNKNOWN_CLIENT);
+    }
+
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping("/{idClient}" + CLIENT_BASIC_APPOINTMENTS)
+    public ClientBasicAppointmentDTO getClientBasicAppointments(@PathVariable(name = "idClient") int idClient) {
+        Client client = clientRepository.findByIdPerson(idClient);
+        if (client != null) {
+            List<Appointment> appointments = appointmentRepository.findByClientOrderByDayAsc(client);
+            if (!appointments.isEmpty()) {
+                return new ClientBasicAppointmentDTO(appointments.get(0).transform(), appointments.get(appointments.size() - 1).transform());
+            } else {
+                return null;
+            }
+        } else
+            throw new IllegalArgumentException(UNKNOWN_CLIENT);
+    }
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping("/{idClient}" + CLIENT_ABSENCES_DELAYS)
+    public ClientAbsenceDelayDTO getClientAbsencesDelays(@PathVariable(name = "idClient") int idClient) {
+        Client client = clientRepository.findByIdPerson(idClient);
+        if (client != null) {
+            int nbAbsence = clientAbsenceRepository.findByClient(client).size();
+            int nbDelay = clientDelayRepository.findByClient(client).size();
+            return new ClientAbsenceDelayDTO(nbAbsence, nbDelay);
+        } else
+            throw new IllegalArgumentException(UNKNOWN_CLIENT);
+    }
+
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_IS_NEW)
     public Boolean clientIsNew(@RequestParam(name = "idClient") int idClient) {
         return clientService.isNew(idClient);
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PostMapping
     public ResponseEntity<ClientRegistrationResponseDTO> clientRegistration(@RequestParam(value = PARAM_DOUBLOON_VERIFICATION, required = false,
             defaultValue = "true") boolean doubloonVerification, @RequestBody ClientDTO clientDTO,
@@ -93,7 +147,6 @@ public class ClientController {
             return ResponseEntity.ok(responseDTO);
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping("/{clientId}")
     public ResponseEntity<ClientDTO> updateClient(@PathVariable(name = "clientId") int clientId, @RequestBody ClientDTO clientDTO) {
@@ -112,7 +165,6 @@ public class ClientController {
         return ResponseEntity.ok(client);
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping
     public ResponseEntity<List<ClientDTO>> getClientWithFilter(@RequestParam("filter") String filter,
@@ -136,7 +188,6 @@ public class ClientController {
         return doubloonVerification;
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping(CLIENT_SEARCH_WITH_EMAIL)
     public SimpleClientInfoDTO getClientWithEmail(@RequestParam(value = "email") String clientEmail) {
         Client client = clientRepository.findByEmail(clientEmail);
@@ -146,7 +197,6 @@ public class ClientController {
             return null;
     }
 
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping(CLIENT_SEARCH_WITH_PHONE)
     public ResponseEntity<SimpleClientInfoDTO> getClientWithPhone(@RequestParam(value = "phone") String clientPhone) {
         try {
@@ -161,8 +211,6 @@ public class ClientController {
         }
     }
 
-
-    @CrossOrigin(allowedHeaders = "*", origins = FRONT_END_ORIGIN, allowCredentials = "true")
     @GetMapping(PERSON_ORIGINS)
     public ResponseEntity<List<PersonOriginDTO>> getAllPersonOrigin() {
         List<PersonOrigin> personOrigins = personOriginRepository.findAll();

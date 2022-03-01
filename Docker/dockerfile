@@ -1,0 +1,10 @@
+FROM openjdk:17-oracle
+
+COPY puretherapie-crm-*.jar puretherapie-crm-*.jar
+
+RUN mkdir /configuration
+RUN mkdir /logs
+
+VOLUME ["/configuration", "/logs"]
+
+ENTRYPOINT ["java","-jar","./puretherapie-crm-*.jar", "--spring.config.location=file:///configuration/application.properties"]

@@ -4,5 +4,25 @@
       "name": "dbc.driverClassName",
       "type": "java.lang.String",
       "description": "Description for dbc.driverClassName."
-  }
-] }
+    },
+    {
+      "name": "cors.allowedOrigins",
+      "type": "java.lang.String",
+      "description": "Description for cors.allowedOrigins."
+    },
+    {
+      "name": "launchbreak.end",
+      "type": "java.lang.String",
+      "description": "Description for launchbreak.end."
+    },
+    {
+      "name": "launchbreak.start",
+      "type": "java.lang.String",
+      "description": "Description for launchbreak.start."
+    },
+    {
+      "name": "launchbreak.duration",
+      "type": "java.lang.String",
+      "description": "Description for launchbreak.duration."
+    }
+  ] }

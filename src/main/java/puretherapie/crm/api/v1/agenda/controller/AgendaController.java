@@ -92,7 +92,7 @@ public class AgendaController {
                             TimeSlotDTO ts = TimeSlotDTO.builder()
                                     .day(date)
                                     .begin(lt.toString())
-                                    .time(tsaNumberOfMinutes)
+                                    .duration(tsaNumberOfMinutes)
                                     .free(true)
                                     .isLaunchBreak(false)
                                     .isAbsence(false)

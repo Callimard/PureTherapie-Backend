@@ -478,11 +478,11 @@ public class TakeAppointmentServiceTest {
     private void prepareGORepository() {
         List<GlobalOpeningTime> monday = new ArrayList<>();
         monday.add(mockMondayOpening);
-        given(mockGOTRepository.findByDay(DayOfWeek.MONDAY.getValue())).willReturn(monday);
+        given(mockGOTRepository.findByDayNumber(DayOfWeek.MONDAY.getValue())).willReturn(monday);
 
         List<GlobalOpeningTime> tuesday = new ArrayList<>();
         tuesday.add(mockTuesdayOpening);
-        given(mockGOTRepository.findByDay(DayOfWeek.TUESDAY.getValue())).willReturn(tuesday);
+        given(mockGOTRepository.findByDayNumber(DayOfWeek.TUESDAY.getValue())).willReturn(tuesday);
     }
 
     private void prepareECRepository() {
@@ -505,17 +505,17 @@ public class TakeAppointmentServiceTest {
 
     private void prepareAC() {
         given(mockAC.getIdAestheticCare()).willReturn(AC_ID);
-        given(mockAC.getTimeExecution()).willReturn(AC_TIME_EXECUTION);
+        given(mockAC.getExecutionTime()).willReturn(AC_TIME_EXECUTION);
     }
 
     private void prepareMedAC() {
         given(mockMediumAC.getIdAestheticCare()).willReturn(MED_AC_ID);
-        given(mockMediumAC.getTimeExecution()).willReturn(MED_AC_TIME_EXECUTION);
+        given(mockMediumAC.getExecutionTime()).willReturn(MED_AC_TIME_EXECUTION);
     }
 
     private void prepareLongAC() {
         given(mockLongAC.getIdAestheticCare()).willReturn(LONG_AC_ID);
-        given(mockLongAC.getTimeExecution()).willReturn(LONG_AC_TIME_EXECUTION);
+        given(mockLongAC.getExecutionTime()).willReturn(LONG_AC_TIME_EXECUTION);
     }
 
     private void prepareTSA() {
@@ -550,19 +550,19 @@ public class TakeAppointmentServiceTest {
 
     private void prepareTimeSlot() {
         given(mockTS1_1.getBegin()).willReturn(TS1_1_BEGIN_TIME);
-        given(mockTS1_1.getTime()).willReturn(TSA_NB_MINUTE);
+        given(mockTS1_1.getDuration()).willReturn(TSA_NB_MINUTE);
         given(mockTSFree.isFree()).willReturn(false);
 
         given(mockTS1_2.getBegin()).willReturn(TS1_2_BEGIN_TIME);
-        given(mockTS1_2.getTime()).willReturn(TSA_NB_MINUTE);
+        given(mockTS1_2.getDuration()).willReturn(TSA_NB_MINUTE);
         given(mockTSFree.isFree()).willReturn(false);
 
         given(mockTS2_1.getBegin()).willReturn(TS2_1_BEGIN_TIME);
-        given(mockTS2_1.getTime()).willReturn(TSA_NB_MINUTE);
+        given(mockTS2_1.getDuration()).willReturn(TSA_NB_MINUTE);
         given(mockTSFree.isFree()).willReturn(false);
 
         given(mockTSFree.getBegin()).willReturn(TS_FREE_BEGIN_TIME);
-        given(mockTSFree.getTime()).willReturn(TSA_NB_MINUTE);
+        given(mockTSFree.getDuration()).willReturn(TSA_NB_MINUTE);
         given(mockTSFree.isFree()).willReturn(true);
     }
 

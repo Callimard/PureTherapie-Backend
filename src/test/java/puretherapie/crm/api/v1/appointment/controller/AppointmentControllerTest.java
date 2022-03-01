@@ -29,7 +29,7 @@ import java.util.Collection;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENT_URL;
+import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENTS_URL;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
 import static puretherapie.crm.data.person.user.Role.MAMY_ROLE;
 import static util.RequestTool.httpPostJson;
@@ -74,7 +74,7 @@ public class AppointmentControllerTest {
         @Test
         @DisplayName("Test if takeAnAppoint returns 500 with no request body")
         void testWithNoRequestBody() throws Exception {
-            mockMvc.perform(httpPostJson(APPOINTMENT_URL)).andExpect(status().isInternalServerError());
+            mockMvc.perform(httpPostJson(APPOINTMENTS_URL)).andExpect(status().isInternalServerError());
         }
 
         @Test
@@ -82,7 +82,7 @@ public class AppointmentControllerTest {
         void testWithSuccessAppointmentCreation() throws Exception {
             given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(successAppointmentCreationRes());
 
-            mockMvc.perform(httpPostJson(APPOINTMENT_URL).content(correctBody())).andExpect(status().isOk());
+            mockMvc.perform(httpPostJson(APPOINTMENTS_URL).content(correctBody())).andExpect(status().isOk());
         }
 
         @Test
@@ -90,7 +90,7 @@ public class AppointmentControllerTest {
         void testWithFailAppointmentCreation() throws Exception {
             given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(failAppointmentCreationRes());
 
-            mockMvc.perform(httpPostJson(APPOINTMENT_URL).content(correctBody())).andExpect(status().isBadRequest());
+            mockMvc.perform(httpPostJson(APPOINTMENTS_URL).content(correctBody())).andExpect(status().isBadRequest());
         }
 
         @Test
@@ -100,7 +100,7 @@ public class AppointmentControllerTest {
             given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any(), anyBoolean())).willReturn(
                     successAppointmentCreationRes());
 
-            mockMvc.perform(httpPostJsonWithAuthorization(APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
+            mockMvc.perform(httpPostJsonWithAuthorization(APPOINTMENTS_URL, USERNAME, PASSWORD).content(correctBody()))
                     .andExpect(status().isOk());
         }
 
@@ -110,7 +110,7 @@ public class AppointmentControllerTest {
             prepareUserSecurityService(MAMY_ROLE);
             given(mockAppointCreatService.takeAppointment(anyInt(), anyInt(), anyInt(), any(), any())).willReturn(successAppointmentCreationRes());
 
-            mockMvc.perform(httpPostJsonWithAuthorization(APPOINTMENT_URL, USERNAME, PASSWORD).content(correctBody()))
+            mockMvc.perform(httpPostJsonWithAuthorization(APPOINTMENTS_URL, USERNAME, PASSWORD).content(correctBody()))
                     .andExpect(status().isOk());
         }
     }

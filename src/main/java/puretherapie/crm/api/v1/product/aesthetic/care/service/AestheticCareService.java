@@ -62,7 +62,7 @@ public class AestheticCareService {
         return AestheticCare.builder()
                 .name(acName)
                 .price(price)
-                .timeExecution(executionTime)
+                .executionTime(executionTime)
                 .build();
     }
 
@@ -70,7 +70,7 @@ public class AestheticCareService {
         AestheticCare aestheticCare = aestheticCareRepository.findByIdAestheticCare(idAestheticCare);
         aestheticCare.setName(acName);
         aestheticCare.setPrice(price);
-        aestheticCare.setTimeExecution(executionTime);
+        aestheticCare.setExecutionTime(executionTime);
         aestheticCare = aestheticCareRepository.save(aestheticCare);
         log.info("Update aesthetic care => {}", aestheticCare);
     }

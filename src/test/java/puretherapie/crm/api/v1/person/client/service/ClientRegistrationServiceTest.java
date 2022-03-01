@@ -280,7 +280,7 @@ class ClientRegistrationServiceTest {
 
     private void prepareDoubloonsFind() {
         List<Client> doubloons = new ArrayList<>();
-        doubloons.add(createClientInfoWithPhone().buildClient(mockPersonOriginRepo));
+        doubloons.add(createClientInfoWithPhone().transform(mockPersonOriginRepo));
         given(mockClientRepo.findByFirstNameAndLastName(anyString(), anyString())).willReturn(doubloons);
     }
 

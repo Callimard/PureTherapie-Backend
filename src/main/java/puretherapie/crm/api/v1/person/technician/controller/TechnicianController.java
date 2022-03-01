@@ -74,7 +74,7 @@ public class TechnicianController {
         if (alsoInactivated)
             technicians = this.technicianRepository.findAll();
         else
-            technicians = this.technicianRepository.findByIsActive(true);
+            technicians = this.technicianRepository.findByActive(true);
         return technicians;
     }
 

@@ -23,38 +23,38 @@ import java.util.Collection;
 import java.util.List;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
-import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENT_URL;
+import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENTS_URL;
 import static puretherapie.crm.data.person.user.Role.BOSS_ROLE;
 import static puretherapie.crm.data.person.user.Role.SECRETARY_ROLE;
 
 @Slf4j
 @AllArgsConstructor
 @RestController
-@RequestMapping(APPOINTMENT_URL)
+@RequestMapping(APPOINTMENTS_URL)
 public class AppointmentController {
 
     // Constants.
 
     public static final String APPOINTMENTS = "/appointments";
-    public static final String APPOINTMENT_URL = API_V1_URL + APPOINTMENTS;
+    public static final String APPOINTMENTS_URL = API_V1_URL + APPOINTMENTS;
 
     public static final String CLIENT_APPOINTMENT = "/clients/{idClient}";
-    public static final String CLIENT_APPOINTMENT_URL = APPOINTMENT_URL + CLIENT_APPOINTMENT;
+    public static final String CLIENT_APPOINTMENT_URL = APPOINTMENTS_URL + CLIENT_APPOINTMENT;
 
     public static final String APPOINTMENT_CANCELLATION = "/cancel";
     public static final String APPOINTMENT_CANCELLATION_URL = API_V1_URL + APPOINTMENT_CANCELLATION;
 
     public static final String CLIENT_ARRIVE = "/client_arrive";
-    public static final String CLIENT_ARRIVE_URL = APPOINTMENT_URL + CLIENT_ARRIVE;
+    public static final String CLIENT_ARRIVE_URL = APPOINTMENTS_URL + CLIENT_ARRIVE;
 
     public static final String PROVISION_CLIENT_WITH_APPOINTMENT = "/provision_client_with_appointment";
-    public static final String PROVISION_CLIENT_WITH_APPOINTMENT_URL = APPOINTMENT_URL + PROVISION_CLIENT_WITH_APPOINTMENT;
+    public static final String PROVISION_CLIENT_WITH_APPOINTMENT_URL = APPOINTMENTS_URL + PROVISION_CLIENT_WITH_APPOINTMENT;
 
     public static final String PROVISION_CLIENT_WITHOUT_APPOINTMENT = "/provision_client_without_appointment";
-    public static final String PROVISION_CLIENT_WITHOUT_APPOINTMENT_URL = APPOINTMENT_URL + PROVISION_CLIENT_WITHOUT_APPOINTMENT;
+    public static final String PROVISION_CLIENT_WITHOUT_APPOINTMENT_URL = APPOINTMENTS_URL + PROVISION_CLIENT_WITHOUT_APPOINTMENT;
 
     public static final String FINALIZE_APPOINTMENT = "/finalize/{idAppointment}";
-    public static final String FINALIZE_APPOINTMENT_URL = APPOINTMENT_URL + FINALIZE_APPOINTMENT;
+    public static final String FINALIZE_APPOINTMENT_URL = APPOINTMENTS_URL + FINALIZE_APPOINTMENT;
 
     public static final String IS_FIRST_APPOINTMENT = "/isFirstAppointment";
 

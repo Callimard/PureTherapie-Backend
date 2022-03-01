@@ -29,6 +29,6 @@ public class ClientUpdateService {
 
     private Client verifyClient(ClientDTO clientDTO) throws ClientDTO.ClientInformationVerificationException {
         clientDTO.verify();
-        return clientDTO.buildClient(personOriginRepository);
+        return clientDTO.transform(personOriginRepository);
     }
 }

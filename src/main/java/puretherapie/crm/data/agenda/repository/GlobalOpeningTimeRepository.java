@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface GlobalOpeningTimeRepository extends JpaRepository<GlobalOpeningTime, Integer> {
 
-    List<GlobalOpeningTime> findByDay(Integer day);
+    List<GlobalOpeningTime> findByDayNumber(Integer dayNumber);
 
     List<GlobalOpeningTime> findAll();
 

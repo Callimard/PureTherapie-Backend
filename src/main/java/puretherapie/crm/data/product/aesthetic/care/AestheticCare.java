@@ -26,15 +26,19 @@ public class AestheticCare {
     @Column(name = "price", nullable = false)
     private double price;
 
-    @Column(name = "timeExecution", nullable = false)
-    private int timeExecution;
+    @Column(name = "executionTime", nullable = false)
+    private int executionTime;
+
+    @Column(name = "active", nullable = false)
+    private boolean active;
 
     public AestheticCareDTO transform() {
         return AestheticCareDTO.builder()
                 .idAestheticCare(idAestheticCare)
                 .name(name)
                 .price(price)
-                .timeExecution(timeExecution)
+                .executionTime(executionTime)
+                .active(active)
                 .build();
     }
 }

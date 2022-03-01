@@ -32,8 +32,8 @@ public class TimeSlot {
     /**
      * Duration, in number of minutes.
      */
-    @Column(name = "time", nullable = false)
-    private int time;
+    @Column(name = "duration", nullable = false)
+    private int duration;
 
     @Column(name = "free", nullable = false)
     private boolean free;
@@ -51,7 +51,7 @@ public class TimeSlot {
                 .idTimeSlot(idTimeSlot)
                 .day(day != null ? day.toString() : null)
                 .begin(begin != null ? begin.toString() : null)
-                .time(time)
+                .duration(duration)
                 .free(free)
                 .isLaunchBreak(false)
                 .isAbsence(false)
@@ -65,7 +65,7 @@ public class TimeSlot {
                 .idTimeSlot(idTimeSlot)
                 .day(day != null ? day.toString() : null)
                 .begin(begin != null ? begin.toString() : null)
-                .time(time)
+                .duration(duration)
                 .free(free)
                 .isLaunchBreak(false)
                 .isAbsence(false)

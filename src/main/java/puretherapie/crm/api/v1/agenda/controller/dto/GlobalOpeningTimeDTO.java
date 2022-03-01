@@ -14,14 +14,14 @@ import java.time.LocalTime;
 public class GlobalOpeningTimeDTO {
 
     private int idGlobalOpeningTime;
-    private int day;
+    private int dayNumber;
     private String openingTime;
     private String closeTime;
 
     public GlobalOpeningTime transform() {
         return GlobalOpeningTime.builder()
                 .idGlobalOpeningTime(idGlobalOpeningTime)
-                .day(day)
+                .dayNumber(dayNumber)
                 .openingTime(openingTime != null && !openingTime.isBlank() ? LocalTime.parse(openingTime) : null)
                 .closeTime(closeTime != null && !closeTime.isBlank() ? LocalTime.parse(closeTime) : null)
                 .build();

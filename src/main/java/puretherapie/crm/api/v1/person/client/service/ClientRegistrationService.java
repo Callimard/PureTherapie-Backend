@@ -107,7 +107,7 @@ public class ClientRegistrationService {
 
     private Client createClient(ClientDTO clientDTO) throws ClientDTO.ClientInformationVerificationException {
         clientDTO.verify();
-        return clientDTO.buildClient(personOriginRepository);
+        return clientDTO.transform(personOriginRepository);
     }
 
     private ClientRegistrationFailDTO generateDataIntegrityFailResponse(DataIntegrityViolationException e) {

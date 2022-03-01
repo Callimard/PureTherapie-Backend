@@ -17,7 +17,7 @@ public class TimeSlotDTO implements Comparable<TimeSlotDTO> {
     private int idTimeSlot;
     private String day;
     private String begin;
-    private int time;
+    private int duration;
     private boolean free;
     private boolean isLaunchBreak;
     private boolean isAbsence;

@@ -23,8 +23,8 @@ public class GlobalOpeningTime implements Opening {
     @Column(name = "idGlobalOpeningTime", nullable = false)
     private Integer idGlobalOpeningTime;
 
-    @Column(name = "day", nullable = false)
-    private Integer day;
+    @Column(name = "dayNumber", nullable = false)
+    private Integer dayNumber;
 
     @Column(name = "openingTime", nullable = false)
     private LocalTime openingTime;
@@ -45,7 +45,7 @@ public class GlobalOpeningTime implements Opening {
     public GlobalOpeningTimeDTO transform() {
         return GlobalOpeningTimeDTO.builder()
                 .idGlobalOpeningTime(idGlobalOpeningTime)
-                .day(day)
+                .dayNumber(dayNumber)
                 .openingTime(openingTime != null ? openingTime.toString() : null)
                 .closeTime(closeTime != null ? closeTime.toString() : null)
                 .build();

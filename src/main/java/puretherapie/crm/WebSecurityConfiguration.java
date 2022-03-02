@@ -27,8 +27,7 @@ import static puretherapie.crm.api.v1.appointment.controller.AppointmentControll
 import static puretherapie.crm.api.v1.person.client.controller.ClientController.*;
 import static puretherapie.crm.api.v1.person.technician.controller.TechnicianController.TECHNICIANS_URL;
 import static puretherapie.crm.api.v1.product.aesthetic.care.controller.AestheticCareController.AESTHETIC_CARES_URL;
-import static puretherapie.crm.api.v1.user.controller.UserController.USER_LOGIN_URL;
-import static puretherapie.crm.api.v1.user.controller.UserController.USER_LOGOUT_URL;
+import static puretherapie.crm.api.v1.user.controller.UserController.*;
 
 @Configuration
 @EnableGlobalMethodSecurity(
@@ -57,7 +56,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers(USER_LOGIN_URL, USER_LOGOUT_URL, CLIENTS_URL, APPOINTMENTS_URL, IMAGES_URL);
+                .ignoringAntMatchers(USER_LOGIN_URL, USER_LOGOUT_URL, USER_FORGET_PASSWORD_URL, CLIENTS_URL, APPOINTMENTS_URL, IMAGES_URL);
     }
 
     private void configureSession(HttpSecurity http) throws Exception {
@@ -75,6 +74,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(new ForwardedHeaderFilter(), ChannelProcessingFilter.class)
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .antMatchers(HttpMethod.POST, USER_FORGET_PASSWORD_URL).permitAll()
                 .antMatchers(HttpMethod.GET, PERSON_ORIGINS_URL).permitAll()
                 .antMatchers(HttpMethod.POST, CLIENTS_URL).permitAll()
                 .antMatchers(HttpMethod.GET, CLIENT_SEARCH_WITH_EMAIL_URL).permitAll()

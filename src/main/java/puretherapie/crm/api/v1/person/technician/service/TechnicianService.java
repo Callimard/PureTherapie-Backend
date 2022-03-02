@@ -41,6 +41,26 @@ public class TechnicianService {
 
     // Methods.
 
+    public void activateTechnician(int idTechnician) {
+        Technician technician = technicianRepository.findByIdPerson(idTechnician);
+        if (!technician.isActive()) {
+            technician.setActive(true);
+            technician = technicianRepository.save(technician);
+            log.info("Activate technician => {}", technician.simplyIdentifier());
+        } else
+            throw new TechnicianException("Technician already activated");
+    }
+
+    public void inactivateTechnician(int idTechnician) {
+        Technician technician = technicianRepository.findByIdPerson(idTechnician);
+        if (technician.isActive()) {
+            technician.setActive(false);
+            technician = technicianRepository.save(technician);
+            log.info("Inactivate technician => {}", technician.simplyIdentifier());
+        } else
+            throw new TechnicianException("Technician already inactivated");
+    }
+
     /**
      * Returns the list of all free Ts of the technician for the specified day and the specified process duration. The list returns will be different
      * based on the specified process duration. For example, free ts returned will be different if the process duration is 30minutes than 50minutes.
@@ -208,6 +228,12 @@ public class TechnicianService {
                 .begin(tsBeginTime.toString())
                 .duration(tsNumberMinutes)
                 .build();
+    }
+
+    public static class TechnicianException extends RuntimeException {
+        public TechnicianException(String message) {
+            super(message);
+        }
     }
 
 }

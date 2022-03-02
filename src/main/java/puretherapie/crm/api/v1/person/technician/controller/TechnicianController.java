@@ -4,15 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import puretherapie.crm.api.v1.person.technician.controller.dto.TechnicianAbsenceDTO;
 import puretherapie.crm.api.v1.person.technician.controller.dto.TechnicianDTO;
 import puretherapie.crm.api.v1.person.technician.controller.parameter.TechnicianAbsenceCreationParameter;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianAbsenceService;
+import puretherapie.crm.api.v1.person.technician.service.TechnicianService;
 import puretherapie.crm.data.person.technician.Technician;
+import puretherapie.crm.data.person.technician.TechnicianAbsence;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
@@ -38,8 +40,27 @@ public class TechnicianController {
 
     private TechnicianRepository technicianRepository;
     private TechnicianAbsenceService technicianAbsenceService;
+    private TechnicianService technicianService;
 
     // Methods.
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @GetMapping(TECHNICIAN_ABSENCES)
+    public List<TechnicianAbsenceDTO> getAllTechnicianAbsence(@PathVariable(name = "idTechnician") int idTechnician) {
+        return technicianAbsenceService.getAllTechnicianAbsences(idTechnician).stream().map(TechnicianAbsence::transform).toList();
+    }
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @DeleteMapping("/{idTechnician}")
+    public void inactivateTechnician(@PathVariable(name = "idTechnician") int idTechnician) {
+        technicianService.inactivateTechnician(idTechnician);
+    }
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PostMapping("/{idTechnician}/activate")
+    public void activateTechnician(@PathVariable(name = "idTechnician") int idTechnician) {
+        technicianService.activateTechnician(idTechnician);
+    }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @PostMapping(TECHNICIAN_ABSENCES)
@@ -56,26 +77,8 @@ public class TechnicianController {
     }
 
     @GetMapping
-    public List<TechnicianDTO> getAllTechnicians(
-            @RequestParam(name = "alsoInactivated", required = false, defaultValue = "false") boolean alsoInactivated) {
-        List<Technician> technicians = searchAllTechnicians(alsoInactivated);
-
-        List<TechnicianDTO> allTechnicians = new ArrayList<>();
-        technicians.forEach(tech -> allTechnicians.add(tech.transform()));
-
-        if (allTechnicians.isEmpty())
-            log.error("Empty Technicians list");
-
-        return allTechnicians;
-    }
-
-    private List<Technician> searchAllTechnicians(boolean alsoInactivated) {
-        List<Technician> technicians;
-        if (alsoInactivated)
-            technicians = this.technicianRepository.findAll();
-        else
-            technicians = this.technicianRepository.findByActive(true);
-        return technicians;
+    public List<TechnicianDTO> getAllTechnicians(@RequestParam(name = "active", required = false, defaultValue = "true") boolean active) {
+        return this.technicianRepository.findByActive(active).stream().map(Technician::transform).toList();
     }
 
 }

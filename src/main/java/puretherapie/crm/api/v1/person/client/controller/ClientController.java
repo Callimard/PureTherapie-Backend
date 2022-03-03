@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import puretherapie.crm.api.v1.person.client.controller.dto.*;
 import puretherapie.crm.api.v1.person.client.service.ClientRegistrationService;
 import puretherapie.crm.api.v1.person.client.service.ClientService;
@@ -18,6 +19,7 @@ import puretherapie.crm.api.v1.person.client.service.ClientUpdateService;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.AestheticCareStockService;
 import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.user.controller.dto.PersonOriginDTO;
+import puretherapie.crm.api.v1.util.StorageService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.appointment.repository.ClientAbsenceRepository;
@@ -66,6 +68,9 @@ public class ClientController {
     public static final String CLIENT_IS_NEW = "/isNew";
     public static final String CLIENT_IS_NEW_URL = CLIENTS_URL + CLIENT_IS_NEW;
 
+    public static final String CLIENT_CARDS = "/{idClient}/cards";
+    public static final String CLIENT_CARDS_URL = CLIENTS_URL + CLIENT_CARDS;
+
     public static final String CLIENT_ABSENCES_DELAYS = "/absencesDelays";
 
     public static final String CLIENT_BASIC_APPOINTMENTS = "/basicAppointments";
@@ -84,8 +89,15 @@ public class ClientController {
     private final AppointmentRepository appointmentRepository;
     private final AestheticCareStockService aestheticCareStockService;
     private final PaymentService paymentService;
+    private final StorageService storageService;
 
     // Methods.
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PostMapping(CLIENT_CARDS)
+    public void uploadClientCard(@PathVariable(name = "idClient") int idClient, @RequestParam("client_card") MultipartFile file) {
+        storageService.storeClientCard(idClient, file);
+    }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping("/{idClient}" + CLIENT_REMAINING_STOCKS_PAY)

@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -35,8 +37,6 @@ public class StorageService {
         this.clientsLocation = storageConfiguration.getRoot() + storageConfiguration.getClients();
     }
 
-    // Methods.
-
     @PostConstruct
     public void init() {
         try {
@@ -47,12 +47,25 @@ public class StorageService {
         }
     }
 
+    // Methods.
+
+    public List<String> getClientCardsPath(int idClient) {
+        verifyClientExists(idClient);
+        if (Files.exists(Path.of(clientCardDirectoryPath(idClient)))) {
+            try (Stream<Path> s = Files.walk(Path.of(clientCardDirectoryPath(idClient)), 1)) {
+                return s.filter(path -> !path.equals(Path.of(clientCardDirectoryPath(idClient)))).map(Path::toString).sorted().toList();
+            } catch (IOException e) {
+                throw new ClientStoreCardException(e);
+            }
+        } else
+            return Collections.emptyList();
+    }
+
     public void storeClientCard(int idClient, MultipartFile file) {
         verifyClientExists(idClient);
         verifyFileExtension(file);
         createClientDirectoryIfNotExist(idClient);
-        int nbCard = clientNbCardStored(idClient);
-        storeClientCard(file, idClient, nbCard);
+        storeClientCard(file, idClient);
     }
 
     public void verifyClientExists(int idClient) {
@@ -74,19 +87,10 @@ public class StorageService {
         }
     }
 
-    public int clientNbCardStored(int idClient) {
-        Path clientCardPath = Path.of(clientCardDirectoryPath(idClient));
-
-        try (Stream<Path> stream = Files.walk(clientCardPath, 1)) {
-            return stream.filter(path -> !path.equals(clientCardPath)).toList().size();
-        } catch (IOException e) {
-            throw new ClientStoreCardException(e);
-        }
-    }
-
-    private void storeClientCard(MultipartFile cardImage, int idClient, int cardNumber) {
+    private void storeClientCard(MultipartFile cardImage, int idClient) {
         try (InputStream inputStream = cardImage.getInputStream()) {
-            Files.copy(inputStream, Path.of(clientCardDirectoryPath(idClient) + "/" + cardNumber + "." + extractFileExtension(cardImage)),
+            Files.copy(inputStream,
+                       Path.of(clientCardDirectoryPath(idClient) + "/" + System.currentTimeMillis() + "." + extractFileExtension(cardImage)),
                        StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new ClientStoreCardException(e);
@@ -118,9 +122,6 @@ public class StorageService {
     // Exception.
 
     public static class StorageException extends RuntimeException {
-        public StorageException() {
-            super();
-        }
 
         public StorageException(String message) {
             super(message);
@@ -132,8 +133,6 @@ public class StorageService {
     }
 
     public static class ClientStoreCardException extends StorageException {
-        public ClientStoreCardException() {
-        }
 
         public ClientStoreCardException(String message) {
             super(message);

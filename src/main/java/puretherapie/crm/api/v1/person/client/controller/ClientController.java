@@ -94,6 +94,12 @@ public class ClientController {
     // Methods.
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(CLIENT_CARDS)
+    public List<String> getClientCardsPath(@PathVariable(name = "idClient") int idClient) {
+        return storageService.getClientCardsPath(idClient);
+    }
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @PostMapping(CLIENT_CARDS)
     public void uploadClientCard(@PathVariable(name = "idClient") int idClient, @RequestParam("client_card") MultipartFile file) {
         storageService.storeClientCard(idClient, file);

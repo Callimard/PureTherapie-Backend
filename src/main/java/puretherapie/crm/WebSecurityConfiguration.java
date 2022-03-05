@@ -22,6 +22,7 @@ import puretherapie.crm.authentication.CustomAuthenticationEntryPoint;
 import java.util.Arrays;
 
 import static puretherapie.crm.WebConfiguration.IMAGES_URL;
+import static puretherapie.crm.WebConfiguration.UPLOADS_URL;
 import static puretherapie.crm.api.v1.agenda.controller.AgendaController.TECHNICIAN_FREE_TIME_SLOTS_URL;
 import static puretherapie.crm.api.v1.appointment.controller.AppointmentController.APPOINTMENTS_URL;
 import static puretherapie.crm.api.v1.person.client.controller.ClientController.*;
@@ -56,7 +57,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers(USER_LOGIN_URL, USER_LOGOUT_URL, USER_FORGET_PASSWORD_URL, CLIENTS_URL, APPOINTMENTS_URL, IMAGES_URL);
+                .ignoringAntMatchers(USER_LOGIN_URL, USER_LOGOUT_URL, USER_FORGET_PASSWORD_URL, CLIENTS_URL, APPOINTMENTS_URL, IMAGES_URL,
+                                     UPLOADS_URL);
     }
 
     private void configureSession(HttpSecurity http) throws Exception {
@@ -71,6 +73,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .cors()
                 .and()
+                .headers()
+                .frameOptions().disable()
+                .and()
                 .addFilterBefore(new ForwardedHeaderFilter(), ChannelProcessingFilter.class)
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -84,6 +89,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, AESTHETIC_CARES_URL).permitAll()
                 .antMatchers(HttpMethod.GET, TECHNICIAN_FREE_TIME_SLOTS_URL).permitAll()
                 .antMatchers(HttpMethod.GET, IMAGES_URL).permitAll()
+                .antMatchers(HttpMethod.GET, UPLOADS_URL).authenticated()
                 .anyRequest().authenticated();
     }
 

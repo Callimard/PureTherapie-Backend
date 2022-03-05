@@ -94,6 +94,13 @@ public class ClientController {
     // Methods.
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @DeleteMapping(CLIENT_CARDS + "/{cardName:[0-9]+\\.[a-zA-Z]+}")
+    public void deleteClientCard(@PathVariable(name = "idClient") int idClient, @PathVariable(name = "cardName") String cardName) {
+        String[] split = cardName.split("\\.");
+        storageService.deleteClientCard(idClient, Long.parseLong(split[0]), split[1]);
+    }
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(CLIENT_CARDS)
     public List<String> getClientCardsPath(@PathVariable(name = "idClient") int idClient) {
         return storageService.getClientCardsPath(idClient);

@@ -57,17 +57,17 @@ public class ClientImportationMain {
                     while ((line = reader.readLine()) != null) {
                         String[] split = line.split(CSV_SEPARATOR);
 
-                        String firstName;
-                        if (split.length >= 1)
-                            firstName = verifyFirstName(split[0]);
-                        else
-                            firstName = verifyFirstName(null);
-
                         String lastName;
-                        if (split.length >= 2)
-                            lastName = verifyLastName(verifyLastName(split[1]));
+                        if (split.length >= 1)
+                            lastName = verifyLastName(verifyLastName(split[0]));
                         else
                             lastName = verifyLastName(null);
+
+                        String firstName;
+                        if (split.length >= 2)
+                            firstName = verifyFirstName(split[1]);
+                        else
+                            firstName = verifyFirstName(null);
 
                         String phone;
                         if (split.length >= 3)

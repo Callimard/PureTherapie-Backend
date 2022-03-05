@@ -61,6 +61,15 @@ public class StorageService {
             return Collections.emptyList();
     }
 
+    public void deleteClientCard(int idClient, long cardNum, String extension) {
+        verifyClientExists(idClient);
+        try {
+            Files.deleteIfExists(Path.of(clientCardDirectoryPath(idClient) + "/" + cardNum + "." + extension));
+        } catch (IOException e) {
+            throw new ClientStoreCardException(e);
+        }
+    }
+
     public void storeClientCard(int idClient, MultipartFile file) {
         verifyClientExists(idClient);
         verifyFileExtension(file);

@@ -93,23 +93,30 @@ public class ClientController {
 
     // Methods.
 
-    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @DeleteMapping(CLIENT_CARDS + "/{cardName:[0-9]+\\.[a-zA-Z]+}")
     public void deleteClientCard(@PathVariable(name = "idClient") int idClient, @PathVariable(name = "cardName") String cardName) {
         String[] split = cardName.split("\\.");
         storageService.deleteClientCard(idClient, Long.parseLong(split[0]), split[1]);
     }
 
-    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @GetMapping(CLIENT_CARDS)
     public List<String> getClientCardsPath(@PathVariable(name = "idClient") int idClient) {
         return storageService.getClientCardsPath(idClient);
     }
 
-    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @PostMapping(CLIENT_CARDS)
     public void uploadClientCard(@PathVariable(name = "idClient") int idClient, @RequestParam("client_card") MultipartFile file) {
         storageService.storeClientCard(idClient, file);
+    }
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PostMapping(CLIENT_CARDS + "/several")
+    public void uploadSeveralClientCards(@PathVariable(name = "idClient") int idClient, @RequestParam("client_card") MultipartFile[] files) {
+        for (MultipartFile file : files)
+            uploadClientCard(idClient, file);
     }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")

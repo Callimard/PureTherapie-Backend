@@ -73,6 +73,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .cors()
                 .and()
+                .headers()
+                .frameOptions().disable()
+                .and()
                 .addFilterBefore(new ForwardedHeaderFilter(), ChannelProcessingFilter.class)
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()

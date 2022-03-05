@@ -111,7 +111,8 @@ public class StorageService {
         if (split.length == 2) {
             String type = split[0];
             String extension = split[1];
-            return type.equals("image") && (extension.equals("jpeg") || extension.equals("png"));
+            return (type.equals("image") && (extension.equals("jpeg") || extension.equals("png")))
+                    || (type.equals("application") && extension.equals("pdf"));
         } else
             return false;
     }

@@ -1,12 +1,7 @@
 package puretherapie.crm.api.v1.person.client.controller;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -28,11 +23,8 @@ import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
-import puretherapie.crm.tool.PhoneTool;
-import puretherapie.crm.tool.StringTool;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
@@ -50,9 +42,6 @@ public class ClientController {
     private static final String UNKNOWN_CLIENT = "Unknown id Client";
 
     public static final String CLIENTS_URL = API_V1_URL + "/clients";
-
-    private static final int SEARCH_CLIENT_FILTER_SPLIT_ARRAY_SIZE = 4;
-
 
     public static final String CLIENT_SEARCH_WITH_EMAIL = "/searchWithEmail";
     public static final String CLIENT_SEARCH_WITH_EMAIL_URL = CLIENTS_URL + CLIENT_SEARCH_WITH_EMAIL;
@@ -199,17 +188,10 @@ public class ClientController {
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping
-    public ResponseEntity<List<ClientDTO>> getClientWithFilter(@RequestParam("filter") String filter,
-                                                               @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-                                                               @RequestParam(value = "pageSize", required = false, defaultValue = "40") int pageSize) {
-        try {
-            Pageable pageable = PageRequest.of(page, pageSize);
-            List<Client> clients = new ClientSearchFilter(filter).search(clientRepository, pageable);
-            return ResponseEntity.ok(clients.stream().map(Client::transform).toList());
-        } catch (IllegalArgumentException e) {
-            log.debug("Wrong filter format => {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Collections.emptyList());
-        }
+    public List<ClientDTO> getClientWithFilter(@RequestParam("filter") String filter,
+                                               @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                                               @RequestParam(value = "pageSize", required = false, defaultValue = "40") int pageSize) {
+        return clientService.searchClientWithFilter(filter, page, pageSize).stream().map(Client::transform).toList();
     }
 
     private boolean verifyPermissionForDoubloonVerification(boolean doubloonVerification, Authentication authentication) {
@@ -253,90 +235,5 @@ public class ClientController {
         }
 
         return ResponseEntity.ok(allPersonOrigins);
-    }
-
-    @Builder
-    @Getter
-    @ToString
-    @AllArgsConstructor
-    private static class ClientSearchFilter {
-        private String firstName;
-        private String lastName;
-        private String email;
-        private String phone;
-
-        public ClientSearchFilter(String filter) {
-            this.extractAndSet(filter);
-        }
-
-        private void extractAndSet(String filter) {
-            String[] data = filter.split(" ");
-            verifyFilterFormat(filter, data);
-            extractFilterValue(data);
-        }
-
-        private void verifyFilterFormat(String filter, String[] splitFilter) {
-            if (splitFilter.length != SEARCH_CLIENT_FILTER_SPLIT_ARRAY_SIZE)
-                throw new IllegalArgumentException("Search client filter not correctly formatted, expected must be filter = firstName=value " +
-                                                           "lastName=value email=value phone=value, current = " + filter);
-        }
-
-        private void extractFilterValue(String[] data) {
-            for (String d : data) {
-                String[] dataSplit = d.split("=");
-                String key = dataSplit[0];
-                if (dataSplit.length == 2)
-                    setValue(key, dataSplit[1]);
-            }
-        }
-
-        private void setValue(String key, String value) {
-            switch (key) {
-                case "firstName" -> this.setFirstName(value);
-                case "lastName" -> this.setLastName(value);
-                case "email" -> this.setEmail(value);
-                case "phone" -> this.setPhone(value);
-                default -> throw new IllegalArgumentException("Search client filter argument unknown, filter key = " + key);
-            }
-        }
-
-        public void setFirstName(String firstName) {
-            if (correctValue(firstName))
-                this.firstName = firstName.toLowerCase();
-        }
-
-        public void setLastName(String lastName) {
-            if (correctValue(lastName))
-                this.lastName = lastName.toLowerCase();
-        }
-
-        public void setEmail(String email) {
-            if (correctValue(email))
-                this.email = email.toLowerCase();
-        }
-
-        public void setPhone(String phone) {
-            if (correctValue(phone)) {
-                try {
-                    this.phone = StringTool.removeRemainingSpaces(PhoneTool.permissiveFormatPhone(phone));
-                } catch (PhoneTool.UnSupportedPhoneNumberException | PhoneTool.NotPhoneNumberException | PhoneTool.FailToFormatPhoneNumber e) {
-                    this.phone = null;
-                }
-            }
-        }
-
-        private boolean correctValue(String value) {
-            return value != null && !value.isBlank();
-        }
-
-        private List<Client> search(ClientRepository clientRepository, Pageable pageable) {
-            String firstNameFilter = firstName != null && !firstName.isBlank() ? firstName + "%" : "%";
-            String lastNameFilter = lastName != null && !lastName.isBlank() ? lastName + "%" : "%";
-            String emailFilter = email != null && !email.isBlank() ? email + "%" : "%";
-            String phoneFilter = phone != null && !phone.isBlank() ? phone + "%" : "%";
-
-            return clientRepository.findByFirstNameLikeAndLastNameLikeAndEmailLikeAndPhoneLike(firstNameFilter, lastNameFilter, emailFilter,
-                                                                                               phoneFilter, pageable);
-        }
     }
 }

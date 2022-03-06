@@ -1,12 +1,7 @@
 package puretherapie.crm.api.v1.person.client.controller;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -28,11 +23,8 @@ import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
-import puretherapie.crm.tool.PhoneTool;
-import puretherapie.crm.tool.StringTool;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
@@ -196,17 +188,10 @@ public class ClientController {
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping
-    public ResponseEntity<List<ClientDTO>> getClientWithFilter(@RequestParam("filter") String filter,
-                                                               @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-                                                               @RequestParam(value = "pageSize", required = false, defaultValue = "40") int pageSize) {
-        try {
-            Pageable pageable = PageRequest.of(page, pageSize);
-            List<Client> clients = new ClientSearchFilter(filter).search(clientRepository, pageable);
-            return ResponseEntity.ok(clients.stream().map(Client::transform).toList());
-        } catch (IllegalArgumentException e) {
-            log.debug("Wrong filter format => {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Collections.emptyList());
-        }
+    public List<ClientDTO> getClientWithFilter(@RequestParam("filter") String filter,
+                                               @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                                               @RequestParam(value = "pageSize", required = false, defaultValue = "40") int pageSize) {
+        return clientService.searchClientWithFilter(filter, page, pageSize).stream().map(Client::transform).toList();
     }
 
     private boolean verifyPermissionForDoubloonVerification(boolean doubloonVerification, Authentication authentication) {
@@ -250,83 +235,5 @@ public class ClientController {
         }
 
         return ResponseEntity.ok(allPersonOrigins);
-    }
-
-    @Builder
-    @Getter
-    @ToString
-    @AllArgsConstructor
-    private static class ClientSearchFilter {
-
-        /**
-         * First name or Last name.
-         */
-        private String name;
-        private String email;
-        private String phone;
-
-        public ClientSearchFilter(String filter) {
-            this.extractAndSet(filter);
-        }
-
-        private void extractAndSet(String filter) {
-            String[] data = filter.split(" ");
-            extractFilterValue(data);
-        }
-
-        private void extractFilterValue(String[] data) {
-            for (String d : data) {
-                String[] dataSplit = d.split("=");
-                String key = dataSplit[0];
-                if (dataSplit.length == 2)
-                    setValue(key, dataSplit[1]);
-            }
-        }
-
-        private void setValue(String key, String value) {
-            switch (key) {
-                case "name" -> this.setName(value);
-                case "email" -> this.setEmail(value);
-                case "phone" -> this.setPhone(value);
-                default -> throw new IllegalArgumentException("Search client filter argument unknown, filter key = " + key);
-            }
-        }
-
-        public void setName(String name) {
-            if (correctValue(name))
-                this.name = name.toLowerCase();
-        }
-
-        public void setEmail(String email) {
-            if (correctValue(email))
-                this.email = email.toLowerCase();
-        }
-
-        public void setPhone(String phone) {
-            if (correctValue(phone)) {
-                try {
-                    this.phone = StringTool.removeRemainingSpaces(PhoneTool.permissiveFormatPhone(phone));
-                } catch (PhoneTool.UnSupportedPhoneNumberException | PhoneTool.NotPhoneNumberException | PhoneTool.FailToFormatPhoneNumber e) {
-                    this.phone = null;
-                }
-            }
-        }
-
-        private boolean correctValue(String value) {
-            return value != null && !value.isBlank();
-        }
-
-        private List<Client> search(ClientRepository clientRepository, Pageable pageable) {
-            if (email != null && !email.isBlank()) {
-                String emailFilter = email + "%";
-                return clientRepository.findByEmailLike(emailFilter, pageable);
-            } else if (phone != null && !phone.isBlank()) {
-                String phoneFilter = phone + "%";
-                return clientRepository.findByPhoneLike(phoneFilter, pageable);
-            } else {
-                String nameFilter = name != null && !name.isBlank() ? name + "%" : "%";
-                return clientRepository.findByFirstNameLikeOrLastNameLike(nameFilter, nameFilter, pageable);
-            }
-        }
     }
 }

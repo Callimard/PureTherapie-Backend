@@ -51,9 +51,6 @@ public class ClientController {
 
     public static final String CLIENTS_URL = API_V1_URL + "/clients";
 
-    private static final int SEARCH_CLIENT_FILTER_SPLIT_ARRAY_SIZE = 4;
-
-
     public static final String CLIENT_SEARCH_WITH_EMAIL = "/searchWithEmail";
     public static final String CLIENT_SEARCH_WITH_EMAIL_URL = CLIENTS_URL + CLIENT_SEARCH_WITH_EMAIL;
 
@@ -260,8 +257,11 @@ public class ClientController {
     @ToString
     @AllArgsConstructor
     private static class ClientSearchFilter {
-        private String firstName;
-        private String lastName;
+
+        /**
+         * First name or Last name.
+         */
+        private String name;
         private String email;
         private String phone;
 
@@ -271,14 +271,7 @@ public class ClientController {
 
         private void extractAndSet(String filter) {
             String[] data = filter.split(" ");
-            verifyFilterFormat(filter, data);
             extractFilterValue(data);
-        }
-
-        private void verifyFilterFormat(String filter, String[] splitFilter) {
-            if (splitFilter.length != SEARCH_CLIENT_FILTER_SPLIT_ARRAY_SIZE)
-                throw new IllegalArgumentException("Search client filter not correctly formatted, expected must be filter = firstName=value " +
-                                                           "lastName=value email=value phone=value, current = " + filter);
         }
 
         private void extractFilterValue(String[] data) {
@@ -292,22 +285,16 @@ public class ClientController {
 
         private void setValue(String key, String value) {
             switch (key) {
-                case "firstName" -> this.setFirstName(value);
-                case "lastName" -> this.setLastName(value);
+                case "name" -> this.setName(value);
                 case "email" -> this.setEmail(value);
                 case "phone" -> this.setPhone(value);
                 default -> throw new IllegalArgumentException("Search client filter argument unknown, filter key = " + key);
             }
         }
 
-        public void setFirstName(String firstName) {
-            if (correctValue(firstName))
-                this.firstName = firstName.toLowerCase();
-        }
-
-        public void setLastName(String lastName) {
-            if (correctValue(lastName))
-                this.lastName = lastName.toLowerCase();
+        public void setName(String name) {
+            if (correctValue(name))
+                this.name = name.toLowerCase();
         }
 
         public void setEmail(String email) {
@@ -330,13 +317,16 @@ public class ClientController {
         }
 
         private List<Client> search(ClientRepository clientRepository, Pageable pageable) {
-            String firstNameFilter = firstName != null && !firstName.isBlank() ? firstName + "%" : "%";
-            String lastNameFilter = lastName != null && !lastName.isBlank() ? lastName + "%" : "%";
-            String emailFilter = email != null && !email.isBlank() ? email + "%" : "%";
-            String phoneFilter = phone != null && !phone.isBlank() ? phone + "%" : "%";
-
-            return clientRepository.findByFirstNameLikeAndLastNameLikeAndEmailLikeAndPhoneLike(firstNameFilter, lastNameFilter, emailFilter,
-                                                                                               phoneFilter, pageable);
+            if (email != null && !email.isBlank()) {
+                String emailFilter = email + "%";
+                return clientRepository.findByEmailLike(emailFilter, pageable);
+            } else if (phone != null && !phone.isBlank()) {
+                String phoneFilter = phone + "%";
+                return clientRepository.findByPhoneLike(phoneFilter, pageable);
+            } else {
+                String nameFilter = name != null && !name.isBlank() ? name + "%" : "%";
+                return clientRepository.findByFirstNameLikeOrLastNameLike(nameFilter, nameFilter, pageable);
+            }
         }
     }
 }

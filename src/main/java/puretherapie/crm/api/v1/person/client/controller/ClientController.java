@@ -168,7 +168,7 @@ public class ClientController {
             return ResponseEntity.ok(responseDTO);
     }
 
-    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @PostMapping("/{clientId}")
     public ResponseEntity<ClientDTO> updateClient(@PathVariable(name = "clientId") int clientId, @RequestBody ClientDTO clientDTO) {
         if (clientDTO.getIdPerson() != clientId) {
@@ -186,7 +186,7 @@ public class ClientController {
         return ResponseEntity.ok(client);
     }
 
-    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @GetMapping
     public List<ClientDTO> getClientWithFilter(@RequestParam("filter") String filter,
                                                @RequestParam(value = "page", required = false, defaultValue = "0") int page,

@@ -100,6 +100,7 @@ public class AgendaController {
                     for (LocalTime lt : correctTS) {
                         if (setCorrectBeginTS.add(lt)) {
                             TimeSlotDTO ts = TimeSlotDTO.builder()
+                                    .technician(technician.transform())
                                     .day(date)
                                     .begin(lt.toString())
                                     .duration(tsaNumberOfMinutes)
@@ -140,16 +141,16 @@ public class AgendaController {
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping(ALL_DAY_TECHNICIAN_TIME_SLOTS)
-    public Map<Integer, List<TimeSlotDTO>> getAllDayTechnicianTimeSlots(@RequestParam(name = "date") String date) {
-        Map<Integer, List<TimeSlotDTO>> map = new HashMap<>();
+    public List<TimeSlotDTO> getAllDayTechnicianTimeSlots(@RequestParam(name = "date") String date) {
+        List<TimeSlotDTO> allTechTS = new ArrayList<>();
 
         List<Technician> technicians = technicianRepository.findByActive(true);
 
         for (Technician technician : technicians) {
-            map.put(technician.getIdPerson(), getAllTechnicianTimeSlots(technician.getIdPerson(), date));
+            allTechTS.addAll(getAllTechnicianTimeSlots(technician.getIdPerson(), date));
         }
 
-        return map;
+        return allTechTS;
     }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")

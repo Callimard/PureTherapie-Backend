@@ -78,6 +78,10 @@ public class TechnicianAbsenceService {
      */
     public boolean isInTechnicianAbsence(Technician technician, LocalDate day, LocalTime beginTime, int duration) {
         List<TechnicianAbsence> technicianAbsences = technicianAbsenceRepository.findByTechnicianAndDay(technician, day);
+        return isInTechnicianAbsence(technicianAbsences, beginTime, duration);
+    }
+
+    public boolean isInTechnicianAbsence(List<TechnicianAbsence> technicianAbsences, LocalTime beginTime, int duration) {
         if (!technicianAbsences.isEmpty()) {
             for (TechnicianAbsence technicianAbsence : technicianAbsences)
                 if (isInTechnicianAbsence(technicianAbsence, beginTime, duration))

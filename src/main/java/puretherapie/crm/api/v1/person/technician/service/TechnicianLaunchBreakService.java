@@ -45,6 +45,10 @@ public class TechnicianLaunchBreakService {
 
     public boolean isDuringTechnicianLaunchBreak(Technician technician, LocalDate day, LocalTime begin, int duration) {
         LaunchBreak launchBreak = launchBreakRepository.findByTechnicianAndDay(technician, day);
+        return isDuringTechnicianLaunchBreak(launchBreak, begin, duration);
+    }
+
+    public boolean isDuringTechnicianLaunchBreak(LaunchBreak launchBreak, LocalTime begin, int duration) {
         if (launchBreak != null) {
             return isInTZ(launchBreak.getBeginHour(), launchBreak.getBeginHour().plusMinutes(launchBreak.getDuration()), begin, duration);
         } else

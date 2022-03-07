@@ -21,7 +21,7 @@ public class TimeSlot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idTimeSlot", nullable = false)
-    private Integer idTimeSlot;
+    private int idTimeSlot;
 
     @Column(name = "day", nullable = false)
     private LocalDate day;

@@ -57,8 +57,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers(USER_LOGIN_URL, USER_LOGOUT_URL, USER_FORGET_PASSWORD_URL, CLIENTS_URL, APPOINTMENTS_URL, IMAGES_URL,
-                                     UPLOADS_URL);
+                .ignoringAntMatchers(USER_LOGIN_URL, USER_LOGOUT_URL, USER_FORGET_PASSWORD_URL, USER_RESET_PASSWORD_URL, CLIENTS_URL,
+                                     APPOINTMENTS_URL, IMAGES_URL, UPLOADS_URL);
     }
 
     private void configureSession(HttpSecurity http) throws Exception {
@@ -80,6 +80,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers(HttpMethod.POST, USER_FORGET_PASSWORD_URL).permitAll()
+                .antMatchers(HttpMethod.POST, USER_RESET_PASSWORD_URL).permitAll()
                 .antMatchers(HttpMethod.GET, PERSON_ORIGINS_URL).permitAll()
                 .antMatchers(HttpMethod.POST, CLIENTS_URL).permitAll()
                 .antMatchers(HttpMethod.GET, CLIENT_SEARCH_WITH_EMAIL_URL).permitAll()

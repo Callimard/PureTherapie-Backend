@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.user.service.UserLoginService;
+import puretherapie.crm.api.v1.user.service.UserPasswordService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 
 import javax.servlet.http.HttpSession;
@@ -30,15 +31,26 @@ public class UserController {
     public static final String USER_FORGET_PASSWORD = "/passwordForgotten";
     public static final String USER_FORGET_PASSWORD_URL = API_V1_USER_URL + USER_FORGET_PASSWORD;
 
+    public static final String USER_RESET_PASSWORD = "/password/reset";
+    public static final String USER_RESET_PASSWORD_URL = API_V1_USER_URL + USER_RESET_PASSWORD;
+
     // Variables.
 
     private final UserLoginService userLoginService;
+    private final UserPasswordService userPasswordService;
 
     // Methods.
 
     @PostMapping(USER_FORGET_PASSWORD)
     public void forgotPassword(@RequestParam(name = "username") String username) {
-        userLoginService.userForgotPassword(username);
+        userPasswordService.userForgotPassword(username);
+    }
+
+    @PostMapping(USER_RESET_PASSWORD)
+    public void resetPassword(@RequestParam(name = "username") String username,
+                              @RequestParam(name = "code") long code,
+                              @RequestBody String password) {
+        userPasswordService.resetPassword(code, username, password);
     }
 
     @PreAuthorize("isAuthenticated()")

@@ -11,6 +11,8 @@ public class ForgottenPasswordConfiguration {
 
     private String sendTo;
 
+    private String frontResetPasswordUrl;
+
     public String getSendFrom() {
         return sendFrom;
     }
@@ -25,5 +27,13 @@ public class ForgottenPasswordConfiguration {
 
     public void setSendTo(String sendTo) {
         this.sendTo = sendTo;
+    }
+
+    public String getFrontResetPasswordUrl() {
+        return frontResetPasswordUrl;
+    }
+
+    public void setFrontResetPasswordUrl(String frontResetPasswordUrl) {
+        this.frontResetPasswordUrl = frontResetPasswordUrl;
     }
 }

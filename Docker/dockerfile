@@ -4,7 +4,8 @@ COPY puretherapie-crm-*.jar puretherapie-crm-*.jar
 
 RUN mkdir /configuration
 RUN mkdir /logs
+RUN mkdir /uploads
 
-VOLUME ["/configuration", "/logs"]
+VOLUME ["/configuration", "/logs", "/uploads"]
 
 ENTRYPOINT ["java","-jar","./puretherapie-crm-*.jar", "--spring.config.location=file:///configuration/application.properties"]

@@ -8,6 +8,7 @@ services:
     volumes:
       - puretherapie-logs:/logs/
       - puretherapie-properties:/configuration/
+      - puretherapie-uploads:/uploads/
 volumes:
   puretherapie-logs:
     external: true

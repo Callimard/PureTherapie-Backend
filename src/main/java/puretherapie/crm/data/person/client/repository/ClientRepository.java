@@ -12,8 +12,11 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
 
     Client findByIdPerson(Integer idPerson);
 
-    List<Client> findByFirstNameLikeAndLastNameLikeAndEmailLikeAndPhoneLike(String firstName, String lastName, String email, String phone,
-                                                                            Pageable pageable);
+    List<Client> findByFirstNameLikeOrLastNameLike(String firstName, String lastName, Pageable pageable);
+
+    List<Client> findByEmailLike(String email, Pageable pageable);
+
+    List<Client> findByPhoneLike(String phone, Pageable pageable);
 
     List<Client> findByFirstNameAndLastName(String firstName, String lastName);
 

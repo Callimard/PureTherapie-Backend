@@ -1,16 +1,12 @@
 package puretherapie.crm.api.v1.person.client.controller;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import puretherapie.crm.api.v1.person.client.controller.dto.*;
 import puretherapie.crm.api.v1.person.client.service.ClientRegistrationService;
 import puretherapie.crm.api.v1.person.client.service.ClientService;
@@ -18,6 +14,7 @@ import puretherapie.crm.api.v1.person.client.service.ClientUpdateService;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.AestheticCareStockService;
 import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.user.controller.dto.PersonOriginDTO;
+import puretherapie.crm.api.v1.util.StorageService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.appointment.repository.ClientAbsenceRepository;
@@ -26,11 +23,8 @@ import puretherapie.crm.data.person.PersonOrigin;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.data.person.repository.PersonOriginRepository;
-import puretherapie.crm.tool.PhoneTool;
-import puretherapie.crm.tool.StringTool;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
@@ -49,9 +43,6 @@ public class ClientController {
 
     public static final String CLIENTS_URL = API_V1_URL + "/clients";
 
-    private static final int SEARCH_CLIENT_FILTER_SPLIT_ARRAY_SIZE = 4;
-
-
     public static final String CLIENT_SEARCH_WITH_EMAIL = "/searchWithEmail";
     public static final String CLIENT_SEARCH_WITH_EMAIL_URL = CLIENTS_URL + CLIENT_SEARCH_WITH_EMAIL;
 
@@ -65,6 +56,9 @@ public class ClientController {
 
     public static final String CLIENT_IS_NEW = "/isNew";
     public static final String CLIENT_IS_NEW_URL = CLIENTS_URL + CLIENT_IS_NEW;
+
+    public static final String CLIENT_CARDS = "/{idClient}/cards";
+    public static final String CLIENT_CARDS_URL = CLIENTS_URL + CLIENT_CARDS;
 
     public static final String CLIENT_ABSENCES_DELAYS = "/absencesDelays";
 
@@ -84,8 +78,35 @@ public class ClientController {
     private final AppointmentRepository appointmentRepository;
     private final AestheticCareStockService aestheticCareStockService;
     private final PaymentService paymentService;
+    private final StorageService storageService;
 
     // Methods.
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @DeleteMapping(CLIENT_CARDS + "/{cardName:[0-9]+\\.[a-zA-Z]+}")
+    public void deleteClientCard(@PathVariable(name = "idClient") int idClient, @PathVariable(name = "cardName") String cardName) {
+        String[] split = cardName.split("\\.");
+        storageService.deleteClientCard(idClient, Long.parseLong(split[0]), split[1]);
+    }
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @GetMapping(CLIENT_CARDS)
+    public List<String> getClientCardsPath(@PathVariable(name = "idClient") int idClient) {
+        return storageService.getClientCardsPath(idClient);
+    }
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PostMapping(CLIENT_CARDS)
+    public void uploadClientCard(@PathVariable(name = "idClient") int idClient, @RequestParam("client_card") MultipartFile file) {
+        storageService.storeClientCard(idClient, file);
+    }
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
+    @PostMapping(CLIENT_CARDS + "/several")
+    public void uploadSeveralClientCards(@PathVariable(name = "idClient") int idClient, @RequestParam("client_card") MultipartFile[] files) {
+        for (MultipartFile file : files)
+            uploadClientCard(idClient, file);
+    }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
     @GetMapping("/{idClient}" + CLIENT_REMAINING_STOCKS_PAY)
@@ -147,7 +168,7 @@ public class ClientController {
             return ResponseEntity.ok(responseDTO);
     }
 
-    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @PostMapping("/{clientId}")
     public ResponseEntity<ClientDTO> updateClient(@PathVariable(name = "clientId") int clientId, @RequestBody ClientDTO clientDTO) {
         if (clientDTO.getIdPerson() != clientId) {
@@ -165,19 +186,12 @@ public class ClientController {
         return ResponseEntity.ok(client);
     }
 
-    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @GetMapping
-    public ResponseEntity<List<ClientDTO>> getClientWithFilter(@RequestParam("filter") String filter,
-                                                               @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-                                                               @RequestParam(value = "pageSize", required = false, defaultValue = "40") int pageSize) {
-        try {
-            Pageable pageable = PageRequest.of(page, pageSize);
-            List<Client> clients = new ClientSearchFilter(filter).search(clientRepository, pageable);
-            return ResponseEntity.ok(clients.stream().map(Client::transform).toList());
-        } catch (IllegalArgumentException e) {
-            log.debug("Wrong filter format => {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Collections.emptyList());
-        }
+    public List<ClientDTO> getClientWithFilter(@RequestParam("filter") String filter,
+                                               @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                                               @RequestParam(value = "pageSize", required = false, defaultValue = "40") int pageSize) {
+        return clientService.searchClientWithFilter(filter, page, pageSize).stream().map(Client::transform).toList();
     }
 
     private boolean verifyPermissionForDoubloonVerification(boolean doubloonVerification, Authentication authentication) {
@@ -221,90 +235,5 @@ public class ClientController {
         }
 
         return ResponseEntity.ok(allPersonOrigins);
-    }
-
-    @Builder
-    @Getter
-    @ToString
-    @AllArgsConstructor
-    private static class ClientSearchFilter {
-        private String firstName;
-        private String lastName;
-        private String email;
-        private String phone;
-
-        public ClientSearchFilter(String filter) {
-            this.extractAndSet(filter);
-        }
-
-        private void extractAndSet(String filter) {
-            String[] data = filter.split(" ");
-            verifyFilterFormat(filter, data);
-            extractFilterValue(data);
-        }
-
-        private void verifyFilterFormat(String filter, String[] splitFilter) {
-            if (splitFilter.length != SEARCH_CLIENT_FILTER_SPLIT_ARRAY_SIZE)
-                throw new IllegalArgumentException("Search client filter not correctly formatted, expected must be filter = firstName=value " +
-                                                           "lastName=value email=value phone=value, current = " + filter);
-        }
-
-        private void extractFilterValue(String[] data) {
-            for (String d : data) {
-                String[] dataSplit = d.split("=");
-                String key = dataSplit[0];
-                if (dataSplit.length == 2)
-                    setValue(key, dataSplit[1]);
-            }
-        }
-
-        private void setValue(String key, String value) {
-            switch (key) {
-                case "firstName" -> this.setFirstName(value);
-                case "lastName" -> this.setLastName(value);
-                case "email" -> this.setEmail(value);
-                case "phone" -> this.setPhone(value);
-                default -> throw new IllegalArgumentException("Search client filter argument unknown, filter key = " + key);
-            }
-        }
-
-        public void setFirstName(String firstName) {
-            if (correctValue(firstName))
-                this.firstName = firstName.toLowerCase();
-        }
-
-        public void setLastName(String lastName) {
-            if (correctValue(lastName))
-                this.lastName = lastName.toLowerCase();
-        }
-
-        public void setEmail(String email) {
-            if (correctValue(email))
-                this.email = email.toLowerCase();
-        }
-
-        public void setPhone(String phone) {
-            if (correctValue(phone)) {
-                try {
-                    this.phone = StringTool.removeRemainingSpaces(PhoneTool.permissiveFormatPhone(phone));
-                } catch (PhoneTool.UnSupportedPhoneNumberException | PhoneTool.NotPhoneNumberException | PhoneTool.FailToFormatPhoneNumber e) {
-                    this.phone = null;
-                }
-            }
-        }
-
-        private boolean correctValue(String value) {
-            return value != null && !value.isBlank();
-        }
-
-        private List<Client> search(ClientRepository clientRepository, Pageable pageable) {
-            String firstNameFilter = firstName != null && !firstName.isBlank() ? firstName + "%" : "%";
-            String lastNameFilter = lastName != null && !lastName.isBlank() ? lastName + "%" : "%";
-            String emailFilter = email != null && !email.isBlank() ? email + "%" : "%";
-            String phoneFilter = phone != null && !phone.isBlank() ? phone + "%" : "%";
-
-            return clientRepository.findByFirstNameLikeAndLastNameLikeAndEmailLikeAndPhoneLike(firstNameFilter, lastNameFilter, emailFilter,
-                                                                                               phoneFilter, pageable);
-        }
     }
 }

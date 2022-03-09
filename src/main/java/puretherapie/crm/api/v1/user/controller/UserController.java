@@ -5,11 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.user.service.UserLoginService;
+import puretherapie.crm.api.v1.user.service.UserPasswordService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 
 import javax.servlet.http.HttpSession;
@@ -30,11 +28,30 @@ public class UserController {
     public static final String USER_LOGOUT = "/logout";
     public static final String USER_LOGOUT_URL = API_V1_USER_URL + USER_LOGOUT;
 
+    public static final String USER_FORGET_PASSWORD = "/passwordForgotten";
+    public static final String USER_FORGET_PASSWORD_URL = API_V1_USER_URL + USER_FORGET_PASSWORD;
+
+    public static final String USER_RESET_PASSWORD = "/password/reset";
+    public static final String USER_RESET_PASSWORD_URL = API_V1_USER_URL + USER_RESET_PASSWORD;
+
     // Variables.
 
     private final UserLoginService userLoginService;
+    private final UserPasswordService userPasswordService;
 
     // Methods.
+
+    @PostMapping(USER_FORGET_PASSWORD)
+    public void forgotPassword(@RequestParam(name = "username") String username) {
+        userPasswordService.userForgotPassword(username);
+    }
+
+    @PostMapping(USER_RESET_PASSWORD)
+    public void resetPassword(@RequestParam(name = "username") String username,
+                              @RequestParam(name = "code") long code,
+                              @RequestBody String password) {
+        userPasswordService.resetPassword(code, username, password);
+    }
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(USER_LOGIN)

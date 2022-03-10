@@ -3,7 +3,7 @@ package puretherapie.crm.api.v1.product.bill.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.api.v1.product.bill.controller.dto.PurchaseDTO;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.person.client.Client;
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.BOSS_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -49,7 +49,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final MeansOfPaymentRepository meansOfPaymentRepository;
     private final BillRepository billRepository;
-    private final NotificationCreationService notificationCreationService;
+    private final HistoricalCreationService historicalCreationService;
     private final BundlePurchaseRepository bundlePurchaseRepository;
     private final SessionPurchaseRepository sessionPurchaseRepository;
 
@@ -262,17 +262,17 @@ public class PaymentService {
     }
 
     private void notifyPaymentDone(Client client, double amount) {
-        boolean success = notificationCreationService.createNotification(PAYMENT_DONE_TITLE,
-                                                                         PAYMENT_DONE_TEXT.formatted(client.simplyIdentifier(), amount),
-                                                                         BOSS_LEVEL, false);
+        boolean success = historicalCreationService.createHistorical(PAYMENT_DONE_TITLE,
+                                                                     PAYMENT_DONE_TEXT.formatted(client.simplyIdentifier(), amount),
+                                                                     BOSS_LEVEL, false);
         if (!success)
             log.error("Fail to create payment done notification");
     }
 
     private void notifyPaymentCanceled(Client client, double amount) {
-        boolean success = notificationCreationService.createNotification(PAYMENT_CANCELED_TITLE,
-                                                                         PAYMENT_CANCELED_TEXT.formatted(amount, client.simplyIdentifier()),
-                                                                         BOSS_LEVEL, true);
+        boolean success = historicalCreationService.createHistorical(PAYMENT_CANCELED_TITLE,
+                                                                     PAYMENT_CANCELED_TEXT.formatted(amount, client.simplyIdentifier()),
+                                                                     BOSS_LEVEL, true);
         if (!success)
             log.error("Fail to create payment canceled notification");
     }

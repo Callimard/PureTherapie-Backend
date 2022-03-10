@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientAbsence;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.isTooMuchLateFromNow;
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.BOSS_LEVEL;
 import static puretherapie.crm.tool.TimeTool.today;
 
 @Slf4j
@@ -41,7 +41,7 @@ public class ClientAbsenceService {
 
     private final AppointmentRepository appointmentRepository;
     private final ClientAbsenceRepository clientAbsenceRepository;
-    private final NotificationCreationService notificationCreationService;
+    private final HistoricalCreationService historicalCreationService;
 
     // Schedule methods.
 
@@ -84,10 +84,10 @@ public class ClientAbsenceService {
     }
 
     private void notifyAbsenceCreate(Client client, LocalDate day, LocalTime time, Technician technician) {
-        boolean success = notificationCreationService.createNotification(CREATE_ABSENCE_TITLE,
-                                                                         CREATE_ABSENCE_TEXT.formatted(client.simplyIdentifier(), day, time,
+        boolean success = historicalCreationService.createHistorical(CREATE_ABSENCE_TITLE,
+                                                                     CREATE_ABSENCE_TEXT.formatted(client.simplyIdentifier(), day, time,
                                                                                                        technician.simplyIdentifier()),
-                                                                         BOSS_LEVEL, true);
+                                                                     BOSS_LEVEL, true);
         if (!success)
             log.error("Fail to create notification for the absence");
     }

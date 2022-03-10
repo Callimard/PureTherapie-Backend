@@ -19,7 +19,7 @@ import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentFailDTO
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentSuccessDTO;
 import puretherapie.crm.api.v1.appointment.service.TakeAppointmentService;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.authentication.SecurityUserService;
 import puretherapie.crm.data.person.user.User;
 
@@ -50,7 +50,7 @@ public class AppointmentControllerTest {
     private TakeAppointmentService mockAppointCreatService;
 
     @MockBean
-    private NotificationCreationService mockNotifCreatService;
+    private HistoricalCreationService mockNotifCreatService;
 
     @MockBean
     private SecurityUserService mockSecurityUserService;
@@ -133,7 +133,7 @@ public class AppointmentControllerTest {
     }
 
     private void prepareAlwaysNotificationCreationSuccess() {
-        given(mockNotifCreatService.createNotification(anyString(), anyString(), anyString(), anyBoolean())).willReturn(true);
+        given(mockNotifCreatService.createHistorical(anyString(), anyString(), anyString(), anyBoolean())).willReturn(true);
     }
 
     private void prepareUserSecurityService(String role) {

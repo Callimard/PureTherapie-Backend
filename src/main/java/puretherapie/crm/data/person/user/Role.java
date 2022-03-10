@@ -1,7 +1,7 @@
 package puretherapie.crm.data.person.user;
 
 import lombok.*;
-import puretherapie.crm.data.notification.NotificationLevel;
+import puretherapie.crm.data.historical.HistoricalLevel;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -35,11 +35,11 @@ public class Role implements Serializable {
     private String roleName;
 
     @ManyToMany
-    @JoinTable(name = "AssociationRoleNotificationLevel",
+    @JoinTable(name = "AssociationRoleHistoricalLevel",
             joinColumns = @JoinColumn(name = "idRole"),
-            inverseJoinColumns = @JoinColumn(name = "idNotificationLevel"))
+            inverseJoinColumns = @JoinColumn(name = "idHistoricalLevel"))
     @ToString.Exclude
-    private List<NotificationLevel> notificationLevels;
+    private List<HistoricalLevel> historicalLevels;
 
     @ManyToMany
     @JoinTable(name = "AssociationRoleAuthority",

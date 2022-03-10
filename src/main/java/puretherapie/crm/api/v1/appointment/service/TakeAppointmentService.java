@@ -11,7 +11,7 @@ import puretherapie.crm.api.v1.agenda.service.TimeSlotAtomService;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentFailDTO;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentSuccessDTO;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianAbsenceService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianLaunchBreakService;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianService;
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Set;
 
 import static puretherapie.crm.data.agenda.Opening.correctTimeSlotTime;
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.BOSS_SECRETARY_LEVEL;
 import static puretherapie.crm.tool.TimeTool.minuteBetween;
 
 @Slf4j
@@ -74,7 +74,7 @@ public class TakeAppointmentService {
     private final TechnicianLaunchBreakService technicianLaunchBreakService;
     private final TechnicianService technicianService;
     private final TechnicianAbsenceService technicianAbsenceService;
-    private final NotificationCreationService notificationCreationService;
+    private final HistoricalCreationService historicalCreationService;
     private final TimeSlotAtomService tsaService;
     private final OpeningService openingService;
 
@@ -417,11 +417,11 @@ public class TakeAppointmentService {
     }
 
     private void notifyAppointmentCreate(Client client, Technician technician, LocalDate day, LocalTime beginTime) {
-        boolean success = notificationCreationService.createNotification(NOTIFICATION_APPOINTMENT_CREATION_TITLE,
-                                                                         NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(day, beginTime,
+        boolean success = historicalCreationService.createHistorical(NOTIFICATION_APPOINTMENT_CREATION_TITLE,
+                                                                     NOTIFICATION_APPOINTMENT_CREATION_TEXT.formatted(day, beginTime,
                                                                                                                           client.simplyIdentifier(),
                                                                                                                           technician.simplyIdentifier()),
-                                                                         BOSS_SECRETARY_LEVEL, false);
+                                                                     BOSS_SECRETARY_LEVEL, false);
         if (!success)
             log.error("Fail to create appointment notification");
     }

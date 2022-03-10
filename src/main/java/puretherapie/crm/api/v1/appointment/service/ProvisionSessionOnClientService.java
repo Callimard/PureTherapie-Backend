@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.api.v1.product.aesthetic.bundle.service.ReduceStockService;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.PurchaseSessionService;
 import puretherapie.crm.api.v1.product.aesthetic.care.service.UseSessionService;
@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.BOSS_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -71,7 +71,7 @@ public class ProvisionSessionOnClientService {
     private final StockRepository stockRepository;
     private final ReduceStockService reduceStockService;
     private final PurchaseSessionService purchaseSessionService;
-    private final NotificationCreationService notificationCreationService;
+    private final HistoricalCreationService historicalCreationService;
 
     // Methods.
 
@@ -240,11 +240,11 @@ public class ProvisionSessionOnClientService {
     }
 
     private void notifyProvisionSession(AestheticCare aestheticCare, Client client, Technician technician) {
-        boolean success = notificationCreationService.createNotification(PROVISION_SESSION_TITLE,
-                                                                         PROVISION_SESSION_TEXT.formatted(aestheticCare.getName(),
+        boolean success = historicalCreationService.createHistorical(PROVISION_SESSION_TITLE,
+                                                                     PROVISION_SESSION_TEXT.formatted(aestheticCare.getName(),
                                                                                                           client.simplyIdentifier(),
                                                                                                           technician.simplyIdentifier()),
-                                                                         BOSS_LEVEL, true);
+                                                                     BOSS_LEVEL, true);
         if (!success)
             log.error("Fail to create provision session notification");
     }

@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.notification.controller.dto;
+package puretherapie.crm.api.v1.historical.controller.dto;
 
 import lombok.*;
 
@@ -8,11 +8,11 @@ import lombok.*;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class NotificationDTO {
+public class HistoricalDTO {
 
-    private int idNotification;
+    private int idHistorical;
     private boolean type;
-    private String notificationTitle;
+    private String historicalTitle;
     private String text;
     private String creationDate;
 

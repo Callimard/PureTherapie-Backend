@@ -1,4 +1,4 @@
-package puretherapie.crm.api.v1.notification.service;
+package puretherapie.crm.api.v1.historical.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -10,10 +10,10 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import puretherapie.crm.data.notification.NotificationLevel;
-import puretherapie.crm.data.notification.repository.NotificationLevelRepository;
-import puretherapie.crm.data.notification.repository.NotificationRepository;
-import puretherapie.crm.data.notification.repository.NotificationViewRepository;
+import puretherapie.crm.data.historical.HistoricalLevel;
+import puretherapie.crm.data.historical.repository.HistoricalLevelRepository;
+import puretherapie.crm.data.historical.repository.HistoricalRepository;
+import puretherapie.crm.data.historical.repository.HistoricalViewRepository;
 import puretherapie.crm.data.person.user.Role;
 import puretherapie.crm.data.person.user.User;
 import puretherapie.crm.data.person.user.repository.RoleRepository;
@@ -27,32 +27,32 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static puretherapie.crm.data.notification.NotificationLevel.ALL_ROLES_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.ALL_ROLES_LEVEL;
 
 @Slf4j
 @SpringBootTest
 @DisplayName("Notification Service Tests")
-public class NotificationCreationServiceTest {
+public class HistoricalCreationServiceTest {
 
     private static final String CORRECT_TITLE = "CORRECT_TITLE";
     private static final String CORRECT_TEXT = "CORRECT_TEXT";
 
     @Autowired
-    private NotificationCreationService notificationCreationService;
+    private HistoricalCreationService historicalCreationService;
 
     @Nested
     @DisplayName("createNotification tests")
-    class CreateNotification {
+    class CreateHistorical {
 
         @Nested
         @DisplayName("With NotificationLevel name arg")
-        class WithNotificationLevelNameAgr {
+        class WithHistoricalLevelNameAgr {
 
             @ParameterizedTest
             @ValueSource(strings = {"\t", "", " ", "      "})
             @DisplayName("Test if createNotification returns false if level name is blank")
             void testWithBlankLevelName(String blank) {
-                boolean success = notificationCreationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, blank, false);
+                boolean success = historicalCreationService.createHistorical(CORRECT_TITLE, CORRECT_TEXT, blank, false);
 
                 verifyFail(success);
             }
@@ -62,7 +62,7 @@ public class NotificationCreationServiceTest {
             void testWithUnknownLevelName() {
                 prepareMinimalContext();
                 prepareUnknownNotificationLevel();
-                boolean success = notificationCreationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, UNKNOWN_NOTIFICATION_LEVEL, false);
+                boolean success = historicalCreationService.createHistorical(CORRECT_TITLE, CORRECT_TEXT, UNKNOWN_NOTIFICATION_LEVEL, false);
 
                 verifyFail(success);
             }
@@ -72,7 +72,7 @@ public class NotificationCreationServiceTest {
             void testWithKnownLevelNameWithoutRoles() {
                 prepareMinimalContext();
                 prepareFactitiousNotificationLevel();
-                boolean success = notificationCreationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, FACTITIOUS_NOTIFICATION_LEVEL, false);
+                boolean success = historicalCreationService.createHistorical(CORRECT_TITLE, CORRECT_TEXT, FACTITIOUS_NOTIFICATION_LEVEL, false);
 
                 verifyFail(success);
             }
@@ -82,7 +82,7 @@ public class NotificationCreationServiceTest {
             void testWithKnownLevelNameWithRole() {
                 prepareMinimalContext();
                 prepareAllRolesLevel();
-                boolean success = notificationCreationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, ALL_ROLES_LEVEL, false);
+                boolean success = historicalCreationService.createHistorical(CORRECT_TITLE, CORRECT_TEXT, ALL_ROLES_LEVEL, false);
 
                 verifySuccess(success);
             }
@@ -91,14 +91,14 @@ public class NotificationCreationServiceTest {
 
         @Nested
         @DisplayName("With NotificationLevel object arg")
-        class WithNotificationLevelArg {
+        class WithHistoricalLevelArg {
 
             @ParameterizedTest
             @ValueSource(strings = {"\t", "", " ", "      "})
             @DisplayName("Test if createNotification returns false if notification level name is blank")
             void testWithBlankLevelName(String blank) {
-                NotificationLevel level = NotificationLevel.builder().notificationLevelName(blank).build();
-                boolean success = notificationCreationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, level, false);
+                HistoricalLevel level = HistoricalLevel.builder().historicalLevelName(blank).build();
+                boolean success = historicalCreationService.createHistorical(CORRECT_TITLE, CORRECT_TEXT, level, false);
 
                 verifyFail(success);
             }
@@ -108,9 +108,9 @@ public class NotificationCreationServiceTest {
             void testWithFailDuringNotificationViewCreation() {
                 prepareMinimalContext();
                 prepareDefaultAllRolesLevel();
-                given(mockNotificationViewRepository.save(any())).willThrow(new IllegalArgumentException());
+                given(mockHistoricalViewRepository.save(any())).willThrow(new IllegalArgumentException());
 
-                boolean success = notificationCreationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, (NotificationLevel) null, false);
+                boolean success = historicalCreationService.createHistorical(CORRECT_TITLE, CORRECT_TEXT, (HistoricalLevel) null, false);
 
                 verifyFail(success);
             }
@@ -121,9 +121,9 @@ public class NotificationCreationServiceTest {
                 prepareMinimalContext();
                 prepareFactitiousNotificationLevel();
 
-                NotificationLevel level = mockNotificationLevelRepository.findByNotificationLevelName(FACTITIOUS_NOTIFICATION_LEVEL);
+                HistoricalLevel level = mockHistoricalLevelRepository.findByHistoricalLevelName(FACTITIOUS_NOTIFICATION_LEVEL);
                 log.debug("False level find = {}", level);
-                boolean success = notificationCreationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, level, false);
+                boolean success = historicalCreationService.createHistorical(CORRECT_TITLE, CORRECT_TEXT, level, false);
 
                 verifyFail(success);
             }
@@ -135,18 +135,18 @@ public class NotificationCreationServiceTest {
                 prepareMinimalContext();
                 prepareDefaultAllRolesLevel();
 
-                boolean success = notificationCreationService.createNotification(blank, CORRECT_TEXT, (NotificationLevel) null, false);
+                boolean success = historicalCreationService.createHistorical(blank, CORRECT_TEXT, (HistoricalLevel) null, false);
                 verifyFail(success);
 
-                success = notificationCreationService.createNotification(CORRECT_TITLE, blank, (NotificationLevel) null, false);
+                success = historicalCreationService.createHistorical(CORRECT_TITLE, blank, (HistoricalLevel) null, false);
                 verifyFail(success);
 
-                success = notificationCreationService.createNotification(blank, blank, (NotificationLevel) null, false);
+                success = historicalCreationService.createHistorical(blank, blank, (HistoricalLevel) null, false);
                 verifyFail(success);
 
-                success = notificationCreationService.createNotification(CORRECT_TITLE, CORRECT_TEXT,
-                                                                         NotificationLevel.builder().notificationLevelName(blank).build(),
-                                                                         false);
+                success = historicalCreationService.createHistorical(CORRECT_TITLE, CORRECT_TEXT,
+                                                                     HistoricalLevel.builder().historicalLevelName(blank).build(),
+                                                                     false);
                 verifyFail(success);
             }
 
@@ -157,11 +157,11 @@ public class NotificationCreationServiceTest {
                 prepareDefaultAllRolesLevel();
                 prepareAllRolesLevel();
 
-                boolean success = notificationCreationService.createNotification(CORRECT_TITLE, CORRECT_TEXT, (NotificationLevel) null, false);
+                boolean success = historicalCreationService.createHistorical(CORRECT_TITLE, CORRECT_TEXT, (HistoricalLevel) null, false);
 
                 verifySuccess(success);
 
-                verify(mockNotificationViewRepository, times(2)).save(any());
+                verify(mockHistoricalViewRepository, times(2)).save(any());
             }
         }
     }
@@ -177,12 +177,12 @@ public class NotificationCreationServiceTest {
     // Context.
 
     @MockBean
-    private NotificationRepository mockNotificationRepository;
+    private HistoricalRepository mockHistoricalRepository;
 
     @MockBean
-    private NotificationLevelRepository mockNotificationLevelRepository;
+    private HistoricalLevelRepository mockHistoricalLevelRepository;
     @Mock
-    private NotificationLevel mockNotificationLevel;
+    private HistoricalLevel mockHistoricalLevel;
     private static final String UNKNOWN_NOTIFICATION_LEVEL = "UNKNOWN_LEVEL";
     private static final String FACTITIOUS_NOTIFICATION_LEVEL = "FACTITIOUS_NOTIFICATION_LEVEL";
 
@@ -190,7 +190,7 @@ public class NotificationCreationServiceTest {
     private UserRepository mockUserRepository;
 
     @MockBean
-    private NotificationViewRepository mockNotificationViewRepository;
+    private HistoricalViewRepository mockHistoricalViewRepository;
 
     @MockBean
     private RoleRepository mockRoleRepository;
@@ -218,30 +218,30 @@ public class NotificationCreationServiceTest {
     }
 
     private void prepareNotificationRepository() {
-        given(mockNotificationRepository.save(any())).willReturn(null);
+        given(mockHistoricalRepository.save(any())).willReturn(null);
     }
 
     private void prepareRoleRepository() {
         List<Role> roles = new ArrayList<>();
         roles.add(mockRole);
-        given(mockRoleRepository.findByNotificationLevels(any())).willReturn(roles);
+        given(mockRoleRepository.findByHistoricalLevels(any())).willReturn(roles);
     }
 
     private void prepareUnknownNotificationLevel() {
-        given(mockNotificationLevelRepository.findByNotificationLevelName(UNKNOWN_NOTIFICATION_LEVEL)).willReturn(null);
+        given(mockHistoricalLevelRepository.findByHistoricalLevelName(UNKNOWN_NOTIFICATION_LEVEL)).willReturn(null);
     }
 
     private void prepareFactitiousNotificationLevel() {
-        given(mockNotificationLevelRepository.findByNotificationLevelName(FACTITIOUS_NOTIFICATION_LEVEL)).willReturn(mockNotificationLevel);
+        given(mockHistoricalLevelRepository.findByHistoricalLevelName(FACTITIOUS_NOTIFICATION_LEVEL)).willReturn(mockHistoricalLevel);
     }
 
     private void prepareDefaultAllRolesLevel() {
-        given(mockNotificationLevelRepository.getAllRolesLevel()).willReturn(mockNotificationLevel);
+        given(mockHistoricalLevelRepository.getAllRolesLevel()).willReturn(mockHistoricalLevel);
     }
 
     private void prepareAllRolesLevel() {
-        given(mockNotificationLevelRepository.findByNotificationLevelName(ALL_ROLES_LEVEL)).willReturn(mockNotificationLevel);
-        given(mockNotificationLevel.getNotificationLevelName()).willReturn(ALL_ROLES_LEVEL);
+        given(mockHistoricalLevelRepository.findByHistoricalLevelName(ALL_ROLES_LEVEL)).willReturn(mockHistoricalLevel);
+        given(mockHistoricalLevel.getHistoricalLevelName()).willReturn(ALL_ROLES_LEVEL);
     }
 
 }

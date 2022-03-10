@@ -3,7 +3,7 @@ package puretherapie.crm.api.v1.appointment.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.ClientDelay;
@@ -19,7 +19,7 @@ import java.time.LocalTime;
 
 import static puretherapie.crm.api.v1.SimpleService.DATA_DIRECTORY_PATH;
 import static puretherapie.crm.api.v1.SimpleService.createDataDirectory;
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.BOSS_LEVEL;
 import static puretherapie.crm.tool.TimeTool.minuteBetween;
 
 @Slf4j
@@ -46,7 +46,7 @@ public class ClientDelayService {
     private final ClientRepository clientRepository;
     private final AppointmentRepository appointmentRepository;
     private final ClientDelayRepository clientDelayRepository;
-    private final NotificationCreationService notificationCreationService;
+    private final HistoricalCreationService historicalCreationService;
 
     // Methods.
 
@@ -187,9 +187,9 @@ public class ClientDelayService {
     }
 
     private void notifyClientDelay(Client client, LocalTime time) {
-        boolean success = notificationCreationService.createNotification(CLIENT_DELAY_TITLE,
-                                                                         CLIENT_DELAY_TEXT.formatted(client.simplyIdentifier(), time),
-                                                                         BOSS_LEVEL, false);
+        boolean success = historicalCreationService.createHistorical(CLIENT_DELAY_TITLE,
+                                                                     CLIENT_DELAY_TEXT.formatted(client.simplyIdentifier(), time),
+                                                                     BOSS_LEVEL, false);
         if (!success)
             log.error("Fail to create client delay notification");
     }

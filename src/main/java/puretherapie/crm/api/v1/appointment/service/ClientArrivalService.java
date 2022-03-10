@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.api.v1.waitingroom.service.PlaceInWaitingRoomService;
 import puretherapie.crm.data.appointment.Appointment;
@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import static puretherapie.crm.api.v1.appointment.service.ClientDelayService.*;
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.BOSS_SECRETARY_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -47,7 +47,7 @@ public class ClientArrivalService {
     private final ClientArrivalRepository clientArrivalRepository;
     private final ClientDelayService clientDelayService;
     private final PlaceInWaitingRoomService placeInWaitingRoomService;
-    private final NotificationCreationService notificationCreationService;
+    private final HistoricalCreationService historicalCreationService;
     private final SurbookingRepository surbookingRepository;
 
     // Methods.
@@ -174,9 +174,9 @@ public class ClientArrivalService {
     }
 
     private void notifyClientArrival(Client client, LocalTime time) {
-        boolean success = notificationCreationService.createNotification(CLIENT_ARRIVAL_TITLE,
-                                                                         CLIENT_ARRIVAL_TEXT.formatted(client.simplyIdentifier(), time),
-                                                                         BOSS_SECRETARY_LEVEL, false);
+        boolean success = historicalCreationService.createHistorical(CLIENT_ARRIVAL_TITLE,
+                                                                     CLIENT_ARRIVAL_TEXT.formatted(client.simplyIdentifier(), time),
+                                                                     BOSS_SECRETARY_LEVEL, false);
         if (!success)
             log.error("Fail to create client arrival notification");
     }

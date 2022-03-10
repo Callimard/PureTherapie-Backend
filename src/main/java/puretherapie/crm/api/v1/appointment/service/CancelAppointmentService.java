@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.api.v1.waitingroom.service.RemoveFromWaitingRoomService;
 import puretherapie.crm.data.agenda.TimeSlot;
@@ -20,7 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.BOSS_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -45,7 +45,7 @@ public class CancelAppointmentService {
     private final RemoveFromWaitingRoomService removeFromWaitingRoomService;
     private final AppointmentRepository appointmentRepository;
     private final TimeSlotRepository timeSlotRepository;
-    private final NotificationCreationService notificationCreationService;
+    private final HistoricalCreationService historicalCreationService;
 
     // Methods.
 
@@ -115,10 +115,10 @@ public class CancelAppointmentService {
     }
 
     private void notifyAppointmentCanceled(Client client, LocalDate day, LocalTime time, Technician technician) {
-        boolean success = notificationCreationService.createNotification(APPOINTMENT_CANCELED_TITLE,
-                                                                         APPOINTMENT_CANCELED_TEXT.formatted(client.simplyIdentifier(), day, time,
+        boolean success = historicalCreationService.createHistorical(APPOINTMENT_CANCELED_TITLE,
+                                                                     APPOINTMENT_CANCELED_TEXT.formatted(client.simplyIdentifier(), day, time,
                                                                                                              technician.simplyIdentifier()),
-                                                                         BOSS_LEVEL, true);
+                                                                     BOSS_LEVEL, true);
 
         if (!success)
             log.error("Fail to create appointment cancellation notification");

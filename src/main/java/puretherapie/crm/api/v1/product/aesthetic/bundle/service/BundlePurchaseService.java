@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.person.client.repository.ClientRepository;
@@ -25,7 +25,7 @@ import puretherapie.crm.data.product.bill.repository.PaymentTypeRepository;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.BOSS_SECRETARY_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -50,7 +50,7 @@ public class BundlePurchaseService {
     private final BillRepository billRepository;
     private final BundlePurchaseRepository bundlePurchaseRepository;
     private final StockRepository stockRepository;
-    private final NotificationCreationService notificationCreationService;
+    private final HistoricalCreationService historicalCreationService;
 
     // Methods.
 
@@ -212,9 +212,9 @@ public class BundlePurchaseService {
     }
 
     private void notifyBundlePurchase(Bundle bundle, Client client) {
-        boolean success = notificationCreationService.createNotification(BUNDLE_PURCHASE_TITLE,
-                                                                         BUNDLE_PURCHASE_TEXT.formatted(bundle.getName(), client.simplyIdentifier()),
-                                                                         BOSS_SECRETARY_LEVEL, false);
+        boolean success = historicalCreationService.createHistorical(BUNDLE_PURCHASE_TITLE,
+                                                                     BUNDLE_PURCHASE_TEXT.formatted(bundle.getName(), client.simplyIdentifier()),
+                                                                     BOSS_SECRETARY_LEVEL, false);
         if (!success)
             log.error("Fail to create bundle purchase notification");
     }

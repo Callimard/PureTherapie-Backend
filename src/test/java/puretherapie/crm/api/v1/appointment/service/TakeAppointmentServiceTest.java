@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentFailDTO;
 import puretherapie.crm.api.v1.appointment.controller.dto.TakeAppointmentResponseDTO;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.data.agenda.*;
 import puretherapie.crm.data.agenda.repository.*;
 import puretherapie.crm.data.appointment.Appointment;
@@ -411,7 +411,7 @@ public class TakeAppointmentServiceTest {
     private static final int LAUNCH_BREAK_DURATION = 60;
 
     @MockBean
-    private NotificationCreationService mockNotificationCreationService;
+    private HistoricalCreationService mockHistoricalCreationService;
 
     private void prepareMinimalContext() {
         prepareClientRepository();
@@ -472,7 +472,7 @@ public class TakeAppointmentServiceTest {
     }
 
     private void prepareNotificationCreationService() {
-        given(mockNotificationCreationService.createNotification(anyString(), anyString(), anyString(), anyBoolean())).willReturn(true);
+        given(mockHistoricalCreationService.createHistorical(anyString(), anyString(), anyString(), anyBoolean())).willReturn(true);
     }
 
     private void prepareGORepository() {

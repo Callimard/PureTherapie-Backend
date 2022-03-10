@@ -3,7 +3,7 @@ package puretherapie.crm.api.v1.product.aesthetic.bundle.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.product.aesthetic.bundle.Bundle;
 import puretherapie.crm.data.product.aesthetic.bundle.BundlePurchase;
@@ -14,7 +14,7 @@ import puretherapie.crm.data.product.aesthetic.bundle.repository.StockRepository
 import java.util.Collections;
 import java.util.List;
 
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.BOSS_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -34,7 +34,7 @@ public class StockService {
 
     private final BundlePurchaseRepository bundlePurchaseRepository;
     private final StockRepository stockRepository;
-    private final NotificationCreationService notificationCreationService;
+    private final HistoricalCreationService historicalCreationService;
 
     // Methods
 
@@ -97,9 +97,9 @@ public class StockService {
     }
 
     private void notifyStockUpdate(Client client, Bundle bundle) {
-        boolean success = notificationCreationService.createNotification(UPDATE_STOCK_TITLE,
-                                                                         UPDATE_STOCK_TEXT.formatted(client.simplyIdentifier(), bundle.getName()),
-                                                                         BOSS_LEVEL, true);
+        boolean success = historicalCreationService.createHistorical(UPDATE_STOCK_TITLE,
+                                                                     UPDATE_STOCK_TEXT.formatted(client.simplyIdentifier(), bundle.getName()),
+                                                                     BOSS_LEVEL, true);
         if (!success)
             log.error("Fail to create update stock notification");
     }

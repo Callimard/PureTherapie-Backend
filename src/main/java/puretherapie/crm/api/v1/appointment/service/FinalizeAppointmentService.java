@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import puretherapie.crm.api.v1.notification.service.NotificationCreationService;
+import puretherapie.crm.api.v1.historical.service.HistoricalCreationService;
 import puretherapie.crm.api.v1.product.bill.service.PaymentService;
 import puretherapie.crm.api.v1.util.SimpleResponseDTO;
 import puretherapie.crm.data.appointment.Appointment;
@@ -16,7 +16,7 @@ import puretherapie.crm.data.person.client.Client;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import static puretherapie.crm.data.notification.NotificationLevel.BOSS_SECRETARY_LEVEL;
+import static puretherapie.crm.data.historical.HistoricalLevel.BOSS_SECRETARY_LEVEL;
 
 @Slf4j
 @AllArgsConstructor
@@ -37,7 +37,7 @@ public class FinalizeAppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final PaymentService paymentService;
-    private final NotificationCreationService notificationCreationService;
+    private final HistoricalCreationService historicalCreationService;
 
     // Methods.
 
@@ -90,9 +90,9 @@ public class FinalizeAppointmentService {
     }
 
     private void notifyAppointmentFinalized(Client client, LocalDate day, LocalTime time) {
-        boolean success = notificationCreationService.createNotification(APPOINTMENT_FINALIZED_TITLE,
-                                                                         APPOINTMENT_FINALIZED_TEXT.formatted(client.simplyIdentifier(), day, time),
-                                                                         BOSS_SECRETARY_LEVEL, false);
+        boolean success = historicalCreationService.createHistorical(APPOINTMENT_FINALIZED_TITLE,
+                                                                     APPOINTMENT_FINALIZED_TEXT.formatted(client.simplyIdentifier(), day, time),
+                                                                     BOSS_SECRETARY_LEVEL, false);
         if (!success)
             log.error("Fail to create appointment finalization notification");
     }

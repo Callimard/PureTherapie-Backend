@@ -1,4 +1,4 @@
-package puretherapie.crm.data.notification;
+package puretherapie.crm.data.historical;
 
 import lombok.*;
 import puretherapie.crm.data.person.user.Role;
@@ -14,8 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "NotificationLevel")
-public class NotificationLevel implements Serializable {
+@Table(name = "HistoricalLevel")
+public class HistoricalLevel implements Serializable {
 
     // Constants.
 
@@ -29,15 +29,15 @@ public class NotificationLevel implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idNotificationLevel", nullable = false)
-    private Integer idNotificationLevel;
+    @Column(name = "idHistoricalLevel", nullable = false)
+    private Integer idHistoricalLevel;
 
-    @Column(name = "notificationLevelName", nullable = false, length = 45)
-    private String notificationLevelName;
+    @Column(name = "historicalLevelName", nullable = false, length = 45)
+    private String historicalLevelName;
 
     @ManyToMany
-    @JoinTable(name = "AssociationRoleNotificationLevel",
-            joinColumns = @JoinColumn(name = "idNotificationLevel"),
+    @JoinTable(name = "AssociationRoleHistoricalLevel",
+            joinColumns = @JoinColumn(name = "idHistoricalLevel"),
             inverseJoinColumns = @JoinColumn(name = "idRole"))
     @ToString.Exclude
     private List<Role> roles;

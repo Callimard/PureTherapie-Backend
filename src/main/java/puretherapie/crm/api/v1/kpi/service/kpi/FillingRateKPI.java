@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import puretherapie.crm.api.v1.agenda.controller.dto.TimeSlotDTO;
-import puretherapie.crm.api.v1.agenda.service.OpeningService;
 import puretherapie.crm.api.v1.kpi.service.ExecutableKPI;
 import puretherapie.crm.api.v1.person.technician.service.TechnicianService;
 import puretherapie.crm.data.person.technician.Technician;
@@ -29,7 +28,6 @@ public class FillingRateKPI extends ExecutableKPI {
 
     // Variables
 
-    private final OpeningService openingService;
     private final TechnicianService technicianService;
     private final TechnicianRepository technicianRepository;
 

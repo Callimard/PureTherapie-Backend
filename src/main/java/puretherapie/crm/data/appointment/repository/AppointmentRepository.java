@@ -19,5 +19,5 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     List<Appointment> findByDay(LocalDate day);
 
-    List<Appointment> findByCanceledFalseAndFinalizedFalse();
+    List<Appointment> findByDayGreaterThanEqualAndDayLessThanAndCanceledFalse(LocalDate begin, LocalDate end);
 }

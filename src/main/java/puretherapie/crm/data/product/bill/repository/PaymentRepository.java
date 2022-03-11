@@ -15,6 +15,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
 
     List<Payment> findByMeansOfPaymentAndCanceledAndPaymentDateGreaterThanEqualAndPaymentDateLessThan(MeansOfPayment meansOfPayment,
                                                                                                       boolean canceled,
-                                                                                                      LocalDateTime paymentDate,
-                                                                                                      LocalDateTime paymentDate2);
+                                                                                                      LocalDateTime begin,
+                                                                                                      LocalDateTime end);
 }

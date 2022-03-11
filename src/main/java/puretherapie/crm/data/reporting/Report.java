@@ -6,7 +6,7 @@ import puretherapie.crm.data.Transformable;
 import puretherapie.crm.data.kpi.Kpi;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,10 +26,10 @@ public class Report implements Transformable<ReportDTO> {
     private int idReport;
 
     @Column(name = "dateBegin", nullable = false)
-    private LocalDateTime dateBegin;
+    private LocalDate dateBegin;
 
     @Column(name = "dateEnd", nullable = false)
-    private LocalDateTime dateEnd;
+    private LocalDate dateEnd;
 
     @Column(name = "file")
     private String file;

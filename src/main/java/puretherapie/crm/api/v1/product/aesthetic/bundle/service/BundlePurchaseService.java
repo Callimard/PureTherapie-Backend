@@ -177,6 +177,7 @@ public class BundlePurchaseService {
                 .client(client)
                 .bundle(bundle)
                 .bill(bill)
+                .date(bill.getCreationDate())
                 .build();
     }
 

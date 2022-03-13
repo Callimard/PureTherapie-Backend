@@ -7,6 +7,7 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.product.bill.Bill;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Builder
 @Getter
@@ -28,6 +29,9 @@ public class SessionPurchase {
     @ManyToOne(optional = false)
     @JoinColumn(name = "idAestheticCare", nullable = false)
     private AestheticCare aestheticCare;
+
+    @Column(name = "date", nullable = false)
+    private LocalDateTime date;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "idClient", nullable = false)

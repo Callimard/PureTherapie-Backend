@@ -6,6 +6,7 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCare;
 import puretherapie.crm.data.product.aesthetic.care.SessionPurchase;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -16,5 +17,7 @@ public interface SessionPurchaseRepository extends JpaRepository<SessionPurchase
     List<SessionPurchase> findByClientAndAestheticCare(Client client, AestheticCare aestheticCare);
 
     List<SessionPurchase> findByClient(Client client);
+
+    List<SessionPurchase> findByDateGreaterThanEqualAndDateLessThan(LocalDateTime begin, LocalDateTime end);
 
 }

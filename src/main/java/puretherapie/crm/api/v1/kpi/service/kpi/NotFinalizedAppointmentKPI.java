@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import puretherapie.crm.api.v1.kpi.service.ExecutableKPI;
+import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.product.aesthetic.care.AestheticCareProvision;
 import puretherapie.crm.data.product.aesthetic.care.repository.AestheticCareProvisionRepository;
 
@@ -39,7 +40,8 @@ public class NotFinalizedAppointmentKPI extends ExecutableKPI {
                 aestheticCareProvisionRepository.findByDateGreaterThanEqualAndDateLessThan(beginDateTime, endDateTime);
         int counter = 0;
         for (AestheticCareProvision aestheticCareProvision : aestheticCareProvisionList) {
-            if (!aestheticCareProvision.getAppointment().isFinalized()) {
+            Appointment appointment = aestheticCareProvision.getAppointment();
+            if (appointment != null && !appointment.isFinalized()) {
                 counter++;
             }
         }

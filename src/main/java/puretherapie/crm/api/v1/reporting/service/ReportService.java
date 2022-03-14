@@ -29,7 +29,50 @@ public class ReportService {
 
     // Methods.
 
-    public Report saveDayReport(LocalDate day) {
+    public void generateAnnualReport() {
+        Report report = saveAnnualReport(LocalDate.now());
+        executeReport(report);
+    }
+
+    public void generateMonthlyReport() {
+        Report report = saveMonthlyReport(LocalDate.now());
+        executeReport(report);
+    }
+
+    public void generateWeeklyReport() {
+        Report report = saveWeeklyReport(LocalDate.now());
+        executeReport(report);
+    }
+
+    public void generateDailyReport() {
+        Report report = saveDailyReport(LocalDate.now());
+        executeReport(report);
+    }
+
+    public Report saveAnnualReport(LocalDate day) {
+        LocalDate firstDayYear = day.withDayOfYear(1);
+        LocalDate lastDayYear = day.withDayOfYear(day.lengthOfYear());
+        ReportType reportType = reportTypeRepository.findByName(ReportType.BasicReportType.YEAR.reportTypeName());
+        log.debug("First day year = {}", firstDayYear);
+        log.debug("Last day year = {}", lastDayYear);
+        return saveReport(reportType, firstDayYear, lastDayYear, new ArrayList<>(reportType.getConfigurationKpis()));
+    }
+
+    public Report saveMonthlyReport(LocalDate day) {
+        LocalDate firstDayMonth = day.withDayOfMonth(1);
+        LocalDate lastDayMonth = day.withDayOfMonth(day.lengthOfMonth());
+        ReportType reportType = reportTypeRepository.findByName(ReportType.BasicReportType.MONTH.reportTypeName());
+        return saveReport(reportType, firstDayMonth, lastDayMonth, new ArrayList<>(reportType.getConfigurationKpis()));
+    }
+
+    public Report saveWeeklyReport(LocalDate day) {
+        LocalDate firstDayWeek = day.minusDays(day.getDayOfWeek().getValue() - 1L);
+        LocalDate lastDayWeek = day.plusDays(7L - day.getDayOfWeek().getValue());
+        ReportType reportType = reportTypeRepository.findByName(ReportType.BasicReportType.WEEK.reportTypeName());
+        return saveReport(reportType, firstDayWeek, lastDayWeek, new ArrayList<>(reportType.getConfigurationKpis()));
+    }
+
+    public Report saveDailyReport(LocalDate day) {
         ReportType reportType = reportTypeRepository.findByName(ReportType.BasicReportType.DAY.reportTypeName());
         return saveReport(reportType, day, day, new ArrayList<>(reportType.getConfigurationKpis()));
     }

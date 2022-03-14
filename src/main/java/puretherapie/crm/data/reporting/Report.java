@@ -82,7 +82,7 @@ public class Report implements Transformable<ReportDTO> {
         return switch (getReportType().typeToEnum()) {
             case DAY -> "Rapport journalier du " + getDateBegin().toString();
             case WEEK -> "Rapport hebdomadaire de la semaine du " + getDateBegin().toString() + " au " + getDateEnd();
-            case MONTH -> "Rapport mensuel du mois de" + getDateBegin().getMonth() + " de l'année " + getDateBegin().getYear();
+            case MONTH -> "Rapport mensuel du mois de " + getDateBegin().getMonth() + " de l'année " + getDateBegin().getYear();
             case TRIMESTER -> "Rapport trimestriel de l'année " + getDateBegin().getYear() + " (du " + getDateBegin().toString() + " au " +
                     getDateEnd() +
                     ")";
@@ -90,7 +90,6 @@ public class Report implements Transformable<ReportDTO> {
                     getDateEnd() +
                     ")";
             case YEAR -> "Rapport annuel de l'année " + getDateBegin().getYear();
-            default -> "Rapport du " + getDateBegin().toString() + " au " + getDateEnd().toString();
         };
     }
 }

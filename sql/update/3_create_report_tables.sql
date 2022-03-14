@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `puretherapie`.`Report` (
 CREATE UNIQUE INDEX `file_UNIQUE` ON `puretherapie`.`Report` (`file` ASC) VISIBLE;
 
 CREATE INDEX `fk_report_report_type_idx` ON `puretherapie`.`Report` (`idReportType` ASC) VISIBLE;
+CREATE INDEX `report_date_idx` ON `puretherapie`.`Report` (`dateBegin`, `dateEnd` ASC) VISIBLE;
 
 -- -----------------------------------------------------
 -- Table `puretherapie`.`ReportConfiguration`

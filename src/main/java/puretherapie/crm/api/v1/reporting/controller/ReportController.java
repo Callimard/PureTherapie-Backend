@@ -33,7 +33,7 @@ public class ReportController {
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @GetMapping
     public void generatePDF() {
-        Report report = reportService.saveDayReport(LocalDate.now());
+        Report report = reportService.saveAnnualReport(LocalDate.parse("1996-12-15"));
         reportService.executeReport(report);
     }
 

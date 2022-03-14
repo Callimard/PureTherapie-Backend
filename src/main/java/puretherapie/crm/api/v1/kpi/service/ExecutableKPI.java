@@ -1,9 +1,6 @@
 package puretherapie.crm.api.v1.kpi.service;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -43,6 +40,7 @@ public abstract class ExecutableKPI {
     @Builder
     @Getter
     @Setter
+    @ToString
     @AllArgsConstructor
     public static class KPIRes {
 

@@ -6,4 +6,7 @@ import puretherapie.crm.data.reporting.ReportType;
 
 @Repository
 public interface ReportTypeRepository extends JpaRepository<ReportType, Integer> {
+
+    ReportType findByName(String name);
+
 }

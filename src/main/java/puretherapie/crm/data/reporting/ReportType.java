@@ -6,6 +6,9 @@ import puretherapie.crm.data.Transformable;
 import puretherapie.crm.data.kpi.Kpi;
 
 import javax.persistence.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,5 +44,24 @@ public class ReportType implements Transformable<ReportTypeDTO> {
                 .name(name)
                 .configurationKpis(configurationKpis != null ? configurationKpis.stream().map(Kpi::transform).collect(Collectors.toSet()) : null)
                 .build();
+    }
+
+    public String reportTypePath() {
+        return Report.REPORT_ROOT_PATH + "/" + getName();
+    }
+
+    public static void createReportTypeDirectoryIfNotExists(ReportType reportType) throws IOException {
+        Path reportTypePath = Path.of(reportType.reportTypePath());
+        Files.createDirectories(reportTypePath);
+    }
+
+    // Enum.
+
+    public enum BasicReportType {
+        DAY, WEEK, MONTH, TRIMESTER, SEMESTER, YEAR;
+
+        public String reportTypeName() {
+            return name().toLowerCase();
+        }
     }
 }

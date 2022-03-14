@@ -12,7 +12,8 @@ VALUES ('day'),
        ('month'),
        ('trimester'),
        ('semester'),
-       ('year');
+       ('year'),
+       ('custom');
 
 SELECT idReportType INTO @dayReport FROM puretherapie.ReportType WHERE name = 'day';
 SELECT idReportType INTO @weekReport FROM puretherapie.ReportType WHERE name = 'week';
@@ -20,6 +21,7 @@ SELECT idReportType INTO @monthReport FROM puretherapie.ReportType WHERE name = 
 SELECT idReportType INTO @trimesterReport FROM puretherapie.ReportType WHERE name = 'trimester';
 SELECT idReportType INTO @semesterReport FROM puretherapie.ReportType WHERE name = 'semester';
 SELECT idReportType INTO @yearReport FROM puretherapie.ReportType WHERE name = 'year';
+SELECT idReportType INTO @customReport FROM puretherapie.ReportType WHERE name = 'custom';
 
 INSERT INTO puretherapie.DefaultReportTypeConfiguration (idReportType, idKPI)
 VALUES (@dayReport, @clientPurchasesKPI),
@@ -68,4 +70,12 @@ VALUES (@dayReport, @clientPurchasesKPI),
        (@yearReport, @notFinalizedAppointmentKPI),
        (@yearReport, @surbookingKPI),
        (@yearReport, @technicianACProvisionKPI),
-       (@yearReport, @turnoverKPI);
+       (@yearReport, @turnoverKPI),
+
+       (@customReport, @clientPurchasesKPI),
+       (@customReport, @fillingRateKPI),
+       (@customReport, @newClientAndOriginKPI),
+       (@customReport, @notFinalizedAppointmentKPI),
+       (@customReport, @surbookingKPI),
+       (@customReport, @technicianACProvisionKPI),
+       (@customReport, @turnoverKPI);

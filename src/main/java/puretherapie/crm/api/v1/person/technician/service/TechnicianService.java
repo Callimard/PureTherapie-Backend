@@ -48,7 +48,6 @@ public class TechnicianService {
         if (openingService.isOpen(day)) {
             return fillTimeSLotOfTheDay(day, idTechnician);
         } else {
-            log.debug("No technician time slot for the date {} because not open", day);
             return Collections.emptyList();
         }
 

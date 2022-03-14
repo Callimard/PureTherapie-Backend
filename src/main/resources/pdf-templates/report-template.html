@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <style>
+        h1 {
+            color: #2a4da5;
+        }
+
+        .quotation {
+            width: 100%;
+        }
+
+        .quotation, .quotation th, .quotation td {
+            border: 1px solid brown;
+            border-collapse: collapse;
+        }
+
+        .quotation th {
+            background-color: brown;
+            color: white;
+        }
+    </style>
+    <title>Report</title>
+</head>
+<body>
+<h1 th:text="'Rapport pour les dates ' + ${begin} + ' / ' + ${end}"></h1>
+<div th:each="kpiRes:${reportResults}">
+    <div th:replace="kpi-templates::__${kpiRes.kpiName.getValue()}__(res=${kpiRes.res})">
+
+    </div>
+</div>
+</body>
+</html>

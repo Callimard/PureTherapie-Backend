@@ -53,9 +53,11 @@ public class ClientPurchasesKPI extends ExecutableKPI {
         Pair<Pair<Integer, Integer>, Double> pairBundlePurchaseNumber = countBundlePurchase(mapBundlePurchaseNumber, bundlePurchases);
 
         AllPurchases sessionAllPurchases =
-                mapSessionPurchaseNumber.entrySet().stream().map(this::extractAllPurchases).reduce(this::mergeAllPurchases).orElse(null);
+                mapSessionPurchaseNumber.entrySet().stream().map(this::extractAllPurchases).reduce(this::mergeAllPurchases)
+                        .orElse(new AllPurchases(0.d, 0.d, Collections.emptyList()));
         AllPurchases bundleAllPurchases =
-                mapBundlePurchaseNumber.entrySet().stream().map(this::extractAllPurchases).reduce(this::mergeAllPurchases).orElse(null);
+                mapBundlePurchaseNumber.entrySet().stream().map(this::extractAllPurchases).reduce(this::mergeAllPurchases)
+                        .orElse(new AllPurchases(0.d, 0.d, Collections.emptyList()));
 
         double totalSalesPrice = pairSessionPurchaseNumber.getSecond() + pairBundlePurchaseNumber.getSecond();
         int totalSaleCounter = pairSessionPurchaseNumber.getFirst().getFirst() + pairBundlePurchaseNumber.getFirst().getFirst();
@@ -78,12 +80,12 @@ public class ClientPurchasesKPI extends ExecutableKPI {
 
     private AllPurchases mergeAllPurchases(AllPurchases p1, AllPurchases p2) {
         ArrayList<Purchase> sessionPurchaseKPIS = new ArrayList<>();
-        sessionPurchaseKPIS.addAll(p1.sessionPurchases);
-        sessionPurchaseKPIS.addAll(p2.sessionPurchases);
+        sessionPurchaseKPIS.addAll(p1.purchases);
+        sessionPurchaseKPIS.addAll(p2.purchases);
 
-        double totalSalesPrices = p1.totalSalesPrices + p2.totalSalesPrices;
-        double newRate = p1.newClientSalesRate / (totalSalesPrices / p1.totalSalesPrices);
-        double newRate2 = p2.newClientSalesRate / (totalSalesPrices / p2.totalSalesPrices);
+        double totalSalesPrices = p1.salesPrice + p2.salesPrice;
+        double newRate = p1.newClientSalesRate / (totalSalesPrices / p1.salesPrice);
+        double newRate2 = p2.newClientSalesRate / (totalSalesPrices / p2.salesPrice);
 
         return new AllPurchases(totalSalesPrices,
                                 newRate + newRate2,
@@ -170,7 +172,7 @@ public class ClientPurchasesKPI extends ExecutableKPI {
                                                 AllPurchases bundleAllPurchasesKPIS) {
     }
 
-    public static record AllPurchases(double totalSalesPrices, double newClientSalesRate, List<Purchase> sessionPurchases) {
+    public static record AllPurchases(double salesPrice, double newClientSalesRate, List<Purchase> purchases) {
     }
 
     public static record Purchase(String productName, int nbSales, int nbNewClientSales) {

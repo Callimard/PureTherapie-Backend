@@ -1,11 +1,69 @@
-<div xmlns:th="http://www.thymeleaf.org" lang="fr" th:fragment="ClientPurchasesKPI">
-    <h2>ClientPurchasesKPI</h2>
-    <p th:text="'Res = ' + ${res}"></p>
-    <!--<span th:text="'Chiffre d\'affaire totale = ' + ${package.totalTurnover}"></span>
-    <div th:each="turnoverByMP:${package.turnoverByMeanOfPayment}">
-        <p th:text="'Moyen de payment: ' + ${turnoverByMP.meansOfPayment}"></p>
-        <p th:text="'Chiffre d\'affaire: ' + ${turnoverByMP.turnover}"></p>
-    </div>-->
+<div xmlns:th="http://www.thymeleaf.org" lang="fr" th:fragment="ClientPurchasesKPI" class="kpi-container">
+    <h2 class="kpi-title">Ventes clients</h2>
+    <div class="kpi-info">
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Prix total des ventes: </span>
+            <span class="kpi-info-content" th:text="${res.totalSalesPrice} + ' €'"></span>
+        </div>
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Part (en nombre de ventes) des nouveaux clients: </span>
+            <span class="kpi-info-content" th:text="${res.totalNewClientRate}"></span>
+        </div>
+    </div>
+    <div class="kpi-info">
+        <h3 class="kpi-sub-title">Ventes de soins</h3>
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Prix total des ventes de soins: </span>
+            <span class="kpi-info-content" th:text="${res.sessionAllPurchasesKPIS.salesPrice} + ' €'"></span>
+        </div>
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Part (en nombre de ventes) des nouveaux clients pour la vente de soins: </span>
+            <span class="kpi-info-content" th:text="${res.sessionAllPurchasesKPIS.newClientSalesRate}"></span>
+        </div>
+        <div class="kpi-info" th:if="${#lists.size(res.sessionAllPurchasesKPIS.purchases) > 0}">
+            <h4 class="kpi-sub-title">Tous les soins</h4>
+            <ul>
+                <li class="kpi-info" th:each="purchase: ${res.sessionAllPurchasesKPIS.purchases}">
+                    <h4 th:text="${purchase.productName}"></h4>
+                    <div class="kpi-info-row">
+                        <span>Nombre de ventes: </span>
+                        <span th:text="${purcahse.nbSales}"></span>
+                    </div>
+                    <div class="kpi-info-row">
+                        <span>Nombre de ventes aux nouveaux clients: </span>
+                        <span th:text="${purcahse.nbNewClientSales}"></span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="kpi-info">
+        <h3 class="kpi-sub-title">Ventes de packages</h3>
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Prix total des ventes de soins: </span>
+            <span class="kpi-info-content" th:text="${res.bundleAllPurchasesKPIS.salesPrice} + ' €'"></span>
+        </div>
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Part (en nombre de ventes) des nouveaux clients pour la vente de soins: </span>
+            <span class="kpi-info-content" th:text="${res.bundleAllPurchasesKPIS.newClientSalesRate}"></span>
+        </div>
+        <div class="kpi-info" th:if="${#lists.size(res.bundleAllPurchasesKPIS.purchases) > 0}">
+            <h4 class="kpi-sub-title">Tous les packages</h4>
+            <ul>
+                <li class="kpi-info" th:each="purchase: ${res.bundleAllPurchasesKPIS.purchases}">
+                    <h5 th:text="'Nom du package: ' + ${purchase.productName}"></h5>
+                    <div class="kpi-info-row">
+                        <span>Nombre de ventes: </span>
+                        <span th:text="${purchase.nbSales}"></span>
+                    </div>
+                    <div class="kpi-info-row">
+                        <span>Nombre de ventes aux nouveaux clients: </span>
+                        <span th:text="${purchase.nbNewClientSales}"></span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
 </div>
 
 <div xmlns:th="http://www.thymeleaf.org" lang="fr" th:fragment="FillingRateKPI">

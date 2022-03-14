@@ -6,4 +6,7 @@ import puretherapie.crm.data.reporting.Report;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Integer> {
+
+    Report findByIdReport(int idReport);
+
 }

@@ -9,9 +9,7 @@ import puretherapie.crm.data.reporting.Report;
 import puretherapie.crm.data.reporting.ReportType;
 import puretherapie.crm.data.reporting.repository.ReportRepository;
 import puretherapie.crm.data.reporting.repository.ReportTypeRepository;
-import puretherapie.crm.tool.service.PDFGeneratorService;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -24,28 +22,34 @@ public class ReportService {
 
     private final ReportRepository reportRepository;
     private final ReportTypeRepository reportTypeRepository;
-    private final PDFGeneratorService pdfGeneratorService;
+    private final PDFReportGeneratorService pdfReportGeneratorService;
     private final KPIFactory kpiFactory;
 
     // Methods.
 
-    public void generateAnnualReport() {
-        Report report = saveAnnualReport(LocalDate.now());
+    public void generateCustomReport(LocalDate begin, LocalDate end) {
+        ReportType reportType = reportTypeRepository.findByName("custom");
+        Report report = saveReport(reportType, begin, end, new ArrayList<>(reportType.getConfigurationKpis()));
         executeReport(report);
     }
 
-    public void generateMonthlyReport() {
-        Report report = saveMonthlyReport(LocalDate.now());
+    public void generateAnnualReport(LocalDate oneDayOfYear) {
+        Report report = saveAnnualReport(oneDayOfYear);
         executeReport(report);
     }
 
-    public void generateWeeklyReport() {
-        Report report = saveWeeklyReport(LocalDate.now());
+    public void generateMonthlyReport(LocalDate oneDayOfMonth) {
+        Report report = saveMonthlyReport(oneDayOfMonth);
         executeReport(report);
     }
 
-    public void generateDailyReport() {
-        Report report = saveDailyReport(LocalDate.now());
+    public void generateWeeklyReport(LocalDate oneDayOfWeek) {
+        Report report = saveWeeklyReport(oneDayOfWeek);
+        executeReport(report);
+    }
+
+    public void generateDailyReport(LocalDate day) {
+        Report report = saveDailyReport(day);
         executeReport(report);
     }
 
@@ -94,31 +98,18 @@ public class ReportService {
     }
 
     private String generateReportPath(ReportType reportType) {
-        return reportType.reportTypePath() + "/" + System.currentTimeMillis() + ".pdf";
+        return "/" + reportType.getName() + "/" + System.currentTimeMillis() + ".pdf";
     }
 
     public void executeReport(Report report) {
-        try {
-            ReportType.createReportTypeDirectoryIfNotExists(report.getReportType());
-            generateReportFile(report);
-        } catch (IOException e) {
-            throw new ReportException("Fail to create report directory", e);
-        }
+        generateReportFile(report);
     }
 
     private void generateReportFile(Report report) {
         Map<String, Object> args = new HashMap<>();
         args.put("reportTitle", report.generateReportTile());
         args.put("reportResults", report.execute(kpiFactory));
-        pdfGeneratorService.generatePdfFile("report-template", args, report.getFile());
-    }
-
-    // Exceptions.
-
-    public static class ReportException extends RuntimeException {
-        public ReportException(String message, Throwable cause) {
-            super(message, cause);
-        }
+        pdfReportGeneratorService.generatePdfFile("report-template", args, report.getFile());
     }
 
 }

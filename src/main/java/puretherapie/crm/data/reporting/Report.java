@@ -24,10 +24,6 @@ import java.util.stream.Collectors;
 @Table(name = "Report")
 public class Report implements Transformable<ReportDTO> {
 
-    // Static.
-
-    public static final String REPORT_ROOT_PATH = "/reports";
-
     // Variables.
 
     @Id
@@ -90,6 +86,7 @@ public class Report implements Transformable<ReportDTO> {
                     getDateEnd() +
                     ")";
             case YEAR -> "Rapport annuel de l'année " + getDateBegin().getYear();
+            case CUSTOM -> "Rapport du " + getDateBegin().toString() + " au " + getDateEnd().toString();
         };
     }
 }

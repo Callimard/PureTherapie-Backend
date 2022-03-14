@@ -50,19 +50,10 @@ public class ReportType implements Transformable<ReportTypeDTO> {
         return BasicReportType.valueOf(getName().toUpperCase());
     }
 
-    public String reportTypePath() {
-        return Report.REPORT_ROOT_PATH + "/" + getName();
-    }
-
-    public static void createReportTypeDirectoryIfNotExists(ReportType reportType) throws IOException {
-        Path reportTypePath = Path.of(reportType.reportTypePath());
-        Files.createDirectories(reportTypePath);
-    }
-
     // Enum.
 
     public enum BasicReportType {
-        DAY, WEEK, MONTH, TRIMESTER, SEMESTER, YEAR;
+        DAY, WEEK, MONTH, TRIMESTER, SEMESTER, YEAR, CUSTOM;
 
         public String reportTypeName() {
             return name().toLowerCase();

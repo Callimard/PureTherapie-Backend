@@ -38,7 +38,7 @@ public class TechnicianACProvisionKPI extends ExecutableKPI {
     protected KPIRes executeFor(LocalDate begin, LocalDate end) {
         List<Technician> technicians = technicianRepository.findByActive(true);
         Map<String, Integer> mapTechNbAC = new HashMap<>();
-        Map<String, Double> mapTechAveragePay = new HashMap<>();
+        Map<String, Double> mapTechPay = new HashMap<>();
 
         for (LocalDate ite = begin; ite.isBefore(end.plusDays(1)); ite = ite.plusDays(1)) {
             for (Technician technician : technicians) {
@@ -51,32 +51,32 @@ public class TechnicianACProvisionKPI extends ExecutableKPI {
 
                 double techDayPay =
                         techDayACProvisions.stream().map(acP -> acP.getAestheticCare().getPrice()).reduce(Double::sum).orElse(0.d);
-                mapTechAveragePay.merge(technician.simplyIdentifier(), techDayPay, Double::sum);
+                mapTechPay.merge(technician.simplyIdentifier(), techDayPay, Double::sum);
             }
         }
 
         List<TechnicianNumberACProvision> technicianNumberACProvisions = mapTechNbAC.entrySet().stream()
                 .map(entry -> new TechnicianNumberACProvision(entry.getKey(), entry.getValue())).toList();
-        List<TechnicianAveragePay> technicianAveragePays = mapTechAveragePay.entrySet().stream()
-                .map(entry -> new TechnicianAveragePay(entry.getKey(), entry.getValue() / mapTechAveragePay.size())).toList();
+        List<TechnicianPay> technicianPays = mapTechPay.entrySet().stream()
+                .map(entry -> new TechnicianPay(entry.getKey(), entry.getValue())).toList();
 
-        return new TechnicianACProvisionKPIRes(technicianNumberACProvisions, technicianAveragePays);
+        return new TechnicianACProvisionKPIRes(technicianNumberACProvisions, technicianPays);
     }
 
     public static class TechnicianACProvisionKPIRes extends KPIRes {
         public TechnicianACProvisionKPIRes(List<TechnicianNumberACProvision> technicianNumberACProvisions,
-                                           List<TechnicianAveragePay> technicianAveragePays) {
-            super(TECHNICIAN_AC_PROVISION_KPI_NAME, new TechnicianACProvisionKPIPackage(technicianNumberACProvisions, technicianAveragePays));
+                                           List<TechnicianPay> technicianPays) {
+            super(TECHNICIAN_AC_PROVISION_KPI_NAME, new TechnicianACProvisionKPIPackage(technicianNumberACProvisions, technicianPays));
         }
     }
 
     public static record TechnicianACProvisionKPIPackage(List<TechnicianNumberACProvision> technicianNumberACProvisions,
-                                                         List<TechnicianAveragePay> technicianAveragePays) {
+                                                         List<TechnicianPay> technicianPays) {
     }
 
     public static record TechnicianNumberACProvision(String technician, int nbACProvisions) {
     }
 
-    public static record TechnicianAveragePay(String technician, double averagePay) {
+    public static record TechnicianPay(String technician, double technicianPay) {
     }
 }

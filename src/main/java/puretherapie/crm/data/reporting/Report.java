@@ -10,10 +10,7 @@ import puretherapie.crm.data.kpi.Kpi;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -72,10 +69,28 @@ public class Report implements Transformable<ReportDTO> {
 
     public List<ExecutableKPI.KPIRes> execute(KPIFactory kpiFactory) {
         List<ExecutableKPI.KPIRes> kpiResList = new ArrayList<>();
-        for (Kpi kpi : configurationKpis) {
-            ExecutableKPI executableKPI = kpiFactory.getExecutableKPI(kpi.getName());
+        List<String> kpis = new ArrayList<>(configurationKpis.stream().map(Kpi::getName).toList());
+        Collections.sort(kpis);
+        for (String kpiName : kpis) {
+            ExecutableKPI executableKPI = kpiFactory.getExecutableKPI(kpiName);
             kpiResList.add(executableKPI.execute(dateBegin, dateEnd));
         }
         return kpiResList;
+    }
+
+    public String generateReportTile() {
+        return switch (getReportType().typeToEnum()) {
+            case DAY -> "Rapport journalier du " + getDateBegin().toString();
+            case WEEK -> "Rapport hebdomadaire de la semaine du " + getDateBegin().toString() + " au " + getDateEnd();
+            case MONTH -> "Rapport mensuel du mois de" + getDateBegin().getMonth() + " de l'année " + getDateBegin().getYear();
+            case TRIMESTER -> "Rapport trimestriel de l'année " + getDateBegin().getYear() + " (du " + getDateBegin().toString() + " au " +
+                    getDateEnd() +
+                    ")";
+            case SEMESTER -> "Rapport semestriel de l'année  " + getDateBegin().getYear() + " (du " + getDateBegin().toString() + " au " +
+                    getDateEnd() +
+                    ")";
+            case YEAR -> "Rapport annuel de l'année " + getDateBegin().getYear();
+            default -> "Rapport du " + getDateBegin().toString() + " au " + getDateEnd().toString();
+        };
     }
 }

@@ -46,6 +46,10 @@ public class ReportType implements Transformable<ReportTypeDTO> {
                 .build();
     }
 
+    public BasicReportType typeToEnum() {
+        return BasicReportType.valueOf(getName().toUpperCase());
+    }
+
     public String reportTypePath() {
         return Report.REPORT_ROOT_PATH + "/" + getName();
     }

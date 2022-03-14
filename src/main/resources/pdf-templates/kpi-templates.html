@@ -44,7 +44,7 @@
             <span class="kpi-info-content" th:text="${res.bundleAllPurchasesKPIS.salesPrice} + ' €'"></span>
         </div>
         <div class="kpi-info-row">
-            <span class="kpi-info-title">Part (en nombre de ventes) des nouveaux clients pour la vente de soins: </span>
+            <span class="kpi-info-title">Part (en nombre de ventes) des nouveaux clients pour la vente de packages: </span>
             <span class="kpi-info-content" th:text="${res.bundleAllPurchasesKPIS.newClientSalesRate}"></span>
         </div>
         <div class="kpi-info" th:if="${#lists.size(res.bundleAllPurchasesKPIS.purchases) > 0}">
@@ -86,51 +86,81 @@
 </div>
 
 <div xmlns:th="http://www.thymeleaf.org" lang="fr" th:fragment="NewClientAndOriginKPI">
-    <h2>NewClientAndOriginKPI</h2>
-    <p th:text="'Res = ' + ${res}"></p>
-    <!--<span th:text="'Chiffre d\'affaire totale = ' + ${package.totalTurnover}"></span>
-    <div th:each="turnoverByMP:${package.turnoverByMeanOfPayment}">
-        <p th:text="'Moyen de payment: ' + ${turnoverByMP.meansOfPayment}"></p>
-        <p th:text="'Chiffre d\'affaire: ' + ${turnoverByMP.turnover}"></p>
-    </div>-->
+    <h2 class="kpi-title">Nouveaux clients et leurs provenances</h2>
+    <div class="kpi-info">
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Nombre total de nouveaux clients: </span>
+            <span class="kpi-info-content" th:text="${res.totalNewClient}"></span>
+        </div>
+    </div>
+    <div class="kpi-info">
+        <h3 class="kpi-sub-title">Nombre de nouveaux clients par provenance:</h3>
+        <ul>
+            <li class="kpi-info" th:each="newClientOrigin:${res.newClientOrigins}">
+                <h4 th:text="${newClientOrigin.origin}"></h4>
+                <span th:text="'Nombre de nouveaux clients: ' + ${newClientOrigin.nbNewClients}"></span>
+            </li>
+        </ul>
+    </div>
 </div>
 
 <div xmlns:th="http://www.thymeleaf.org" lang="fr" th:fragment="NotFinalizedAppointmentKPI">
-    <h2>NotFinalizedAppointmentKPI</h2>
-    <p th:text="'Res = ' + ${res}"></p>
-    <!--<span th:text="'Chiffre d\'affaire totale = ' + ${package.totalTurnover}"></span>
-    <div th:each="turnoverByMP:${package.turnoverByMeanOfPayment}">
-        <p th:text="'Moyen de payment: ' + ${turnoverByMP.meansOfPayment}"></p>
-        <p th:text="'Chiffre d\'affaire: ' + ${turnoverByMP.turnover}"></p>
-    </div>-->
+    <h2 class="kpi-title">Rendez-vous non finalisés</h2>
+    <div class="kpi-info">
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Rendez-vous non finalisés mais avec un soin qui a été pratiqué: </span>
+            <span class="kpi-info-content" th:text="${res.nbNotFinalizedAppointment}"></span>
+        </div>
+    </div>
 </div>
 
 <div xmlns:th="http://www.thymeleaf.org" lang="fr" th:fragment="SurbookingKPI">
-    <h2>SurbookingKPI</h2>
-    <p th:text="'Res = ' + ${res}"></p>
-    <!--<span th:text="'Chiffre d\'affaire totale = ' + ${package.totalTurnover}"></span>
-    <div th:each="turnoverByMP:${package.turnoverByMeanOfPayment}">
-        <p th:text="'Moyen de payment: ' + ${turnoverByMP.meansOfPayment}"></p>
-        <p th:text="'Chiffre d\'affaire: ' + ${turnoverByMP.turnover}"></p>
-    </div>-->
+    <h2 class="kpi-title">Surbooking</h2>
+    <div class="kpi-info">
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Nombre total de surbooking: </span>
+            <span class="kpi-info-content" th:text="${res.nbSurbooking}"></span>
+        </div>
+    </div>
 </div>
 
 <div xmlns:th="http://www.thymeleaf.org" lang="fr" th:fragment="TechnicianACProvisionKPI">
-    <h2>TechnicianACProvisionKPI</h2>
-    <p th:text="'Res = ' + ${res}"></p>
-    <!--<span th:text="'Chiffre d\'affaire totale = ' + ${package.totalTurnover}"></span>
-    <div th:each="turnoverByMP:${package.turnoverByMeanOfPayment}">
-        <p th:text="'Moyen de payment: ' + ${turnoverByMP.meansOfPayment}"></p>
-        <p th:text="'Chiffre d\'affaire: ' + ${turnoverByMP.turnover}"></p>
-    </div>-->
+    <h2 class="kpi-title">Soins pratiqués par technicien(ne)</h2>
+    <div class="kpi-info">
+        <h3 class="kpi-sub-title">Nombre de soins pratiqués par technicien(ne)</h3>
+        <ul>
+            <li class="kpi-info" th:each="techACPRovision:${res.technicianNumberACProvisions}">
+                <h4 th:text="${techACPRovision.technician}"></h4>
+                <span th:text="'Nombre de soins pratiqués: ' + ${techACPRovision.nbACProvisions}"></span>
+            </li>
+        </ul>
+    </div>
+    <div class="kpi-info">
+        <h3 class="kpi-sub-title">Prix total des soins pratiqués par technicien(ne)</h3>
+        <ul>
+            <li class="kpi-info" th:each="techPay:${res.technicianPays}">
+                <h4 th:text="${techPay.technician}"></h4>
+                <span th:text="'Prix total des soins pratiqués : ' + ${techPay.technicianPay} + ' €'"></span>
+            </li>
+        </ul>
+    </div>
 </div>
 
 <div xmlns:th="http://www.thymeleaf.org" lang="fr" th:fragment="TurnoverKPI">
-    <h2>TurnoverKPI</h2>
-    <p th:text="'Res = ' + ${res}"></p>
-    <!--<span th:text="'Chiffre d\'affaire totale = ' + ${package.totalTurnover}"></span>
-    <div th:each="turnoverByMP:${package.turnoverByMeanOfPayment}">
-        <p th:text="'Moyen de payment: ' + ${turnoverByMP.meansOfPayment}"></p>
-        <p th:text="'Chiffre d\'affaire: ' + ${turnoverByMP.turnover}"></p>
-    </div>-->
+    <h2 class="kpi-title">Chiffre d'affaire</h2>
+    <div class="kpi-info">
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Chiffre d'affaire total: </span>
+            <span class="kpi-info-content" th:text="${res.totalTurnover} + ' €'"></span>
+        </div>
+    </div>
+    <div class="kpi-info">
+        <h3 class="kpi-sub-title">Chiffre d'affaire par moyens de paiements</h3>
+        <ul>
+            <li class="kpi-info" th:each="meansOfPaymentTurnover:${res.turnoverByMeanOfPayment}">
+                <h4 th:text="${meansOfPaymentTurnover.meansOfPayment}"></h4>
+                <span th:text="'Chiffre d\'affaire du moyen de paiement: ' + ${meansOfPaymentTurnover.turnover} + ' €'"></span>
+            </li>
+        </ul>
+    </div>
 </div>

@@ -65,8 +65,7 @@ public class ReportService {
 
     private void generateReportFile(Report report) {
         Map<String, Object> args = new HashMap<>();
-        args.put("begin", report.getDateBegin());
-        args.put("end", report.getDateEnd());
+        args.put("reportTitle", report.generateReportTile());
         args.put("reportResults", report.execute(kpiFactory));
         pdfGeneratorService.generatePdfFile("report-template", args, report.getFile());
     }

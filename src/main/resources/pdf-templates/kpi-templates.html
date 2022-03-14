@@ -24,7 +24,7 @@
             <h4 class="kpi-sub-title">Tous les soins</h4>
             <ul>
                 <li class="kpi-info" th:each="purchase: ${res.sessionAllPurchasesKPIS.purchases}">
-                    <h4 th:text="${purchase.productName}"></h4>
+                    <h4 th:text="'Nom du soin: ' + ${purchase.productName}"></h4>
                     <div class="kpi-info-row">
                         <span>Nombre de ventes: </span>
                         <span th:text="${purcahse.nbSales}"></span>
@@ -67,13 +67,22 @@
 </div>
 
 <div xmlns:th="http://www.thymeleaf.org" lang="fr" th:fragment="FillingRateKPI">
-    <h2>FillingRateKPI</h2>
-    <p th:text="'Res = ' + ${res}"></p>
-    <!--<span th:text="'Chiffre d\'affaire totale = ' + ${package.totalTurnover}"></span>
-    <div th:each="turnoverByMP:${package.turnoverByMeanOfPayment}">
-        <p th:text="'Moyen de payment: ' + ${turnoverByMP.meansOfPayment}"></p>
-        <p th:text="'Chiffre d\'affaire: ' + ${turnoverByMP.turnover}"></p>
-    </div>-->
+    <h2 class="kpi-title">Taux de remplissage</h2>
+    <div class="kpi-info">
+        <div class="kpi-info-row">
+            <span class="kpi-info-title">Taux de remplissage total: </span>
+            <span class="kpi-info-content" th:text="${res.totalFillingRate * 100} + ' %'"></span>
+        </div>
+    </div>
+    <div class="kpi-info">
+        <h3 class="kpi-sub-title">Taux de remplissage par technicien(ne):</h3>
+        <ul>
+            <li class="kpi-info" th:each="techFillingRate:${res.technicianFillingRates}">
+                <h4 th:text="${techFillingRate.technicianIdentifier}"></h4>
+                <span th:text="'Taux de remplissage: ' + ${techFillingRate.fillingRate * 100} + ' %'"></span>
+            </li>
+        </ul>
+    </div>
 </div>
 
 <div xmlns:th="http://www.thymeleaf.org" lang="fr" th:fragment="NewClientAndOriginKPI">

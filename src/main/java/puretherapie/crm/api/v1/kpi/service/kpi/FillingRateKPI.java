@@ -63,7 +63,7 @@ public class FillingRateKPI extends ExecutableKPI {
         if (totalAvailableTS > 0) {
             totalFillingRate = (double) totalAppointmentTS / (double) totalAvailableTS;
         } else {
-            totalFillingRate = -1.d;
+            totalFillingRate = 1.d;
         }
 
         List<TechnicianFillingRate> technicianFillingRates =
@@ -114,7 +114,7 @@ public class FillingRateKPI extends ExecutableKPI {
             if (totalTechAvailableTS > 0) {
                 techFillingRate = (double) totalTechAppointmentTS / (double) totalTechAvailableTS;
             } else {
-                techFillingRate = -1.d;
+                techFillingRate = 1.d;
             }
             technicianFillingRates.add(new TechnicianFillingRate(tech.simplyIdentifier(), techFillingRate));
         });

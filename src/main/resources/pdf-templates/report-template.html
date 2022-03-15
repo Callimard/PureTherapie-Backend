@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <style>
+        .kpi-container, .kpi-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .kpi-info-row {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .report-title {
+            color: black;
+        }
+
+        .kpi-title, .kpi-sub-title {
+            color: #4b6ba9;
+        }
+
+        .kpi-title, .report-title {
+            text-decoration: underline;
+        }
+
+        .kpi-info-title {
+            font-weight: bold;
+        }
+    </style>
+    <title>Report</title>
+</head>
+<body>
+<h1 class="report-title" th:text="${reportTitle}"></h1>
+<div th:each="kpiRes:${reportResults}">
+    <div th:replace="kpi-templates::__${kpiRes.kpiName}__(res=${kpiRes.res})">
+
+    </div>
+</div>
+</body>
+</html>

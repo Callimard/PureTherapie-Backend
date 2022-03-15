@@ -148,6 +148,7 @@ public class PurchaseSessionService {
                 .client(client)
                 .aestheticCare(aestheticCare)
                 .bill(bill)
+                .date(bill.getCreationDate())
                 .build();
     }
 

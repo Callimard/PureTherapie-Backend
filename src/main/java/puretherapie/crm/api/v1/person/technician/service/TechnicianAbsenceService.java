@@ -94,40 +94,6 @@ public class TechnicianAbsenceService {
         return isInTZ(technicianAbsence.getBeginTime(), technicianAbsence.getEndTime(), beginTime, duration);
     }
 
-    /**
-     * @param idTechnician the technician id
-     * @param day          the day
-     *
-     * @return the list of all {@link TimeSlotDTO} which are not free and occupied for an appointment with the technician (no TS for absence or launch
-     * break)
-     */
-    public List<TimeSlotDTO> getTechnicianNotFreeTimeSlot(int idTechnician, LocalDate day) {
-        Technician technician = verifyTechnician(idTechnician);
-        verifyDay(day);
-        if (openingService.isOpen(day)) {
-            List<TimeSlot> occupiedTS = timeSlotRepository.findByTechnicianAndDayAndFree(technician, day, false);
-
-            List<TimeSlotDTO> allOccupiedTS = new ArrayList<>();
-            for (TimeSlot ts : occupiedTS)
-                allOccupiedTS.add(ts.transform());
-
-            return allOccupiedTS;
-        } else
-            return Collections.emptyList();
-    }
-
-    private void verifyDay(LocalDate day) {
-        if (day == null)
-            throw new IllegalArgumentException("Day cannot be null");
-    }
-
-    private Technician verifyTechnician(int idTechnician) {
-        Technician t = technicianRepository.findByIdPerson(idTechnician);
-        if (t == null)
-            throw new IllegalArgumentException("Not find technician for idTechnician %s".formatted(idTechnician));
-        return t;
-    }
-
     // Exception.
 
     public static class TechnicianAbsenceException extends RuntimeException {

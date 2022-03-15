@@ -196,6 +196,10 @@ public class PaymentService {
             Bill bill = verifyBill(idBill);
             MeansOfPayment meansOfPayment = verifyMeansOfPayment(idMeansOfPayment);
             verifyAmountPaid(amountToPaid, meansOfPayment);
+
+            if (meansOfPayment.isGrouponPayment())
+                amountToPaid = bill.getPurchasePrice();
+
             verifyNotTooMuch(bill, amountToPaid);
             Payment payment = createPayment(amountToPaid, meansOfPayment, bill);
             savePayment(payment);

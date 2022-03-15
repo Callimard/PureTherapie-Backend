@@ -4,23 +4,23 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import puretherapie.crm.api.v1.agenda.controller.dto.FreeTimeSlotDTO;
+import puretherapie.crm.api.v1.agenda.controller.dto.TimeSlotDTO;
 import puretherapie.crm.api.v1.agenda.service.OpeningService;
 import puretherapie.crm.api.v1.agenda.service.TimeSlotAtomService;
 import puretherapie.crm.data.agenda.Opening;
 import puretherapie.crm.data.agenda.TimeSlot;
 import puretherapie.crm.data.agenda.repository.TimeSlotRepository;
+import puretherapie.crm.data.person.technician.LaunchBreak;
 import puretherapie.crm.data.person.technician.Technician;
 import puretherapie.crm.data.person.technician.TechnicianAbsence;
+import puretherapie.crm.data.person.technician.repository.LaunchBreakRepository;
 import puretherapie.crm.data.person.technician.repository.TechnicianAbsenceRepository;
 import puretherapie.crm.data.person.technician.repository.TechnicianRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static puretherapie.crm.data.agenda.Opening.correctTimeSlotTime;
 
@@ -38,8 +38,103 @@ public class TechnicianService {
     private final TimeSlotRepository timeSlotRepository;
     private final TimeSlotAtomService tsaService;
     private final OpeningService openingService;
+    private final LaunchBreakRepository launchBreakRepository;
+    private final TechnicianLaunchBreakService technicianLaunchBreakService;
+    private final TimeSlotAtomService timeSlotAtomService;
 
     // Methods.
+
+    public List<TimeSlotDTO> getTechnicianTimeSlotOfTheDay(int idTechnician, LocalDate day) {
+        if (openingService.isOpen(day)) {
+            return fillTimeSLotOfTheDay(day, idTechnician);
+        } else {
+            return Collections.emptyList();
+        }
+
+    }
+
+    private List<TimeSlotDTO> fillTimeSLotOfTheDay(LocalDate day, int idTechnician) {
+        Technician technician = verifyTechnician(idTechnician);
+
+        List<Opening> openings = openingService.getOpenings(day);
+
+        List<TechnicianAbsence> technicianAbsences = technicianAbsenceRepository.findByTechnicianAndDay(technician, day);
+        LaunchBreak launchBreak = launchBreakRepository.findByTechnicianAndDay(technician, day);
+
+        int tsaNumberOfMinutes = timeSlotAtomService.searchCorrectTSA(day).getNumberOfMinutes();
+        List<TimeSlotDTO> technicianTS = getTechnicianAppointmentTimeSlot(technician.getIdPerson(), day);
+        Set<LocalTime> setCorrectBeginTS = new HashSet<>(technicianTS.stream().map(ts -> LocalTime.parse(ts.getBegin())).toList());
+
+        List<TimeSlotDTO> allTS = new ArrayList<>(technicianTS);
+        for (Opening opening : openings) {
+            List<LocalTime> correctTS = Opening.correctTimeSlotTime(opening, tsaNumberOfMinutes);
+            for (LocalTime lt : correctTS) {
+                if (setCorrectBeginTS.add(lt)) {
+                    TimeSlotDTO ts =
+                            buildTimeSlot(day, technician, tsaNumberOfMinutes, technicianAbsences, launchBreak, lt);
+                    allTS.add(ts);
+                }
+            }
+        }
+
+        Collections.sort(allTS);
+        allTS.remove(allTS.size() - 1);
+        return allTS;
+    }
+
+    private TimeSlotDTO buildTimeSlot(LocalDate day, Technician technician, int tsaNumberOfMinutes, List<TechnicianAbsence> technicianAbsences,
+                                      LaunchBreak launchBreak, LocalTime lt) {
+        TimeSlotDTO ts = buildDefaultTimeSlot(day, technician, tsaNumberOfMinutes, lt);
+        isAbsenceTimeSlot(tsaNumberOfMinutes, technicianAbsences, lt, ts);
+        isLaunchBreakTimeSlot(tsaNumberOfMinutes, launchBreak, lt, ts);
+        return ts;
+    }
+
+    private TimeSlotDTO buildDefaultTimeSlot(LocalDate day, Technician technician, int tsaNumberOfMinutes, LocalTime lt) {
+        return TimeSlotDTO.builder()
+                .technician(technician.transform())
+                .day(day.toString())
+                .begin(lt.toString())
+                .duration(tsaNumberOfMinutes)
+                .free(true)
+                .isLaunchBreak(false)
+                .isAbsence(false)
+                .build();
+    }
+
+    private void isAbsenceTimeSlot(int tsaNumberOfMinutes, List<TechnicianAbsence> technicianAbsences, LocalTime lt, TimeSlotDTO ts) {
+        if (technicianAbsenceService.isInTechnicianAbsence(technicianAbsences, lt, tsaNumberOfMinutes)) {
+            ts.setAbsence(true);
+        }
+    }
+
+    private void isLaunchBreakTimeSlot(int tsaNumberOfMinutes, LaunchBreak launchBreak, LocalTime lt, TimeSlotDTO ts) {
+        if (technicianLaunchBreakService.isDuringTechnicianLaunchBreak(launchBreak, lt, tsaNumberOfMinutes)) {
+            ts.setLaunchBreak(true);
+        }
+    }
+
+    /**
+     * @param idTechnician the technician id
+     * @param day          the day
+     *
+     * @return the list of all {@link TimeSlotDTO} which are not free and occupied for an appointment with the technician (no TS for absence or launch
+     * break)
+     */
+    public List<TimeSlotDTO> getTechnicianAppointmentTimeSlot(int idTechnician, LocalDate day) {
+        Technician technician = verifyTechnician(idTechnician);
+        verifyDay(day);
+        if (openingService.isOpen(day)) {
+            List<TimeSlot> occupiedTS = timeSlotRepository.findByTechnicianAndDayAndFree(technician, day, false);
+
+            List<TimeSlotDTO> allOccupiedTS = new ArrayList<>();
+            for (TimeSlot ts : occupiedTS)
+                allOccupiedTS.add(ts.transform());
+
+            return allOccupiedTS;
+        } else
+            return Collections.emptyList();
+    }
 
     public void activateTechnician(int idTechnician) {
         Technician technician = technicianRepository.findByIdPerson(idTechnician);

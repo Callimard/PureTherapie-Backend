@@ -2,16 +2,17 @@ package puretherapie.crm.api.v1.reporting.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import puretherapie.crm.api.v1.reporting.controller.dto.ReportPackageDTO;
+import puretherapie.crm.api.v1.reporting.controller.dto.ReportDTO;
 import puretherapie.crm.api.v1.reporting.service.ReportService;
 import puretherapie.crm.data.reporting.Report;
 import puretherapie.crm.data.reporting.ReportType;
 import puretherapie.crm.data.reporting.repository.ReportRepository;
+import puretherapie.crm.data.reporting.repository.ReportTypeRepository;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
@@ -36,16 +37,19 @@ public class ReportController {
     // Variables.
 
     private final ReportRepository reportRepository;
+    private final ReportTypeRepository reportTypeRepository;
     private final ReportService reportService;
 
     // Methods.
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @GetMapping
-    public ReportPackageDTO getAllReports() {
-        ReportPackageDTO reportPackageDTO = prepareReportPackage();
-        fillReportPackage(reportRepository.findAll(), reportPackageDTO);
-        return reportPackageDTO;
+    public List<ReportDTO> getDailyReports(@RequestParam(name = "reportTypeName") String reportTypeName,
+                                           @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                           @RequestParam(name = "pageSize", required = false, defaultValue = "40") int pageSize) {
+        ReportType reportType = reportTypeRepository.findByName(reportTypeName);
+        return reportRepository.findByReportTypeOrderByDateBeginDescDateEndDesc(reportType, PageRequest.of(page < 0 ? 0 : page, pageSize)).stream()
+                .map(Report::transform).toList();
     }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
@@ -75,40 +79,15 @@ public class ReportController {
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @PostMapping(MONTHLY_REPORTS)
-    public void generateMonthlyReport(@RequestParam(name = "oneDayOfMonth") String oneDayOfMonth) {
-        reportService.generateMonthlyReport(LocalDate.parse(oneDayOfMonth));
+    public void generateMonthlyReport(@RequestParam(name = "monthDate") String monthDate) {
+        monthDate = monthDate + "-01";
+        reportService.generateMonthlyReport(LocalDate.parse(monthDate));
     }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @PostMapping(ANNUAL_REPORTS)
     public void generateAnnualReport(@RequestParam(name = "oneDayOfYear") String oneDayOfYear) {
         reportService.generateAnnualReport(LocalDate.parse(oneDayOfYear));
-    }
-
-    private void fillReportPackage(List<Report> reports, ReportPackageDTO reportPackageDTO) {
-        for (Report report : reports) {
-            if (report.getReportType().typeToEnum() == ReportType.BasicReportType.DAY) {
-                reportPackageDTO.getDailyReports().add(report.transform());
-            } else if (report.getReportType().typeToEnum() == ReportType.BasicReportType.WEEK) {
-                reportPackageDTO.getWeeklyReports().add(report.transform());
-            } else if (report.getReportType().typeToEnum() == ReportType.BasicReportType.MONTH) {
-                reportPackageDTO.getMonthlyReports().add(report.transform());
-            } else if (report.getReportType().typeToEnum() == ReportType.BasicReportType.YEAR) {
-                reportPackageDTO.getAnnualReports().add(report.transform());
-            } else {
-                reportPackageDTO.getOtherReports().add(report.transform());
-            }
-        }
-    }
-
-    private ReportPackageDTO prepareReportPackage() {
-        return ReportPackageDTO.builder()
-                .dailyReports(new ArrayList<>())
-                .weeklyReports(new ArrayList<>())
-                .monthlyReports(new ArrayList<>())
-                .annualReports(new ArrayList<>())
-                .otherReports(new ArrayList<>())
-                .build();
     }
 
 }

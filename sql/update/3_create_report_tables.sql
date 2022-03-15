@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS `puretherapie`.`Report` (
 CREATE UNIQUE INDEX `file_UNIQUE` ON `puretherapie`.`Report` (`file` ASC) VISIBLE;
 
 CREATE INDEX `fk_report_report_type_idx` ON `puretherapie`.`Report` (`idReportType` ASC) VISIBLE;
-CREATE INDEX `report_date_idx` ON `puretherapie`.`Report` (`dateBegin`, `dateEnd` ASC) VISIBLE;
+CREATE INDEX `report_dates_desc_idx` ON `puretherapie`.`Report` (`dateBegin`, `dateEnd` DESC) VISIBLE;
+CREATE INDEX `report_dates_asc_idx` ON `puretherapie`.`Report` (`dateBegin`, `dateEnd` ASC) VISIBLE;
 
 -- -----------------------------------------------------
 -- Table `puretherapie`.`ReportConfiguration`
@@ -56,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `puretherapie`.`ReportConfiguration` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
 
-CREATE INDEX `fk_report_configuration_kpi_idx` ON `puretherapie`.`ReportConfiguration` (`idKPI` ASC) INVISIBLE;
+CREATE INDEX `fk_report_configuration_kpi_idx` ON `puretherapie`.`ReportConfiguration` (`idKPI` ASC) VISIBLE;
 
 CREATE INDEX `fk_report_configuration_report_idx` ON `puretherapie`.`ReportConfiguration` (`idReport` ASC) VISIBLE;
 
@@ -80,11 +81,11 @@ CREATE TABLE IF NOT EXISTS `puretherapie`.`DefaultReportTypeConfiguration` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
 
-CREATE INDEX `fk_default_rt_configuration_kpi_idx` ON `puretherapie`.`DefaultReportTypeConfiguration` (`idKPI` ASC) INVISIBLE;
+CREATE INDEX `fk_default_rt_configuration_kpi_idx` ON `puretherapie`.`DefaultReportTypeConfiguration` (`idKPI` ASC) VISIBLE;
 
-CREATE INDEX `fk_default_rt_configuration_report_type_idx` ON `puretherapie`.`DefaultReportTypeConfiguration` (`idReportType` ASC) INVISIBLE;
+CREATE INDEX `fk_default_rt_configuration_report_type_idx` ON `puretherapie`.`DefaultReportTypeConfiguration` (`idReportType` ASC) VISIBLE;
 
-CREATE UNIQUE INDEX `uq_report_type_kpi` ON `puretherapie`.`DefaultReportTypeConfiguration` (`idReportType` ASC, `idKPI` ASC) INVISIBLE;
+CREATE UNIQUE INDEX `uq_report_type_kpi` ON `puretherapie`.`DefaultReportTypeConfiguration` (`idReportType` ASC, `idKPI` ASC) VISIBLE;
 
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE `puretherapie`.`Report` TO 'PureTherapie_spring_user'@'%';
 GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE `puretherapie`.`ReportConfiguration` TO 'PureTherapie_spring_user'@'%';

@@ -17,4 +17,4 @@ SET sP.date = bill.creationDate;
 
 ALTER TABLE puretherapie.SessionPurchase MODIFY COLUMN date DATETIME NOT NULL;
 
-CREATE INDEX date_session_purchase_idx ON puretherapie.BundlePurchase (date);
+CREATE INDEX date_session_purchase_idx ON puretherapie.SessionPurchase (date);

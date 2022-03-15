@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `puretherapie`.`KPI` (
   PRIMARY KEY (`idKPI`));
 
 CREATE UNIQUE INDEX `kpi_name_UNIQUE` ON `puretherapie`.`KPI` (`name` ASC) VISIBLE;
+CREATE INDEX `kpi_tag_idx` ON `puretherapie`.`KPI` (`tags` ASC ) VISIBLE;
 
 GRANT ALL ON TABLE `puretherapie`.`KPI` TO 'PureTherapie_super_admin'@'%';
 GRANT UPDATE, SELECT, INSERT, DELETE ON TABLE `puretherapie`.`KPI` TO 'PureTherapie_spring_user'@'%';

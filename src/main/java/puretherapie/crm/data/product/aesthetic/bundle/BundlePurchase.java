@@ -7,6 +7,7 @@ import puretherapie.crm.data.person.client.Client;
 import puretherapie.crm.data.product.bill.Bill;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
@@ -35,6 +36,9 @@ public class BundlePurchase {
     @ManyToOne(optional = false)
     @JoinColumn(name = "idBill", nullable = false)
     private Bill bill;
+
+    @Column(name = "date", nullable = false)
+    private LocalDateTime date;
 
     @OneToMany(targetEntity = Stock.class, mappedBy = "bundlePurchase")
     @ToString.Exclude

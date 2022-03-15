@@ -16,7 +16,7 @@ public class ClientImportationMain {
     // Constants.
 
     public static final String CLIENTS_RESOURCES_PATH = "src/main/resources/clients-importation";
-    public static final String CLIENTS_IMPORTATION_SQL_PATH = "src/main/resources/clients-importation/full_clients_1.sql";
+    public static final String CLIENTS_IMPORTATION_SQL_PATH = "sql/init/full_clients_1.sql";
 
     public static final String CSV_SEPARATOR = ";";
 

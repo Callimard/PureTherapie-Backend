@@ -15,6 +15,7 @@ import puretherapie.crm.data.person.client.repository.ClientRepository;
 import puretherapie.crm.tool.PhoneTool;
 import puretherapie.crm.tool.StringTool;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -33,11 +34,39 @@ public class ClientService {
 
     // Methods.
 
+    /**
+     * Verify if the client at the moment of the call of the methods.
+     *
+     * @param idClient the client id
+     *
+     * @return true if the client is new when we call the method.
+     */
     public boolean isNew(int idClient) {
         Client client = verifyClient(idClient);
-        List<Appointment> clientAppointments = appointmentRepository.findByClient(client);
-        return clientAppointments.isEmpty() || (clientAppointments.size() == 1 && !clientAppointments.get(0).isFinalized());
+        Appointment appointment = getClientFirstAppointment(client);
+        if (appointment != null) {
+            LocalDate today = LocalDate.now();
+            return appointment.getDay().isAfter(today) || appointment.getDay().equals(today);
+        } else
+            return true;
     }
+
+    public Appointment getClientFirstAppointment(int idClient) {
+        Client client = verifyClient(idClient);
+        return getClientFirstAppointment(client);
+    }
+
+    public Appointment getClientFirstAppointment(Client client) {
+        List<Appointment> clientAppointments = appointmentRepository.findByClient(client);
+        for (Appointment appointment : clientAppointments) {
+            if (!appointment.isCanceled())
+                return appointment;
+        }
+
+        // Has no appointment so new client.
+        return null;
+    }
+
 
     private Client verifyClient(int idClient) {
         Client client = clientRepository.findByIdPerson(idClient);

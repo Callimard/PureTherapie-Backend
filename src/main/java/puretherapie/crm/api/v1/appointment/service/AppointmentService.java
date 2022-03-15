@@ -7,7 +7,6 @@ import puretherapie.crm.data.appointment.Appointment;
 import puretherapie.crm.data.appointment.repository.AppointmentRepository;
 import puretherapie.crm.data.person.client.Client;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -26,17 +25,20 @@ public class AppointmentService {
     // Methods.
 
     public boolean isFirstAppointment(int idAppointment) {
-        Appointment appointment = verifyAppointment(idAppointment);
-        Client client = appointment.getClient();
-        List<Appointment> clientAppointments = appointmentRepository.findByClient(client);
-        for (Appointment a : clientAppointments) {
-            LocalDateTime appointmentDateTime = LocalDateTime.of(appointment.getDay(), appointment.getTime());
-            LocalDateTime aDateTime = LocalDateTime.of(a.getDay(), a.getTime());
+        return isFirstAppointment(verifyAppointment(idAppointment));
+    }
 
-            if (aDateTime.isBefore(appointmentDateTime))
-                return false;
+    public boolean isFirstAppointment(Appointment appointment) {
+        Client client = appointment.getClient();
+        List<Appointment> clientAppointments = appointmentRepository.findByClientOrderByDayAsc(client);
+        Appointment firstNotCanceled = null;
+        for (Appointment app : clientAppointments) {
+            if (!app.isCanceled()) {
+                firstNotCanceled = app;
+                break;
+            }
         }
-        return true;
+        return firstNotCanceled != null && firstNotCanceled.getIdAppointment() == appointment.getIdAppointment();
     }
 
     private Appointment verifyAppointment(int idAppointment) {

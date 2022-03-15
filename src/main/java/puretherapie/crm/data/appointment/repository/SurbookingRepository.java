@@ -14,4 +14,6 @@ public interface SurbookingRepository extends JpaRepository<Surbooking, Integer>
 
     List<Surbooking> findByDayAndCanceled(LocalDate day, boolean canceled);
 
+    List<Surbooking> findByCanceledFalseAndDayGreaterThanEqualAndDayLessThan(LocalDate begin, LocalDate end);
+
 }

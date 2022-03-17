@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import puretherapie.crm.api.v1.agenda.controller.dto.ExceptionalCloseDTO;
 import puretherapie.crm.api.v1.agenda.controller.dto.ExceptionalOpeningDTO;
 import puretherapie.crm.api.v1.agenda.controller.dto.GlobalOpeningTimeDTO;
+import puretherapie.crm.api.v1.agenda.service.OpeningService;
 import puretherapie.crm.data.agenda.ExceptionalClose;
 import puretherapie.crm.data.agenda.ExceptionalOpening;
 import puretherapie.crm.data.agenda.GlobalOpeningTime;
@@ -14,6 +15,7 @@ import puretherapie.crm.data.agenda.repository.ExceptionalCloseRepository;
 import puretherapie.crm.data.agenda.repository.ExceptionalOpeningRepository;
 import puretherapie.crm.data.agenda.repository.GlobalOpeningTimeRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static puretherapie.crm.api.v1.ApiV1.API_V1_URL;
@@ -35,13 +37,22 @@ public class OpeningAndCloseController {
     public static final String EXCEPTIONAL_CLOSINGS = "/exceptional_closings";
     public static final String EXCEPTIONAL_CLOSINGS_URL = OPENING_AND_CLOSE_URL + EXCEPTIONAL_CLOSINGS;
 
+    public static final String IS_OPEN_DAY = "/isOpen";
+
     // Variables.
 
     private final GlobalOpeningTimeRepository globalOpeningTimeRepository;
     private final ExceptionalOpeningRepository exceptionalOpeningRepository;
     private final ExceptionalCloseRepository exceptionalCloseRepository;
+    private final OpeningService openingService;
 
     // Methods.
+
+    @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS', 'ROLE_MAMY', 'ROLE_SECRETARY')")
+    @GetMapping(IS_OPEN_DAY)
+    public boolean isOpen(@RequestParam(name = "day") String day) {
+        return openingService.isOpen(LocalDate.parse(day));
+    }
 
     @PreAuthorize("isAuthenticated() && hasAnyRole('ROLE_BOSS')")
     @GetMapping()

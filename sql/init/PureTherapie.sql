@@ -995,7 +995,7 @@ GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE `puretherapie`.`Sms` TO 'PureThera
 GRANT UPDATE, SELECT, INSERT ON TABLE `puretherapie`.`Sponsorship` TO 'PureTherapie_spring_user'@'%';
 GRANT UPDATE, SELECT, INSERT ON TABLE `puretherapie`.`Stock` TO 'PureTherapie_spring_user'@'%';
 GRANT UPDATE, SELECT, INSERT ON TABLE `puretherapie`.`Technician` TO 'PureTherapie_spring_user'@'%';
-GRANT UPDATE, SELECT, INSERT ON TABLE `puretherapie`.`TechnicianAbsence` TO 'PureTherapie_spring_user'@'%';
+GRANT UPDATE, SELECT, INSERT, DELETE ON TABLE `puretherapie`.`TechnicianAbsence` TO 'PureTherapie_spring_user'@'%';
 GRANT UPDATE, SELECT, INSERT ON TABLE `puretherapie`.`TimeSlot` TO 'PureTherapie_spring_user'@'%';
 GRANT SELECT, UPDATE ON TABLE `puretherapie`.`User` TO 'PureTherapie_spring_user'@'%';
 GRANT UPDATE, SELECT, INSERT, DELETE ON TABLE `puretherapie`.`WaitingRoom` TO 'PureTherapie_spring_user'@'%';

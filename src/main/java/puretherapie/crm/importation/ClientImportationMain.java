@@ -16,7 +16,7 @@ public class ClientImportationMain {
     // Constants.
 
     public static final String CLIENTS_RESOURCES_PATH = "src/main/resources/clients-importation";
-    public static final String CLIENTS_IMPORTATION_SQL_PATH = "sql/init/full_clients_1.sql";
+    public static final String CLIENTS_IMPORTATION_SQL_PATH = "sql/init/total_clients.sql";
 
     public static final String CSV_SEPARATOR = ";";
 
@@ -41,7 +41,7 @@ public class ClientImportationMain {
     // Main
 
     public static void main(String[] args) {
-        String[] files = new String[]{CLIENTS_RESOURCES_PATH + "/bdfin_1.csv"};
+        String[] files = new String[]{CLIENTS_RESOURCES_PATH + "/bdfin_full.csv", CLIENTS_RESOURCES_PATH + "/bd-agenda-full.csv"};
 
         if (Files.exists(Path.of(CLIENTS_IMPORTATION_SQL_PATH))) {
             try {
@@ -177,8 +177,8 @@ public class ClientImportationMain {
             } else {
                 phone = "33" + phone;
 
-                if (!PHONE_ADDED.add(phone))
-                    phone = "33" + generateDefaultPhone();
+                /*if (!PHONE_ADDED.add(phone))
+                    phone = "33" + generateDefaultPhone();*/
 
                 return PhoneTool.formatPhone(phone);
             }
